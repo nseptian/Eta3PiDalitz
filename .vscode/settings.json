@@ -1,0 +1,26 @@
+{
+    "files.associations": {
+        "draw_fit_results.C": "cpp",
+        "show_fit_pars.C": "cpp",
+        "plotResult.C": "cpp",
+        "plotData.C": "cpp",
+        "EtaTo3PiReconstruction.C": "cpp",
+        "EtaTo3PiReconstruction_all.C": "cpp",
+        "show_fit_pars_merged.C": "cpp",
+        "show_fit_pars_KLOE.C": "cpp",
+        "show_fit_pars_WASA.C": "cpp",
+        "show_fit_pars_merged_diff.C": "cpp",
+        "cmath": "cpp",
+        "calcStatUnc.C": "cpp",
+        "fstream": "cpp",
+        "show_fit_pars_merged_GlueX_compare.C": "cpp",
+        "ostream": "cpp",
+        "EtaTo3PiReconstructionAll.C": "cpp",
+        "EtaTo3PiReconstructionInd.C": "cpp",
+        "ana_rec_data.C": "cpp",
+        "show_fit_pars_merged_HUGS2022.C": "cpp",
+        "EtaTo3PiReconstructionBkgsubs.C": "cpp",
+        "EtaTo3PiReconstructionAllBkgsubs.C": "cpp",
+        "plotDalitzParameterMomentumCut.C": "cpp"
+    }
+}

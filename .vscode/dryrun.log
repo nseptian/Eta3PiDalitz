@@ -1,0 +1,75 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/d/home/septian/Eta3PiDalitz'
+mkdir lib
+ 
+make -C   DalitzDataIO  LIB=libDalitzDataIO.a
+ 
+make[1]: Entering directory `/d/home/septian/Eta3PiDalitz/DalitzDataIO'
+echo "-> Compiling DalitzDataReaderBootstrap.cc"
+ 
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -M -o DalitzDataReaderBootstrap.d DalitzDataReaderBootstrap.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools ; \
+cp DalitzDataReaderBootstrap.d DalitzDataReaderBootstrap.dep; \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$//' \
+	-e '/^$/ d' -e 's/$/ :/' < DalitzDataReaderBootstrap.d >> DalitzDataReaderBootstrap.dep; \
+rm -f DalitzDataReaderBootstrap.d DalitzDataReaderBootstrap.d.bak
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -c -o DalitzDataReaderBootstrap.o DalitzDataReaderBootstrap.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools
+echo "-> Compiling DalitzDataReader.cc"
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -M -o DalitzDataReader.d DalitzDataReader.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools ; \
+cp DalitzDataReader.d DalitzDataReader.dep; \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$//' \
+	-e '/^$/ d' -e 's/$/ :/' < DalitzDataReader.d >> DalitzDataReader.dep; \
+rm -f DalitzDataReader.d DalitzDataReader.d.bak
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -c -o DalitzDataReader.o DalitzDataReader.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools
+echo "-> Compiling DalitzDataWriter.cc"
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -M -o DalitzDataWriter.d DalitzDataWriter.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools ; \
+cp DalitzDataWriter.d DalitzDataWriter.dep; \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$//' \
+	-e '/^$/ d' -e 's/$/ :/' < DalitzDataWriter.d >> DalitzDataWriter.dep; \
+rm -f DalitzDataWriter.d DalitzDataWriter.d.bak
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -c -o DalitzDataWriter.o DalitzDataWriter.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools
+echo "--> Archiving libDalitzDataIO.a"
+ar -rsc libDalitzDataIO.a DalitzDataReaderBootstrap.o DalitzDataReader.o DalitzDataWriter.o
+make[1]: Leaving directory `/d/home/septian/Eta3PiDalitz/DalitzDataIO'
+cp   DalitzDataIO/libDalitzDataIO.a lib/
+make -C   DalitzAmp  LIB=libDalitzAmp.a
+ 
+make[1]: Entering directory `/d/home/septian/Eta3PiDalitz/DalitzAmp'
+echo "-> Compiling DecayAmp.cc"
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -M -o DecayAmp.d DecayAmp.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools ; \
+cp DecayAmp.d DecayAmp.dep; \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$//' \
+	-e '/^$/ d' -e 's/$/ :/' < DecayAmp.d >> DecayAmp.dep; \
+rm -f DecayAmp.d DecayAmp.d.bak
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -c -o DecayAmp.o DecayAmp.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools
+echo "-> Compiling BreitWigner.cc"
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -M -o BreitWigner.d BreitWigner.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools ; \
+cp BreitWigner.d BreitWigner.dep; \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$//' \
+	-e '/^$/ d' -e 's/$/ :/' < BreitWigner.d >> BreitWigner.dep; \
+rm -f BreitWigner.d BreitWigner.d.bak
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -c -o BreitWigner.o BreitWigner.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools
+echo "--> Archiving libDalitzAmp.a"
+ar -rsc libDalitzAmp.a DecayAmp.o BreitWigner.o
+make[1]: Leaving directory `/d/home/septian/Eta3PiDalitz/DalitzAmp'
+cp   DalitzAmp/libDalitzAmp.a lib/
+make -C   DalitzPlot  LIB=libDalitzPlot.a
+ 
+make[1]: Entering directory `/d/home/septian/Eta3PiDalitz/DalitzPlot'
+echo "-> Compiling DalitzPlotGenerator.cc"
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -M -o DalitzPlotGenerator.d DalitzPlotGenerator.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools ; \
+cp DalitzPlotGenerator.d DalitzPlotGenerator.dep; \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$//' \
+	-e '/^$/ d' -e 's/$/ :/' < DalitzPlotGenerator.d >> DalitzPlotGenerator.dep; \
+rm -f DalitzPlotGenerator.d DalitzPlotGenerator.d.bak
+gcc -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -c -o DalitzPlotGenerator.o DalitzPlotGenerator.cc -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools
+echo "--> Archiving libDalitzPlot.a"
+ar -rsc libDalitzPlot.a DalitzPlotGenerator.o
+make[1]: Leaving directory `/d/home/septian/Eta3PiDalitz/DalitzPlot'
+cp   DalitzPlot/libDalitzPlot.a lib/
+ 
+(cd lib && ar -rsc libDalitz.a *.o && ranlib libDalitz.a)
+(cd lib && rm -f *.o)
+echo "=== Build of libDalitz.a is complete. ==="
+ 
+make: Leaving directory `/d/home/septian/Eta3PiDalitz'
+ 

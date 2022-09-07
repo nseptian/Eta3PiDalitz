@@ -1,0 +1,615 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 3.82
+# Built for x86_64-redhat-linux-gnu
+# Copyright (C) 2010  Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+ 
+make: *** No rule to make target `all'.  Stop.
+
+
+# Make data base, printed on Tue Jul 12 23:48:58 2022
+
+# Variables
+
+# environment
+AMPTOOLS = /d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# environment
+G4ABLADATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/G4ABLA3.1
+# automatic
+?F = $(notdir $?)
+# default
+.SHELLFLAGS := -c
+# environment
+QTDIR = /usr/lib64/qt-3.3
+# environment
+HALLD_RECON_HOME = /d/grid13/gluex/gluex_top/halld_recon/halld_recon-4.34.0^rcdb701
+# environment
+VSCODE_AGENT_FOLDER = /d/home/septian/.vscode-server
+# environment
+AMPTOOLS_VERSION = 0.12.2
+# environment
+LC_CTYPE = en_US.UTF-8
+# environment
+SQLITE_VERSION = 3.36.0
+# environment
+MODULEPATH = /usr/share/Modules/modulefiles:/etc/modulefiles
+# environment
+CCDB_CONNECTION = sqlite:////d/home/septian/TAGM_TW/ccdb.sqlite
+# environment
+CERN_ROOT = /d/grid13/gluex/gluex_top/cernlib/2005
+# environment
+HALLD_VERSIONS = /d/grid13/gluex/gluex_top/halld_versions
+# environment
+CCDB_HOME = /d/grid13/gluex/gluex_top/ccdb/ccdb_1.06.08
+# environment
+RCDB_VERSION = 0.07.01
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# automatic
+@F = $(notdir $@)
+# default
+MAKE_VERSION := 3.82
+# makefile
+CURDIR := /d/home/septian/Eta3PiDalitz
+# makefile
+SHELL = /bin/sh
+# makefile (from `Makefile', line 18)
+Q := @
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en","availableLanguages":{}}
+# environment
+GLOBUS_TCP_SOURCE_RANGE = 40000,41999
+# environment
+_ = /usr/bin/make
+# environment
+LAPACK_HOME = /d/grid13/gluex/gluex_top/lapack/lapack-3.9.0
+# environment
+GLUEX_ROOT_ANALYSIS_VERSION = 1.21.0
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# environment
+G4MULTITHREADED = 1
+# environment
+G4LIB_BUILD_SHARED = 1
+# makefile (from `Makefile', line 1)
+MAKEFILE_LIST :=  Makefile
+# environment
+AMPTOOLS_HOME = /d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404
+# environment
+HISTCONTROL = erasedups:ignoreboth
+# environment
+XERCES_C_VERSION = 3.2.3
+# environment
+SQLITE_HOME = /d/grid13/gluex/gluex_top/sqlite/sqlite-3.36.0
+# environment
+JANA_RESOURCE_DIR = /d/grid13/gluex/gluex_top/resources
+# environment
+XDG_DATA_DIRS = /d/home/septian/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
+# environment
+ROOTSYS = /d/grid13/gluex/gluex_top/root/root-6.24.04
+# makefile (from `Makefile', line 7)
+SRCDIRS := DalitzDataIO DalitzAmp DalitzPlot
+# environment
+G4PIIDATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/G4PII1.3
+# environment
+QT_PLUGIN_PATH = /usr/lib64/kde4/plugins:/usr/lib/kde4/plugins
+# environment
+HALLD_RECON_DIRTAG = rcdb701
+# environment
+LESSOPEN = ||/usr/bin/lesspipe.sh %s
+# environment
+G4NEUTRONXSDATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/G4NEUTRONXS1.4
+# environment
+VSCODE_CWD = /d/home/septian
+# environment
+JANA_PLUGIN_PATH = /d/home/septian/halld_my/Linux_CentOS7-x86_64-gcc4.8.5/plugins:/d/grid13/gluex/gluex_top/halld_sim/halld_sim-4.38.0^rcdb701/Linux_CentOS7-x86_64-gcc4.8.5/plugins:/d/grid13/gluex/gluex_top/halld_recon/halld_recon-4.34.0^rcdb701/Linux_CentOS7-x86_64-gcc4.8.5/plugins:/d/grid13/gluex/gluex_top/jana/jana_0.8.2^ccdb168/Linux_CentOS7-x86_64-gcc4.8.5/plugins:/d/grid13/gluex/gluex_top/jana/jana_0.8.2^ccdb168/Linux_CentOS7-x86_64-gcc4.8.5/lib
+# environment
+SSH_CONNECTION = 98.230.8.239 50973 128.186.19.147 22
+# environment
+PATH = /d/home/septian/.vscode-server/bin/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a/bin/remote-cli:/d/grid13/gluex/gluex_top/gluex_root_analysis/gluex_root_analysis-1.21.0^rcdb701/Linux_CentOS7-x86_64-gcc4.8.5/bin:/d/grid13/gluex/gluex_top/gluex_MCwrapper/gluex_MCwrapper-v2.6.0:/d/grid13/gluex/gluex_top/hdgeant4/hdgeant4-2.32.0^rcdb701/bin/Linux-g++:/d/home/septian/halld_my/Linux_CentOS7-x86_64-gcc4.8.5/bin:/d/grid13/gluex/gluex_top/halld_sim/halld_sim-4.38.0^rcdb701/Linux_CentOS7-x86_64-gcc4.8.5/bin:/d/grid13/gluex/gluex_top/halld_recon/halld_recon-4.34.0^rcdb701/Linux_CentOS7-x86_64-gcc4.8.5/bin:/d/grid13/gluex/gluex_top/jana/jana_0.8.2^ccdb168/Linux_CentOS7-x86_64-gcc4.8.5/bin:/d/grid13/gluex/gluex_top/rcdb/rcdb_0.07.01:/d/grid13/gluex/gluex_top/rcdb/rcdb_0.07.01/bin:/d/grid13/gluex/gluex_top/rcdb/rcdb_0.07.01/cpp/bin:/d/grid13/gluex/gluex_top/ccdb/ccdb_1.06.08/bin:/d/home/septian/geant4_workdir/bin/Linux-g++:/d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/bin:/d/grid13/gluex/gluex_top/cernlib/2005/bin:/d/grid13/gluex/gluex_top/root/root-6.24.04/bin:/usr/lib64/qt-3.3/bin:/d/grid13/gluex/gluex_top/build_scripts:/d/home/septian/anaconda3/condabin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin
+# environment
+VSCODE_IPC_HOOK_CLI = /run/user/8060/vscode-ipc-c66d501a-0cb5-4a89-91a8-d9e197db35a9.sock
+# environment
+G4INSTALL = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/geant4make
+# environment
+QT_GRAPHICSSYSTEM_CHECKED = 1
+# environment
+LSCOLORS = Gxfxcxdxdxegedabagacad
+# environment
+XDG_RUNTIME_DIR = /run/user/8060
+# environment
+G4UI_USE_XM = 1
+# makefile (from `Makefile', line 11)
+TARGET_LIBS_GPU := libDalitzDataIO_GPU.a libDalitzAmp_GPU.a libDalitzPlot_GPU.a
+# environment
+XERCES_INCLUDE = /d/grid13/gluex/gluex_top/xerces-c/xerces-c-3.2.3/include
+# environment
+AMPTOOLS_DIRTAG = root62404
+# environment
+HEPMCDIR = /d/grid13/gluex/gluex_top/hepmc/HepMC-2.06.10
+# makefile (from `Makefile', line 19)
+vecho = @echo
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+SELINUX_USE_CURRENT_RANGE = 
+# environment
+ROOT_VERSION = 6.24.04
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver check-symlink
+# environment
+HALLD_SIM_DIRTAG = rcdb701
+# environment
+LS_COLORS = 
+# automatic
+%F = $(notdir $%)
+# environment
+KDEDIRS = /usr
+# environment
+CONDA_EXE = /d/home/septian/anaconda3/bin/conda
+# environment
+GLUEX_ROOT_ANALYSIS_DIRTAG = rcdb701
+# environment
+JANA_VERSION = 0.8.2
+# environment
+CCDB_USER = sdobbs
+# environment
+RCDB_HOME = /d/grid13/gluex/gluex_top/rcdb/rcdb_0.07.01
+# environment
+CERNLIB_WORD_LENGTH = 64-bit
+# environment
+EVIO_VERSION = 4.4.6
+# environment
+PWD = /d/home/septian/Eta3PiDalitz
+# environment
+OSH = /d/home/septian/.oh-my-bash
+# environment
+CERN = /d/grid13/gluex/gluex_top/cernlib
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+G4WORKDIR = /d/home/septian/geant4_workdir
+# environment
+G4LIB = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/lib64/Geant4-10.4.2
+# environment
+BUILD_SCRIPTS = /d/grid13/gluex/gluex_top/build_scripts
+# makefile (from `Makefile', line 10)
+SRCDIRS_GPU := DalitzDataIO DalitzAmp DalitzPlot
+# environment
+MANPATH = :/opt/puppetlabs/puppet/share/man
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /d/home/septian
+# environment
+LD_LIBRARY_PATH = /d/grid13/gluex/gluex_top/evtgen/evtgen-01.07.00/lib:/d/grid13/gluex/gluex_top/photos/Photos-3.61/lib:/d/grid13/gluex/gluex_top/hepmc/HepMC-2.06.10/lib:/d/grid13/gluex/gluex_top/gluex_root_analysis/gluex_root_analysis-1.21.0^rcdb701/Linux_CentOS7-x86_64-gcc4.8.5/lib:/d/grid13/gluex/gluex_top/diracxx/Diracxx-2.0.2/lib:/d/grid13/gluex/gluex_top/diracxx/Diracxx-2.0.2:/d/grid13/gluex/gluex_top/evio/evio-4.4.6/Linux-x86_64/lib:/d/grid13/gluex/gluex_top/rcdb/rcdb_0.07.01/cpp/lib:/d/grid13/gluex/gluex_top/ccdb/ccdb_1.06.08/lib:/d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/lib64:/d/grid13/gluex/gluex_top/root/root-6.24.04/lib:/d/grid13/gluex/gluex_top/xerces-c/xerces-c-3.2.3/lib
+# environment
+EVTGEN_VERSION = 01.07.00
+# environment
+GLOBUS_TCP_PORT_RANGE = 40000,41999
+# environment
+HD_UTILITIES_VERSION = 1.39
+# environment
+MODULESHOME = /usr/share/Modules
+# environment
+LOGNAME = septian
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+# automatic
++F = $(notdir $+)
+# environment
+PHOTOSDIR = /d/grid13/gluex/gluex_top/photos/Photos-3.61
+# environment
+SELINUX_LEVEL_REQUESTED = 
+# environment
+XERCESCROOT = /d/grid13/gluex/gluex_top/xerces-c/xerces-c-3.2.3
+# environment
+JANA_HOME = /d/grid13/gluex/gluex_top/jana/jana_0.8.2^ccdb168/Linux_CentOS7-x86_64-gcc4.8.5
+# environment
+G4VIS_USE_RAYTRACERX = 1
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+MFLAGS = -Rrqp
+# environment
+HOSTNAME = scigrid6.physics.fsu.edu
+# environment
+MAKELEVEL := 0
+# environment
+G4NEUTRONHPDATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/G4NDL4.5
+# environment
+G4VIS_USE_OPENGLXM = 1
+# environment
+ROOT_ANALYSIS_HOME = /d/grid13/gluex/gluex_top/gluex_root_analysis/gluex_root_analysis-1.21.0^rcdb701
+# default
+MAKECMDGOALS := all
+# environment
+G4VIS_USE_OPENGLX = 1
+# environment
+SHLVL = 5
+# environment
+JANA_GEOMETRY_URL = ccdb:///GEOMETRY/main_HDDS.xml
+# environment
+HALLD_SIM_DEBUG_LEVEL = 1
+# environment
+MCWRAPPER_CENTRAL = /d/grid13/gluex/gluex_top/gluex_MCwrapper/gluex_MCwrapper-v2.6.0
+# makefile (from `Makefile', line 5)
+CXX_FLAGS := -O3 -pthread -std=c++11 -m64 -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include
+# environment
+XDG_SESSION_ID = 60499
+# environment
+HD_UTILITIES_HOME = /d/grid13/gluex/gluex_top/hd_utilities/hd_utilities-1.39
+# environment
+USER = septian
+# environment
+G4INCLUDE = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/include/Geant4
+# environment
+QTLIB = /usr/lib64/qt-3.3/lib
+# environment
+HDGEANT4_VERSION = 2.32.0
+# environment
+G4ROOT = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02
+# default
+MAKE = $(MAKE_COMMAND)
+# environment
+LESS = -R
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+define BASH_FUNC_module()
+() {  eval `/usr/bin/modulecmd bash $*`
+}
+endef
+# environment
+HEPMC_VERSION = 2.06.10
+# environment
+G4LEVELGAMMADATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/PhotonEvaporation5.2
+# environment
+CONDA_SHLVL = 0
+# default
+MAKE_COMMAND := make
+# environment
+AMPPLOTTER = /d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpPlotter
+# environment
+SQLITE_YEAR = 2021
+# environment
+G4SAIDXSDATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/G4SAIDDATA1.1
+# environment
+G4LIB_USE_GDML = 1
+# environment
+HALLD_SIM_VERSION = 4.38.0
+# default
+.VARIABLES := 
+# automatic
+*F = $(notdir $*)
+# environment
+JANA_DIRTAG = ccdb168
+# environment
+G4SYSTEM = Linux-g++
+# environment
+PYTHONPATH = /d/grid13/gluex/gluex_top/hdgeant4/hdgeant4-2.32.0^rcdb701/g4py:/d/grid13/gluex/gluex_top/halld_recon/halld_recon-4.34.0^rcdb701/Linux_CentOS7-x86_64-gcc4.8.5/python2:/d/grid13/gluex/gluex_top/rcdb/rcdb_0.07.01/python:/d/grid13/gluex/gluex_top/ccdb/ccdb_1.06.08/python:/d/grid13/gluex/gluex_top/ccdb/ccdb_1.06.08/python/ccdb/ccdb_pyllapi:/d/grid13/gluex/gluex_top/root/root-6.24.04/lib:
+# makefile
+MAKEFLAGS = Rrqp
+# environment
+SQLITECPP_VERSION = 3.1.1
+# environment
+SSH_CLIENT = 98.230.8.239 50973 22
+# environment
+MAIL = /var/spool/mail/septian
+ 
+# environment
+LOADEDMODULES = 
+# environment
+HDGEANT4_HOME = /d/grid13/gluex/gluex_top/hdgeant4/hdgeant4-2.32.0^rcdb701
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# environment
+QTHOME = /usr/lib64/qt4
+# environment
+BROWSER = /d/home/septian/.vscode-server/bin/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a/bin/helpers/browser.sh
+# environment
+CERNLIB_VERSION = 2005
+# environment
+HDDS_VERSION = 4.15.0
+# default
+SUFFIXES := 
+# environment
+VSCODE_HANDLES_SIGPIPE = true
+# environment
+GLUEX_MCWRAPPER_VERSION = v2.6.0
+# environment
+HALLD_SIM_HOME = /d/grid13/gluex/gluex_top/halld_sim/halld_sim-4.38.0^rcdb701
+# environment
+RCDB_CONNECTION = mysql://rcdb@hallddb.jlab.org/rcdb
+# default
+MAKEFILES := 
+# environment
+CERN_LEVEL = 2005
+# environment
+DIRACXX_VERSION = 2.0.2
+# environment
+HALLD_RECON_DEBUG_LEVEL = 1
+# automatic
+<F = $(notdir $<)
+# makefile (from `Makefile', line 8)
+TARGET_LIBS := libDalitzDataIO.a libDalitzAmp.a libDalitzPlot.a
+# environment
+JANA_CALIB_URL = sqlite:////d/home/septian/TAGM_TW/ccdb.sqlite
+# environment
+SQLITECPP_HOME = /d/grid13/gluex/gluex_top/sqlitecpp/SQLiteCpp-3.1.1
+# makefile (from `Makefile', line 4)
+CXX := gcc
+# environment
+BMS_OSNAME = Linux_CentOS7-x86_64-gcc4.8.5
+# environment
+G4REALSURFACEDATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/RealSurface2.1.1
+# environment
+PAGER = less
+# environment
+LC_ALL = C
+# environment
+QTLIBPATH = /usr/lib64
+# environment
+CONDA_PYTHON_EXE = /d/home/septian/anaconda3/bin/python
+# makefile (from `Makefile', line 46)
+DEFAULT := libDalitz.a
+# automatic
+^F = $(notdir $^)
+# environment
+SELINUX_ROLE_REQUESTED = 
+# environment
+G4RADIOACTIVEDATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/RadioactiveDecay5.2
+# environment
+HISTSIZE = 500000
+# environment
+_CE_M = 
+# environment
+HALLD_RECON_VERSION = 4.34.0
+# environment
+HALLD_MY = /d/home/septian/halld_my
+# environment
+HDGEANT4_DIRTAG = rcdb701
+# environment
+GLUEX_TOP = /d/grid13/gluex/gluex_top
+# environment
+_CE_CONDA = 
+# environment
+DIRACXX_HOME = /d/grid13/gluex/gluex_top/diracxx/Diracxx-2.0.2
+# default
+.INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
+# environment
+HISTIGNORE = &:[ ]*:exit:ls:bg:fg:history:clear
+# environment
+EVIOROOT = /d/grid13/gluex/gluex_top/evio/evio-4.4.6/Linux-x86_64
+# environment
+G4LEDATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/G4EMLOW7.3
+# environment
+QTINC = /usr/lib64/qt-3.3/include
+# environment
+HDDS_HOME = /d/grid13/gluex/gluex_top/hdds/hdds-4.15.0
+# default
+.RECIPEPREFIX := 
+# environment
+G4UI_USE_TCSH = 1
+# environment
+CCDB_VERSION = 1.06.08
+# makefile
+.DEFAULT_GOAL := default
+# environment
+EVTGENDIR = /d/grid13/gluex/gluex_top/evtgen/evtgen-01.07.00
+# environment
+PHOTOS_VERSION = 3.61
+# environment
+LANG = C
+# environment
+G4LIB_USE_ZLIB = 1
+# environment
+G4VIS_USE_DAWN = 1
+# environment
+G4VIS_USE_OPENGLQT = 1
+# environment
+LAPACK_VERSION = 3.9.0
+# makefile (from `Makefile', line 2)
+INC_DIR := -I.. -I/d/grid13/gluex/gluex_top/root/root-6.24.04/include -I/d/grid13/gluex/gluex_top/amptools/AmpTools-0.12.2^root62404/AmpTools
+# environment
+G4ENSDFSTATEDATA = /d/grid13/gluex/gluex_top/geant4/geant4.10.04.p02/share/Geant4-10.4.2/data/G4ENSDFSTATE2.2
+# environment
+G4UI_USE_QT = 1
+# environment
+GEANT4_VERSION = 10.04.p02
+# variable set hash-table stats:
+# Load=203/1024=20%, Rehash=0, Collisions=36/241=15%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 49, inode 4434024546): 12 files, no impossibilities.
+
+# 12 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+lib%_GPU.a:
+#  recipe to execute (from `Makefile', line 73):
+	$(Q)$(MAKE) -C $(subst lib,, $(subst _GPU.a,, $@ )) LIB=$@
+	$(Q)cp $(subst lib,, $(subst _GPU.a,, $@))/$@ lib/
+
+lib%.a:
+#  recipe to execute (from `Makefile', line 77):
+	$(Q)$(MAKE) -C $(subst lib,, $(subst .a,, $@ )) LIB=$@
+	$(Q)cp $(subst lib,, $(subst .a,, $@))/$@ lib/
+
+clean_%:
+#  recipe to execute (from `Makefile', line 84):
+	$(Q)-cd $(subst clean_,, $@) && $(MAKE) clean
+
+# 3 implicit rules, 0 (0.0%) terminal.
+
+# Files
+
+# Not a target:
+all:
+#  Command line target.
+#  Implicit rule search has been done.
+#  File does not exist.
+#  File has not been updated.
+
+# Not a target:
+%.o:
+#  Precious file (prerequisite of .PRECIOUS).
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.PHONY: default clean
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.PRECIOUS: %.o
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+libDalitzDataIO.a:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+clean_DalitzDataIO:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+libDalitzPlot_GPU.a:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+libDalitzAmp.a:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-05-11 19:49:36.69137131
+#  File has been updated.
+#  Successfully updated.
+
+# Not a target:
+clean_DalitzAmp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+libDalitz_GPU.a: libDalitzDataIO_GPU.a libDalitzAmp_GPU.a libDalitzPlot_GPU.a
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from `Makefile', line 67):
+	$(foreach lib_GPU, $(TARGET_LIBS_GPU), $(shell cd lib; ar -x $(lib_GPU) ) )
+	$(Q)(cd lib && ar -rsc $@ *.o && ranlib $@)
+	$(Q)(cd lib && rm -f *.o)
+	$(vecho) "=== Build of $@ is complete. ==="
+
+default: lib libDalitz.a
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+
+lib:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from `Makefile', line 58):
+	$(Q)mkdir lib
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+libDalitzDataIO_GPU.a:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+clean: clean_DalitzDataIO clean_DalitzAmp clean_DalitzPlot
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from `Makefile', line 81):
+	$(Q)-rm -f lib/*.a
+
+# Not a target:
+libDalitzAmp_GPU.a:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+libDalitzPlot.a:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+clean_DalitzPlot:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+libDalitz.a: libDalitzDataIO.a libDalitzAmp.a libDalitzPlot.a
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+ 
+#  recipe to execute (from `Makefile', line 61):
+	$(foreach lib, $(TARGET_LIBS), $(shell cd lib; ar -x $(lib) ) )
+	$(Q)(cd lib && ar -rsc $@ *.o && ranlib $@)
+	$(Q)(cd lib && rm -f *.o)
+	$(vecho) "=== Build of $@ is complete. ==="
+
+# files hash-table stats:
+# Load=21/1024=2%, Rehash=0, Collisions=0/49=0%
+# VPATH Search Paths
+
+# No `vpath' search paths.
+
+# No general (`VPATH' variable) search path.
+
+# # of strings in strcache: 0 / lookups = 52 / hits = 52
+# # of strcache buffers: 1 (* 8176 B/buffer = 8176 B)
+# strcache used: total = 0 (411) / max = 0 / min = 8176 / avg = 0
+# strcache free: total = 0 (7765) / max = 0 / min = 8176 / avg = 0
+
+# strcache hash-table stats:
+# Load=36/8192=0%, Rehash=0, Collisions=1/52=2%
+# Finished Make data base on Tue Jul 12 23:48:58 2022
+
+ 
