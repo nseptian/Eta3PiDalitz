@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[]){
     
-    // gStyle->SetOptFit(0001);
+    // gStyle->SetOptStat(11);
     // gStyle->SetOptStat("ne");
     
     if (argc < 5){
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]){
         fitFile.open(fitResultsName);
         if (fitFile){
             FitResults results(fitResultsName);
-            cout << fitResultsName << " is imported. eMatrixStatus = " << results.eMatrixStatus() << endl;
+            cout << fitResultsName << " is imported. eMatrixStatus = " << results.eMatrixStatus() << ", lastMinuitCommandStatus = " << results.lastMinuitCommandStatus() << endl;
             importedCounter++;
             // if (results.eMatrixStatus() == 0) return 1;
             vector<string> parameterName = results.parNameList();
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]){
             hPar_H->Fill(parameterValues[10]);
             hPar_L->Fill(parameterValues[11]);
 
-            if (results.eMatrixStatus()==2) {
+            if (results.lastMinuitCommandStatus()==0) {
                 hPar_A_2->Fill(-1*parameterValues[3]);
                 hPar_B_2->Fill(parameterValues[4]);
                 hPar_C_2->Fill(parameterValues[5]);
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]){
                 hPar_L_2->Fill(parameterValues[11]);
                 imported2Counter++;
             }
-            else if (results.eMatrixStatus()==3){
+            else if (results.lastMinuitCommandStatus()==4){
                 hPar_A_3->Fill(-1*parameterValues[3]);
                 hPar_B_3->Fill(parameterValues[4]);
                 hPar_C_3->Fill(parameterValues[5]);
@@ -125,6 +125,31 @@ int main(int argc, char* argv[]){
                 imported3Counter++;
             }
 
+            // if (results.eMatrixStatus()==2) {
+            //     hPar_A_2->Fill(-1*parameterValues[3]);
+            //     hPar_B_2->Fill(parameterValues[4]);
+            //     hPar_C_2->Fill(parameterValues[5]);
+            //     hPar_D_2->Fill(parameterValues[6]);
+            //     hPar_E_2->Fill(parameterValues[7]);
+            //     hPar_F_2->Fill(parameterValues[8]);
+            //     hPar_G_2->Fill(parameterValues[9]);
+            //     hPar_H_2->Fill(parameterValues[10]);
+            //     hPar_L_2->Fill(parameterValues[11]);
+            //     imported2Counter++;
+            // }
+            // else if (results.eMatrixStatus()==3){
+            //     hPar_A_3->Fill(-1*parameterValues[3]);
+            //     hPar_B_3->Fill(parameterValues[4]);
+            //     hPar_C_3->Fill(parameterValues[5]);
+            //     hPar_D_3->Fill(parameterValues[6]);
+            //     hPar_E_3->Fill(parameterValues[7]);
+            //     hPar_F_3->Fill(parameterValues[8]);
+            //     hPar_G_3->Fill(parameterValues[9]);
+            //     hPar_H_3->Fill(parameterValues[10]);
+            //     hPar_L_3->Fill(parameterValues[11]);
+            //     imported3Counter++;
+            // }
+
             // cout << i << endl;
 
             // cout << i << " " << parameterValues[3] << endl;
@@ -136,7 +161,7 @@ int main(int argc, char* argv[]){
         fitFile.close();
     }
 
-    gStyle->SetOptStat(0);
+    gStyle->SetOptStat(11);
 
     Double_t label_size = 0.04;
     Double_t title_size = 0.07;
@@ -440,7 +465,7 @@ int main(int argc, char* argv[]){
     c1->cd(9);
     hPar_L_2->Draw();
     TString dalitzParAllPdfName2 = fitResultsBaseName;
-    dalitzParAllPdfName2 += "_2.pdf";
+    dalitzParAllPdfName2 += "_lastMinuitCommandStatus0.pdf";
     c1->SaveAs(dalitzParAllPdfName2);
 
     TCanvas *c2 = new TCanvas("c2","",2000,1200);
@@ -464,12 +489,15 @@ int main(int argc, char* argv[]){
     c2->cd(9);
     hPar_L_3->Draw();
     TString dalitzParAllPdfName3 = fitResultsBaseName;
-    dalitzParAllPdfName3 += "_3.pdf";
+    dalitzParAllPdfName3 += "_lastMinuitCommandStatus4.pdf";
     c2->SaveAs(dalitzParAllPdfName3);
 
     cout << "Total imported fit files: " << importedCounter << endl;
-    cout << "Total imported fit files with eMatrixStatus 2 = " << imported2Counter << endl;
-    cout << "Total imported fit files with eMatrixStatus 3 = " << imported3Counter << endl;
+    // cout << "Total imported fit files with eMatrixStatus 2 = " << imported2Counter << endl;
+    // cout << "Total imported fit files with eMatrixStatus 3 = " << imported3Counter << endl;
+
+    cout << "Total imported fit files with lastMinuitCommandStatus 0 = " << imported2Counter << endl;
+    cout << "Total imported fit files with lastMinuitCommandStatus 4 = " << imported3Counter << endl;
     cout << "Total nan fit files: " << nanCounter << endl;
 
 }
