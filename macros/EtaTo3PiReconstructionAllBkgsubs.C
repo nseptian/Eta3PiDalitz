@@ -1,12 +1,12 @@
 using namespace RooFit;
 
+const Double_t width = 0.035;
 const Double_t signalRange[2] = {0.53,0.565};
-const Double_t leftSidebandRange[2] = {0.57,0.585};
-const Double_t rightSidebandRange[2] = {0.5,0.52};
+const Double_t leftSidebandRange[2] = {0.52-width,0.52};
+const Double_t rightSidebandRange[2] = {0.58,0.58+width};
 
-void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bool fitOnly){
+void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bool fitOnly, TString cutTag){
   
-  TH1F* hpippimg1g2mass;
   Double_t kfit_cut = 0.01; //This values represents a cut on the kinematic fit probability!  
   Double_t kfit_prob = 0.0;
   Double_t imassGG_kfit = 0.0;
@@ -23,12 +23,16 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
   TChain *dataChain = new TChain("myTree");
   Int_t nEntries;
 
+  outName += "_";
+  outName += cutTag;
+  outName += ".root";
+
+  //Declare histogram before the fits here
+  TH1F* hpippimg1g2mass;
   TH1F *hg1g2mass = new TH1F("h_g1g2Mass","Di-photon energy (GeV)",1000,0,0.2);
-  TH2F *h2g1g2massdiff = new TH2F("h2_g2g2MassDiffvsInvMass","Di-photon mass difference vs invariant mass (GeV)",1000,0.,0.2,1000,-0.0000001,0.0000001);	
-  TH2F *h2anglePi0TwoGammas = new TH2F("h2_anglePi0TwoGammas","Di-photon angle vs invariant mass",100,0.07,0.2,1000,-2*TMath::Pi(),2*TMath::Pi());
 
   if (fitOnly) {
-    TFile *rootFile = TFile::Open("root4AmptoolsBkgsubs/eta_all_data_09012022.root");
+    TFile *rootFile = TFile::Open(outName);
     hpippimg1g2mass = (TH1F*)rootFile->Get("h_pippimg1g2mass");
   }
   else{
@@ -81,47 +85,6 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
     //Define the output tree:
     nEntries = dataChain->GetEntries();
     
-    // Double_t EnP1,PxP1,PyP1,PzP1;
-    // Double_t EnP2,PxP2,PyP2,PzP2;
-    // Double_t EnP3,PxP3,PyP3,PzP3;
-    // Double_t X,Y,weight;
-    
-    // Double_t test_pars[9] = {-1.095,0.145,0.0,0.081,0.0,0.141,-0.044,0.0,0.0};
-    // Double_t test_pars_2[9] = {-0.532,-0.044,0.01,0.050,-0.002,0.058,-0.0033,-0.025,-0.0084};
-    
-    // Double_t sum_amp = 0.0;
-    // Double_t sum_amp_2 = 0.0;
-    
-    // Double_t amp = 0.0;
-    // Double_t amp_2 = 0.0;
-    
-    //Output data for AmpTools -> Please do not change
-    // TTree *out_tree = new TTree("nt","nt");
-    //Pi+
-    // out_tree->Branch("EnP1",&EnP1,"EnP1/D");
-    // out_tree->Branch("PxP1",&PxP1,"PxP1/D");
-    // out_tree->Branch("PyP1",&PyP1,"PyP1/D");
-    // out_tree->Branch("PzP1",&PzP1,"PzP1/D");
-    
-    //Pi-
-    // out_tree->Branch("EnP2",&EnP2,"EnP2/D");
-    // out_tree->Branch("PxP2",&PxP2,"PxP2/D");
-    // out_tree->Branch("PyP2",&PyP2,"PyP2/D");
-    // out_tree->Branch("PzP2",&PzP2,"PzP2/D");
-    
-    //Pi0
-    // out_tree->Branch("EnP3",&EnP3,"EnP3/D");
-    // out_tree->Branch("PxP3",&PxP3,"PxP3/D");
-    // out_tree->Branch("PyP3",&PyP3,"PyP3/D");
-    // out_tree->Branch("PzP3",&PzP3,"PzP3/D");
-    
-    // out_tree->Branch("amp",&amp,"amp/D");
-    // out_tree->Branch("amp_2",&amp_2,"amp_2/D");
-    // out_tree->Branch("PzP3",&PzP3,"PzP3/D");
-    
-    // out_tree->Branch("weight",&weight,"weight/D");
-    
-    // Double_t test_norm = TMath::Sqrt(TMath::Power(nEntries,-1));
     hpippimg1g2mass = new TH1F("h_pippimg1g2mass","",101,0.45,0.65);
     Double_t mass_Pi0 = 0.1349768;
     //++++++++++++++++++++++++++++++++++++++
@@ -131,31 +94,13 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
         //Apply cuts:
         //is_truecombo is for MC data (i.e. simulated data) --> Just look at simulated eta->pi+pi-pi0 and nothing else...
   
-        //One thing to test: (g1_p4_kin + g2_p4_kin) == pi0 --> (g1_p4_kin + g2_p4_kin).M() (should be 0.135 = m(pi0)) --> 
-        
-        //Plot m_pi0 or perform a cut: m_pi0 >= 0.12 && m_pi0 < 0.15
-
         if(is_truecombo && kfit_prob > kfit_cut){
-            // EnP1 = pip_p4_kin->E();
-            // PxP1 = pip_p4_kin->Px();
-            // PyP1 = pip_p4_kin->Py();
-            // PzP1 = pip_p4_kin->Pz();
-            
-            // EnP2 = pim_p4_kin->E();
-            // PxP2 = pim_p4_kin->Px();
-            // PyP2 = pim_p4_kin->Py();
-            // PzP2 = pim_p4_kin->Pz();
-            
-            // EnP3 = (*g1_p4_kin + *g2_p4_kin).E();
-            // PxP3 = (*g1_p4_kin + *g2_p4_kin).Px();
-            // PyP3 = (*g1_p4_kin + *g2_p4_kin).Py();
-            // PzP3 = (*g1_p4_kin + *g2_p4_kin).Pz();
-
+          
             Double_t m_pi0 = (*g1_p4_kin + *g2_p4_kin).M();
             Double_t m_pippimg1g2mass = (*g1_p4_kin + *g2_p4_kin + *pip_p4_kin + *pim_p4_kin).M();
-            Double_t diffmassg1g2 = (*g1_p4_kin).M() - (*g2_p4_kin).M();
+            // Double_t diffmassg1g2 = (*g1_p4_kin).M() - (*g2_p4_kin).M();
 
-            Double_t anglePi0TwoGammas = (*g1_p4_kin).Angle((*g2_p4_kin).Vect());
+            // Double_t anglePi0TwoGammas = (*g1_p4_kin).Angle((*g2_p4_kin).Vect());
             Double_t theta_photon1 = (*g1_p4_kin).Theta();
             Double_t theta_photon2 = (*g2_p4_kin).Theta();
             // cout << diffmassg1g2 << endl;
@@ -175,13 +120,13 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
             // sum_amp += (amp);
             // sum_amp_2 += (amp_2);
             //--------------------------- 
-            if ((theta_photon1*TMath::RadToDeg() < 10.3 || theta_photon1*TMath::RadToDeg() > 11.9) && (theta_photon2*TMath::RadToDeg() < 10 || theta_photon2*TMath::RadToDeg() > 11.9)) {
+            if ((m_pi0 > 0.11) && (m_pi0 < 0.165) && (theta_photon1*TMath::RadToDeg() < 10.3 || theta_photon1*TMath::RadToDeg() > 11.9) && (theta_photon2*TMath::RadToDeg() < 10 || theta_photon2*TMath::RadToDeg() > 11.9)) {
               // out_tree->Fill();
               hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
               hg1g2mass->Fill(m_pi0,weight);
-              h2g1g2massdiff->Fill(m_pi0,diffmassg1g2,weight);
+              // h2g1g2massdiff->Fill(m_pi0,diffmassg1g2,weight);
               // h2anglePi0TwoGammas->Fill(m_pi0,anglePi0TwoGammas,weight);
-            }//m_pi0 > 0.11 && m_pi0 < 0.165 && 
+            }
         }
     }
     //++++++++++++++++++++++++++++++++++++++
@@ -202,7 +147,8 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
     TString outpdfname = "hpippimg1g2mass_";
     if (is_mc) outpdfname += "mc";
     else outpdfname += "data";
-    outpdfname += "09012022_bkgsubs.pdf";
+    outpdfname += cutTag;
+    outpdfname += ".pdf";
     c0->SaveAs(outpdfname);
     
     // out_tree->Write();
@@ -248,8 +194,9 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
     // plotMass->GetYaxis()->SetRangeUser(0,180000);
     plotMass->Draw();
     if (!is_mc) {
-      TString outMassFitPdfName = "pippimg1g2massfit";
-      outMassFitPdfName += "_09012022_bkgsubs.pdf";
+      TString outMassFitPdfName = "pippimg1g2massfitbkgsubs_";
+      outMassFitPdfName += cutTag;
+      outMassFitPdfName += ".pdf";
       canvas->Print(outMassFitPdfName);
     }
 
@@ -287,25 +234,51 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
 
       weight = 1.0;
 
-      TH1F *hg1g2massbkgsubs = new TH1F("h_g1g2MassBkgSubs","Di-photon invariant mass spectra (GeV)",1000,0,0.2);
+      //calculate weight sidebands using trapezoid formulas
+      // x.setVal(leftSidebandRange[0]);
+      // Double_t lowerLSBCount = cBkg1.getVal()*chebyBkg.getVal();
+      // x.setVal(leftSidebandRange[1]);
+      // Double_t upperLSBCount = cBkg1.getVal()*chebyBkg.getVal();
+      // Double_t LSBarea = (lowerLSBCount+upperLSBCount)*(leftSidebandRange[1]-leftSidebandRange[0])/2;
+      // x.setVal(rightSidebandRange[0]);
+      // Double_t lowerRSBCount = cBkg1.getVal()*chebyBkg.getVal();
+      // x.setVal(rightSidebandRange[1]);
+      // Double_t upperRSBCount = cBkg1.getVal()*chebyBkg.getVal();
+      // Double_t RSBarea = (lowerLSBCount+upperLSBCount)*(leftSidebandRange[1]-leftSidebandRange[0])/2;
+      // Double_t LSBWeight = -LSBarea/(LSBarea+RSBarea);
+      // Double_t RSBWeight = -RSBarea/(LSBarea+RSBarea);
+
+
+      // Double_t TotalEvents = fitFunction.expectedEvents(RooArgSet(x));
+      //calculate weight of sidebands using integral (area) of each band
+      x.setRange("signalRange",signalRange[0],signalRange[1]);
+      Double_t bkgSignalRangeArea = chebyBkg.createIntegral(x,"signalRange")->getVal();
+      x.setRange("leftSidebandRange",leftSidebandRange[0],leftSidebandRange[1]);
+      Double_t LSBArea = chebyBkg.createIntegral(x,"leftSidebandRange")->getVal();
+      x.setRange("rightSidebandRange",rightSidebandRange[0],rightSidebandRange[1]);
+      Double_t RSBArea = chebyBkg.createIntegral(x,"rightSidebandRange")->getVal();
+
+      // cout << "Total Events (integrated) = " << TotalEvents << endl;
+      cout << "bkgSignalRangeArea = " << bkgSignalRangeArea << endl;
+      cout << "LSBArea = " << LSBArea << endl;
+      cout << "RSBArea = " << RSBArea << endl;
+
+      Double_t weightSideband = -1.0*bkgSignalRangeArea/(LSBArea+RSBArea);
+
+      cout << "weightSideband = " << weightSideband << endl;
+      cout << "bkgSignal + sideband = " << bkgSignalRangeArea + (weightSideband*LSBArea) + (weightSideband*RSBArea) << endl;
+
+      // return 2;
+
+      // TH1F *hg1g2massbkgsubs = new TH1F("h_g1g2MassBkgSubs","Di-photon invariant mass spectra (GeV)",1000,0,0.2);
       TH1F *hpippimg1g2massbkgsubs = new TH1F("h_pippimg1g2massbkgsub","",101,0.4,0.7);
-      TH2F *h2g1g2massdiffbkgsubs = new TH2F("h2_g2g2MassDiffvsInvMassBkgSubs","Two-photon energy difference vs invariant mass (GeV)",1000,0.,0.2,1000,-0.0000001,0.0000001);	
-      TH2F *h2anglePi0TwoGammasbkgsubs = new TH2F("h2_anglePi0TwoGammasBkgSubs","Two-photon angle vs invariant mass",100,0.07,0.2,1000,-2*TMath::Pi(),2*TMath::Pi());
+      TH1F *hpippimg1g2massbkgsubsSideband = new TH1F("h_pippimg1g2massbkgsubSideband","",101,0.4,0.7);
+      TH1F *hpippimg1g2massbkgsubsSignal = new TH1F("h_pippimg1g2massbkgsubSignal","",101,0.4,0.7);
+      // TH2F *h2g1g2massdiffbkgsubs = new TH2F("h2_g2g2MassDiffvsInvMassBkgSubs","Two-photon energy difference vs invariant mass (GeV)",1000,0.,0.2,1000,-0.0000001,0.0000001);	
+      // TH2F *h2anglePi0TwoGammasbkgsubs = new TH2F("h2_anglePi0TwoGammasBkgSubs","Two-photon angle vs invariant mass",100,0.07,0.2,1000,-2*TMath::Pi(),2*TMath::Pi());
 
-      //calculate weight sidebands
-      x.setVal(leftSidebandRange[0]);
-      Double_t lowerLSBCount = cBkg1.getVal()*chebyBkg.getVal();
-      x.setVal(leftSidebandRange[1]);
-      Double_t upperLSBCount = cBkg1.getVal()*chebyBkg.getVal();
-      Double_t LSBarea = (lowerLSBCount+upperLSBCount)*(leftSidebandRange[1]-leftSidebandRange[0])/2;
-      x.setVal(rightSidebandRange[0]);
-      Double_t lowerRSBCount = cBkg1.getVal()*chebyBkg.getVal();
-      x.setVal(rightSidebandRange[1]);
-      Double_t upperRSBCount = cBkg1.getVal()*chebyBkg.getVal();
-      Double_t RSBarea = (lowerLSBCount+upperLSBCount)*(leftSidebandRange[1]-leftSidebandRange[0])/2;
-      Double_t LSBWeight = -LSBarea/(LSBarea+RSBarea);
-      Double_t RSBWeight = -RSBarea/(LSBarea+RSBarea);
-
+      cout << "Generating background substracted tree..." << endl;
+      cout << "Output: " << outName << endl;
       for(Int_t i=0;i<nEntries;i++){
           dataChain->GetEntry(i);
 
@@ -333,9 +306,9 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
               PzP3 = (*g1_p4_kin + *g2_p4_kin).Pz();
 
               Double_t m_pi0 = (*g1_p4_kin + *g2_p4_kin).M();
-              Double_t diffmassg1g2 = (*g1_p4_kin).M() - (*g2_p4_kin).M();
+              // Double_t diffmassg1g2 = (*g1_p4_kin).M() - (*g2_p4_kin).M();
 
-              Double_t anglePi0TwoGammas = (*g1_p4_kin).Angle((*g2_p4_kin).Vect());
+              // Double_t anglePi0TwoGammas = (*g1_p4_kin).Angle((*g2_p4_kin).Vect());
               Double_t m_pippimg1g2mass = (*g1_p4_kin + *g2_p4_kin + *pip_p4_kin + *pim_p4_kin).M();
               // cout << diffmassg1g2 << endl;
 
@@ -353,14 +326,22 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
               if ((m_pi0 > 0.11) && (m_pi0 < 0.165) && (theta_photon1*TMath::RadToDeg() < 10.3 || theta_photon1*TMath::RadToDeg() > 11.9) && (theta_photon2*TMath::RadToDeg() < 10 || theta_photon2*TMath::RadToDeg() > 11.9)) {
                 if (!is_mc) {
                   if ((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])){
-                    weight *= LSBWeight;
+                    weight *= weightSideband;
+                    hpippimg1g2massbkgsubsSideband->Fill(m_pippimg1g2mass,weight);
+                    hpippimg1g2massbkgsubs->Fill(m_pippimg1g2mass,weight);
                     out_tree->Fill();
                   }
                   if((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1])){
-                    weight *= RSBWeight;
+                    weight *= weightSideband;
+                    hpippimg1g2massbkgsubsSideband->Fill(m_pippimg1g2mass,weight);
+                    hpippimg1g2massbkgsubs->Fill(m_pippimg1g2mass,weight);
                     out_tree->Fill();
                   }
-                  if((m_pippimg1g2mass>=signalRange[0]) && (m_pippimg1g2mass<=signalRange[1])) out_tree->Fill();
+                  if((m_pippimg1g2mass>=signalRange[0]) && (m_pippimg1g2mass<=signalRange[1])) {
+                    hpippimg1g2massbkgsubsSignal->Fill(m_pippimg1g2mass,weight);
+                    hpippimg1g2massbkgsubs->Fill(m_pippimg1g2mass,weight);
+                    out_tree->Fill();
+                    }
                 }
                 else out_tree->Fill();
               }
@@ -387,15 +368,17 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc,bo
           }
       }
       
-      TFile *outfile = new TFile(outName + ".root","RECREATE");
+      TFile *outfile = new TFile(outName,"RECREATE");
 
       hg1g2mass->Write();
-      h2g1g2massdiff->Write();
+      // h2g1g2massdiff->Write();
       hpippimg1g2mass->Write();      
-      hg1g2massbkgsubs->Write();
-      h2g1g2massdiffbkgsubs->Write();
-      h2anglePi0TwoGammasbkgsubs->Write();
+      // hg1g2massbkgsubs->Write();
+      // h2g1g2massdiffbkgsubs->Write();
+      // h2anglePi0TwoGammasbkgsubs->Write();
       hpippimg1g2massbkgsubs->Write();
+      hpippimg1g2massbkgsubsSideband->Write();
+      hpippimg1g2massbkgsubsSignal->Write();
       out_tree->Write();
       outfile->Write();
     }
