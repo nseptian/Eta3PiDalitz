@@ -163,8 +163,6 @@ DecayAmp::calcAmplitude( GDouble** pKin, GDouble* userVars ) const {
 }
 
 DecayAmp::~DecayAmp(){
-  cout << "DecayAmp destructor begin" << endl;
-  cout << "DecayAmp destructor end" << endl;
 }
 
 
