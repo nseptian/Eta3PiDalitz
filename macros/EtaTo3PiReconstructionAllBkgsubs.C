@@ -3,7 +3,7 @@ using namespace RooFit;
 //kfit_cut value represents a cut on the kinematic fit probability!
 const Double_t kfit_cut = 0.01;
 
-//user config for invariant mass of pi_0 range cut
+//user config for pi_0 invariant mass range cut
 const Bool_t enablePi0MassCut = kFALSE;
 const Double_t Pi0MassRange[2] = {0.11,0.165}; //GeV
 
@@ -13,10 +13,13 @@ const Bool_t enablePhotonsThetaCut = kTRUE;
 //user config for sideband substraction
 const Bool_t enableSidebandSubs = kTRUE;
 const Bool_t fitOnly = kFALSE;
-const Double_t width = 0.035;
-const Double_t signalRange[2] = {0.53,0.565};
-const Double_t leftSidebandRange[2] = {0.52-width,0.52};
-const Double_t rightSidebandRange[2] = {0.58,0.58+width};
+const Double_t width = 0.025;
+// const Double_t signalRange[2] = {0.53,0.565}; //commented -> determine using sigma value from the fit
+const Double_t leftSidebandRange[2] = {0.48-width,0.48};
+const Double_t rightSidebandRange[2] = {0.61,0.61+width};
+
+void setHPipPimG1G2Axis(TH1F* h);
+void setHG1G2Axis(TH1F* h);
 
 void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, TString cutTag){
   
@@ -25,6 +28,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
   if(!is_mc){
     if (data_set == 0){
       //GlueX 2017 datasets
+      cout << "Dataset used is GlueX 2017." << endl;
       if (enableSidebandSubs){
         dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2017/PiPiGG_Tree_2017_data_sideband.root");
       }
@@ -34,6 +38,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     }
     if (data_set == 1){
       //GlueX 2018S datasets
+      cout << "Dataset used is GlueX 2018S." << endl;
       if (enableSidebandSubs){
         dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2017/PiPiGG_Tree_2017_data_sideband.root");
       }
@@ -43,6 +48,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     }
     if (data_set == 2){
       //GlueX 2018F datasets
+      cout << "Dataset used is GlueX 2018F." << endl;
       if (enableSidebandSubs){
         cout << "GlueX 2018F datasets with sidebands has not been available..." << endl << "Please choose another datasets. Currently available datasets with sideband are 2017 and 2018S." << endl;
         exit(1);
@@ -53,6 +59,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     }
     if (data_set == 3){
       //GlueX-Phase I datasets
+      cout << "Dataset used is GlueX Phase-I." << endl;
       if (enableSidebandSubs){
         dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2017/PiPiGG_Tree_2017_data_sideband.root");
         dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2018S/PiPiGG_Tree_2018S_data_sideband.root");
@@ -85,6 +92,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     }
   }
   Int_t nEntries = dataChain->GetEntries();
+  cout << "Number of entries: " << nEntries << endl;
 
   //initialize variables on the tree
   Double_t kfit_prob = 0.0;
@@ -159,6 +167,9 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
   // out_tree->Branch("amp",&amp,"amp/D");
   // out_tree->Branch("amp_2",&amp_2,"amp_2/D");
   out_tree->Branch("weight",&weight,"weight/D");
+
+  //vector to save ranges information
+  vector<Double_t> ranges;
   
   if (fitOnly) {
     TFile *rootFile = TFile::Open(outName);
@@ -172,10 +183,13 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
   else{
 
     //generate invariant mass histogram and tree without sideband substraction
-    hpippimg1g2mass = new TH1F("h_pippimg1g2mass","#pi^{+} #pi^{-} #gamma_1 #gamma_2 invariant mass spectrum",101,0.45,0.65);
+    hpippimg1g2mass = new TH1F("h_pippimg1g2mass","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
     TH1F *hg1g2mass = new TH1F("h_g1g2mass","#gamma_1 #gamma_2 invariant mass spectrum",101,0,0.2);
+    TH2F *h2DalitzPlotEta3Pi = new TH2F("h2_DalitzPlotEta3Pi","",101,-1.0,1.0,101,-1.0,1.0);
     // const Double_t pi0MassPDG = 0.1349768;
     //++++++++++++++++++++++++++++++++++++++
+
+    cout << "Selecting events..." << endl;
     for(Int_t i=0;i<nEntries;i++){
         dataChain->GetEntry(i);
         
@@ -220,10 +234,30 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
           Bool_t PhotonThetaCut = kFALSE;
           if (enablePhotonsThetaCut) PhotonThetaCut = (theta_photon1*TMath::RadToDeg() < 10.3 || theta_photon1*TMath::RadToDeg() > 11.9) && (theta_photon2*TMath::RadToDeg() < 10.3 || theta_photon2*TMath::RadToDeg() > 11.9);
           else PhotonThetaCut = kTRUE; //always true
+
+          //calculate X and Y
+          TLorentzVector eta = (*pip_p4_kin + *pim_p4_kin + *g1_p4_kin + *g2_p4_kin);
+          TVector3 eta_boost = eta.BoostVector();
+
+          TLorentzVector boosted_p1 = *pip_p4_kin;
+          TLorentzVector boosted_p2 = *pim_p4_kin;
+          TLorentzVector boosted_p3 = *g1_p4_kin + *g2_p4_kin;
+
+          boosted_p1.Boost(eta_boost*(-1));
+          boosted_p2.Boost(eta_boost*(-1));
+          boosted_p3.Boost(eta_boost*(-1));
+
+          Double_t T_plus = boosted_p1.E() - boosted_p1.M();
+          Double_t T_minus = boosted_p2.E() - boosted_p2.M();
+          Double_t T_zero = boosted_p3.E() - boosted_p3.M();
+          Double_t T_all = T_plus + T_minus + T_zero;
+          Double_t X_c = TMath::Sqrt(3.0)*(T_plus - T_minus)/T_all;
+          Double_t Y_c = 3.0*T_zero/T_all - 1.0;
           
           if (Pi0MassCut && PhotonThetaCut) {
             hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
             hg1g2mass->Fill(m_g1g2,weight);
+            h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
             if (!enableSidebandSubs) out_tree->Fill();
             // h2g1g2massdiff->Fill(m_pi0,diffmassg1g2,weight);
             // h2anglePi0TwoGammas->Fill(m_pi0,anglePi0TwoGammas,weight);
@@ -236,31 +270,26 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     // cout <<"sum2: "<<sum_amp_2<< endl;
 
     // gStyle->SetOptStat(0);
-
-    hpippimg1g2mass->GetXaxis()->SetTitle("M_{#pi^{+}#pi^{-}#gamma#gamma} (GeV)");
-    hpippimg1g2mass->GetXaxis()->SetLabelSize(0.025);
-    hpippimg1g2mass->GetYaxis()->SetTitle("count");
-    hpippimg1g2mass->GetYaxis()->SetTitleOffset(1.6);
-    hpippimg1g2mass->GetYaxis()->SetLabelSize(0.025);
-    hpippimg1g2mass->SetStats(0);
+    h2DalitzPlotEta3Pi->GetXaxis()->SetTitle("X");
+    h2DalitzPlotEta3Pi->GetYaxis()->SetTitle("Y");
+    h2DalitzPlotEta3Pi->Write();
+    setHPipPimG1G2Axis(hpippimg1g2mass);
+    // hpippimg1g2mass->SetStats(0);
     hpippimg1g2mass->Write();
 
-    hg1g2mass->GetXaxis()->SetTitle("M_{#pi^{+}#pi^{-}#gamma#gamma} (GeV)");
-    hg1g2mass->GetXaxis()->SetLabelSize(0.025);
-    hg1g2mass->GetYaxis()->SetTitle("count");
-    hg1g2mass->GetYaxis()->SetTitleOffset(1.6);
+    setHG1G2Axis(hg1g2mass);
     hg1g2mass->GetYaxis()->SetLabelSize(0.025);
-    hg1g2mass->SetStats(0);
+    // hg1g2mass->SetStats(0);
     hg1g2mass->Write();
 
     if (!enableSidebandSubs) out_tree->Write();
   }
 
-  if (enableSidebandSubs) {
+  if (enableSidebandSubs && !is_mc) {
     //generate background substracted tree
     
-    cout << "entries = " << hpippimg1g2mass->GetEntries() << endl;
-    RooRealVar x("Eta->3Pi invariant mass","Eta->3Pi invariant mass (GeV)",0.475,0.625);
+    // cout << "entries = " << hpippimg1g2mass->GetEntries() << endl;
+    RooRealVar x("Eta->3Pi invariant mass","Eta->3Pi invariant mass (GeV)",0.45,0.65);
     
     RooDataHist data("data","data",RooArgList(x),hpippimg1g2mass);
    
@@ -271,9 +300,13 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     plotMass->SetTitleOffset(1.1,"Y");
     
     const Double_t eta_mass = 0.547862;
-    RooRealVar meanSgn("meanSgn","meanSgn",eta_mass,eta_mass-0.002,eta_mass+0.002);
-    RooRealVar sigmaSgn("sigmaSgn","sigmaSgn",0.007,0.001,0.01);
-    RooGaussian gauss1("gauss1","gauss1",x,meanSgn,sigmaSgn);
+    RooRealVar meanSgn1("meanSgn1","meanSgn1",eta_mass,eta_mass-0.002,eta_mass+0.002);
+    RooRealVar sigmaSgn1("sigmaSgn1","sigmaSgn1",0.01,0.001,0.03);
+    RooGaussian gauss1("gauss1","gauss1",x,meanSgn1,sigmaSgn1);
+    RooRealVar meanSgn2("meanSgn2","meanSgn2",eta_mass,eta_mass-0.002,eta_mass+0.002);
+    RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.01,0.001,0.03);
+    RooGaussian gauss2("gauss2","gauss2",x,meanSgn2,sigmaSgn2);
+    RooRealVar cGauss2("cGauss2","cGauss2",0.01,0.01,0.3);
     RooRealVar a("a","a",1.0,0.,2.0);
     RooRealVar b("b","b",0.3,0.,2.0);
     RooRealVar c("c","c",0.1,0.,2.0);
@@ -289,16 +322,17 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     // RooRealVar sigmaBkg2("sigmaBkg2","sigmaBkg2",0.005,0.001,0.03);
     // RooGaussian gauss3("gauss3","gauss3",x,meanBkg2,sigmaBkg2);
     // RooRealVar cBkg2("cBkg2","cBkg2",0.002,0.001,0.3);
-    RooAddPdf fitFunction("gauspoly","gauspoly",RooArgList(chebyBkg,gauss1),RooArgList(cBkg1));
+    RooAddPdf fitFunction("gauspoly","gauspoly",RooArgList(chebyBkg,gauss2,gauss1),RooArgList(cBkg1,cGauss2));
     fitFunction.fitTo(data,RooFit::PrintLevel(1));
     data.plotOn(plotMass,MarkerSize(0.5));
     fitFunction.plotOn(plotMass,LineColor(kRed),LineWidth(2));
-    fitFunction.plotOn(plotMass,Components("gauss1"),LineColor(kBlue),LineStyle(kDashed),LineWidth(1));
+    fitFunction.plotOn(plotMass,Components("gauss1"),LineColor(kBlack),LineStyle(kDashed),LineWidth(1));
+    fitFunction.plotOn(plotMass,Components("gauss2"),LineColor(kBlue),LineStyle(kDashed),LineWidth(1));
     fitFunction.plotOn(plotMass,Components("chebyBkg"),LineColor(kGreen),LineStyle(kDashed),LineWidth(1));
     fitFunction.paramOn(plotMass,Layout(0.1,0.4,0.9),Format("NU",AutoPrecision(0)));
     // plotMass->GetYaxis()->SetRangeUser(0,180000);
     plotMass->Draw();
-    
+
     if (!is_mc) {
       TString outMassFitPdfName = "pippimg1g2massfit_";
       switch(data_set){
@@ -340,9 +374,26 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       // Double_t LSBWeight = -LSBarea/(LSBarea+RSBarea);
       // Double_t RSBWeight = -RSBarea/(LSBarea+RSBarea);
 
+      //calculate weighted average of mean and sigma of the two gaussian signal region
+      x.setRange("signalRange1",0.5,0.6);
+      Double_t gauss1Yield = gauss1.createIntegral(x,"signalRange1")->getVal();
+      x.setRange("signalRange2",0.5,0.6);
+      Double_t gauss2Yield = gauss2.createIntegral(x,"signalRange2")->getVal();
+      Double_t meanSgnVal = (gauss1Yield*meanSgn1.getVal() + gauss2Yield*meanSgn2.getVal())/(gauss1Yield + gauss2Yield);
+      Double_t sigmaSgnVal = (gauss1Yield*sigmaSgn1.getVal() + gauss2Yield*sigmaSgn2.getVal())/(gauss1Yield + gauss2Yield);
+      cout << "meanSgnVal = " << meanSgnVal << endl;
+      cout << "sigmaSgnVal = " << sigmaSgnVal << endl;
 
       // Double_t TotalEvents = fitFunction.expectedEvents(RooArgSet(x));
       //calculate weight of sidebands using integral (area) of each band
+      Double_t signalRange[2] = {meanSgnVal-2*sigmaSgnVal,meanSgnVal+2*sigmaSgnVal};
+      ranges.push_back(signalRange[0]);
+      ranges.push_back(signalRange[1]);
+      ranges.push_back(leftSidebandRange[0]);
+      ranges.push_back(leftSidebandRange[1]);
+      ranges.push_back(rightSidebandRange[0]);
+      ranges.push_back(rightSidebandRange[1]);
+      outfile->WriteObject(&ranges,"ranges");
       x.setRange("signalRange",signalRange[0],signalRange[1]);
       Double_t bkgSignalRangeArea = chebyBkg.createIntegral(x,"signalRange")->getVal();
       x.setRange("leftSidebandRange",leftSidebandRange[0],leftSidebandRange[1]);
@@ -361,9 +412,13 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       cout << "bkgSignal + sideband = " << bkgSignalRangeArea + (weightSideband*LSBArea) + (weightSideband*RSBArea) << endl;
 
       // TH1F *hg1g2massbkgsubs = new TH1F("h_g1g2MassBkgSubs","Di-photon invariant mass spectra (GeV)",1000,0,0.2);
-      TH1F *hpippimg1g2mass_sbsAll = new TH1F("h_pippimg1g2mass_sbsAll","#pi^{+} #pi^{-} #gamma_1 #gamma_2 invariant mass spectrum sidaband substracted",101,0.4,0.7);
-      TH1F *hpippimg1g2mass_sbsSidebandOnly = new TH1F("h_pippimg1g2mass_sbsSidebandOnly","#pi^{+} #pi^{-} #gamma_1 #gamma_2 invariant mass spectrum sidaband substracted (sideband only)",101,0.4,0.7);
-      TH1F *hpippimg1g2mass_sbsSignalOnly = new TH1F("h_pippimg1g2mass_sbsSignalOnly","#pi^{+} #pi^{-} #gamma_1 #gamma_2 invariant mass spectrum sidaband substracted (signal only)",101,0.4,0.7);
+      TH1F *hg1g2mass_sbsAll = new TH1F("h_g1g2mass_sbsAll","#gamma #gamma invariant mass spectrum",101,0,0.2);
+      TH1F *hg1g2mass_sbsSignalOnly = new TH1F("h_g1g2mass_sbsSignalOnly","#gamma #gamma invariant mass spectrum",101,0,0.2);
+      TH1F *hg1g2mass_sbsSidebandOnlyUnweighted = new TH1F("h_g1g2mass_sbsSidebandOnlyUnweighted","#gamma #gamma invariant mass spectrum",101,0,0.2);
+      TH1F *hg1g2mass_sbsSidebandOnlyWeighted = new TH1F("h_g1g2mass_sbsSidebandOnlyWeighted","#gamma #gamma invariant mass spectrum",101,0,0.2);
+      TH1F *hpippimg1g2mass_sbsAll = new TH1F("h_pippimg1g2mass_sbsAll","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted",101,0.45,0.65);
+      TH1F *hpippimg1g2mass_sbsSidebandOnly = new TH1F("h_pippimg1g2mass_sbsSidebandOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (sideband only)",101,0.45,0.65);
+      TH1F *hpippimg1g2mass_sbsSignalOnly = new TH1F("h_pippimg1g2mass_sbsSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (signal only)",101,0.45,0.65);
       // TH2F *h2g1g2massdiffbkgsubs = new TH2F("h2_g2g2MassDiffvsInvMassBkgSubs","Two-photon energy difference vs invariant mass (GeV)",1000,0.,0.2,1000,-0.0000001,0.0000001);	
       // TH2F *h2anglePi0TwoGammasbkgsubs = new TH2F("h2_anglePi0TwoGammasBkgSubs","Two-photon angle vs invariant mass",100,0.07,0.2,1000,-2*TMath::Pi(),2*TMath::Pi());
 
@@ -423,20 +478,28 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
 
               if (Pi0MassCut && PhotonThetaCut) {
                   if ((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])){
+                    hg1g2mass_sbsSidebandOnlyUnweighted->Fill(m_g1g2,weight);
                     weight *= weightSideband;
                     hpippimg1g2mass_sbsSidebandOnly->Fill(m_pippimg1g2mass,weight);
                     hpippimg1g2mass_sbsAll->Fill(m_pippimg1g2mass,weight);
+                    hg1g2mass_sbsAll->Fill(m_g1g2,weight);
+                    hg1g2mass_sbsSidebandOnlyWeighted->Fill(m_g1g2,weight);
                     out_tree->Fill();
                   }
                   if((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1])){
+                    hg1g2mass_sbsSidebandOnlyUnweighted->Fill(m_g1g2,weight);
                     weight *= weightSideband;
                     hpippimg1g2mass_sbsSidebandOnly->Fill(m_pippimg1g2mass,weight);
                     hpippimg1g2mass_sbsAll->Fill(m_pippimg1g2mass,weight);
+                    hg1g2mass_sbsAll->Fill(m_g1g2,weight);
+                    hg1g2mass_sbsSidebandOnlyWeighted->Fill(m_g1g2,weight);
                     out_tree->Fill();
                   }
                   if((m_pippimg1g2mass>=signalRange[0]) && (m_pippimg1g2mass<=signalRange[1])) {
                     hpippimg1g2mass_sbsSignalOnly->Fill(m_pippimg1g2mass,weight);
                     hpippimg1g2mass_sbsAll->Fill(m_pippimg1g2mass,weight);
+                    hg1g2mass_sbsAll->Fill(m_g1g2,weight);
+                    hg1g2mass_sbsSignalOnly->Fill(m_g1g2,weight);
                     out_tree->Fill();
                   }
               }
@@ -463,14 +526,38 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
           }
       }
      
-      // hg1g2massbkgsubs->Write();
-      // h2g1g2massdiffbkgsubs->Write();
-      // h2anglePi0TwoGammasbkgsubs->Write();
+      setHG1G2Axis(hg1g2mass_sbsAll);
+      hg1g2mass_sbsAll->Write();
+      setHG1G2Axis(hg1g2mass_sbsSignalOnly);
+      hg1g2mass_sbsSignalOnly->Write();
+      setHG1G2Axis(hg1g2mass_sbsSidebandOnlyUnweighted);
+      hg1g2mass_sbsSidebandOnlyUnweighted->Write();
+      setHG1G2Axis(hg1g2mass_sbsSidebandOnlyWeighted);
+      hg1g2mass_sbsSidebandOnlyWeighted->Write();
+      setHPipPimG1G2Axis(hpippimg1g2mass_sbsAll);
       hpippimg1g2mass_sbsAll->Write();
+      setHPipPimG1G2Axis(hpippimg1g2mass_sbsSidebandOnly);
       hpippimg1g2mass_sbsSidebandOnly->Write();
+      setHPipPimG1G2Axis(hpippimg1g2mass_sbsSignalOnly);
       hpippimg1g2mass_sbsSignalOnly->Write();
       out_tree->Write();
     }
   }
   if (!fitOnly) outfile->Write();
+}
+
+void setHPipPimG1G2Axis(TH1F* h){
+  h->GetXaxis()->SetTitle("M_{#pi^{+}#pi^{-}#gamma#gamma} (GeV)");
+  h->GetXaxis()->SetLabelSize(0.025);
+  h->GetYaxis()->SetTitle("count");
+  h->GetYaxis()->SetTitleOffset(1.6);
+  h->GetYaxis()->SetLabelSize(0.025);
+}
+
+void setHG1G2Axis(TH1F* h){
+  h->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
+  h->GetXaxis()->SetLabelSize(0.025);
+  h->GetYaxis()->SetTitle("count");
+  h->GetYaxis()->SetTitleOffset(1.6);
+  h->GetYaxis()->SetLabelSize(0.025);
 }
