@@ -184,6 +184,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
 
     //generate invariant mass histogram and tree without sideband substraction
     hpippimg1g2mass = new TH1F("h_pippimg1g2mass","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
+    TH1F *hpippimg1g2massSignalOnly = new TH1F("h_pippimg1g2massSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
     TH1F *hg1g2mass = new TH1F("h_g1g2mass","#gamma_1 #gamma_2 invariant mass spectrum",101,0,0.2);
     TH2F *h2DalitzPlotEta3Pi = new TH2F("h2_DalitzPlotEta3Pi","",101,-1.0,1.0,101,-1.0,1.0);
     // const Double_t pi0MassPDG = 0.1349768;
@@ -212,11 +213,12 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
             PxP3 = (*g1_p4_kin + *g2_p4_kin).Px();
             PyP3 = (*g1_p4_kin + *g2_p4_kin).Py();
             PzP3 = (*g1_p4_kin + *g2_p4_kin).Pz();
-              
-            if(dBRT >= -2.0 && dBRT <= 2.0){
-                weight = 1.0;
-            }else weight = -1.0/8.0;
           }
+
+          if(dBRT >= -2.0 && dBRT <= 2.0){
+              weight = 1.0;
+          }
+          else weight = -1.0/8.0;
           
           Double_t m_g1g2 = (*g1_p4_kin + *g2_p4_kin).M();
           Double_t m_pippimg1g2mass = (*g1_p4_kin + *g2_p4_kin + *pip_p4_kin + *pim_p4_kin).M();
@@ -258,6 +260,9 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
             hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
             hg1g2mass->Fill(m_g1g2,weight);
             h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
+            if((m_pippimg1g2mass>=signalRange[0]) && (m_pippimg1g2mass<=signalRange[1])) {
+              hpippimg1g2massSignalOnly->Fill(m_pippimg1g2mass,weight);
+            }
             if (!enableSidebandSubs) out_tree->Fill();
             // h2g1g2massdiff->Fill(m_pi0,diffmassg1g2,weight);
             // h2anglePi0TwoGammas->Fill(m_pi0,anglePi0TwoGammas,weight);
@@ -276,6 +281,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     setHPipPimG1G2Axis(hpippimg1g2mass);
     // hpippimg1g2mass->SetStats(0);
     hpippimg1g2mass->Write();
+    hpippimg1g2mass->Write();
 
     setHG1G2Axis(hg1g2mass);
     hg1g2mass->GetYaxis()->SetLabelSize(0.025);
@@ -289,7 +295,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     //generate background substracted tree
     
     // cout << "entries = " << hpippimg1g2mass->GetEntries() << endl;
-    RooRealVar x("Eta->3Pi invariant mass","Eta->3Pi invariant mass (GeV)",0.45,0.65);
+    RooRealVar x("h_pippimg1g2massRooFit","Eta->3Pi invariant mass (GeV)",0.45,0.65);
     
     RooDataHist data("data","data",RooArgList(x),hpippimg1g2mass);
    
@@ -301,10 +307,10 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     
     const Double_t eta_mass = 0.547862;
     RooRealVar meanSgn1("meanSgn1","meanSgn1",eta_mass,eta_mass-0.002,eta_mass+0.002);
-    RooRealVar sigmaSgn1("sigmaSgn1","sigmaSgn1",0.01,0.001,0.03);
+    RooRealVar sigmaSgn1("sigmaSgn1","sigmaSgn1",0.01,0.0001,0.03);
     RooGaussian gauss1("gauss1","gauss1",x,meanSgn1,sigmaSgn1);
     RooRealVar meanSgn2("meanSgn2","meanSgn2",eta_mass,eta_mass-0.002,eta_mass+0.002);
-    RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.01,0.001,0.03);
+    RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.01,0.0001,0.03);
     RooGaussian gauss2("gauss2","gauss2",x,meanSgn2,sigmaSgn2);
     RooRealVar cGauss2("cGauss2","cGauss2",0.01,0.01,0.3);
     RooRealVar a("a","a",1.0,0.,2.0);
@@ -332,6 +338,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     fitFunction.paramOn(plotMass,Layout(0.1,0.4,0.9),Format("NU",AutoPrecision(0)));
     // plotMass->GetYaxis()->SetRangeUser(0,180000);
     plotMass->Draw();
+    if (!fitOnly) plotMass->Write();
 
     if (!is_mc) {
       TString outMassFitPdfName = "pippimg1g2massfit_";
@@ -385,7 +392,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       cout << "sigmaSgnVal = " << sigmaSgnVal << endl;
 
       // Double_t TotalEvents = fitFunction.expectedEvents(RooArgSet(x));
-      //calculate weight of sidebands using integral (area) of each band
+      //calculate weight of sidebands using integral (area) of each band from background model
       Double_t signalRange[2] = {meanSgnVal-2*sigmaSgnVal,meanSgnVal+2*sigmaSgnVal};
       ranges.push_back(signalRange[0]);
       ranges.push_back(signalRange[1]);
@@ -411,7 +418,6 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       cout << "weightSideband = " << weightSideband << endl;
       cout << "bkgSignal + sideband = " << bkgSignalRangeArea + (weightSideband*LSBArea) + (weightSideband*RSBArea) << endl;
 
-      // TH1F *hg1g2massbkgsubs = new TH1F("h_g1g2MassBkgSubs","Di-photon invariant mass spectra (GeV)",1000,0,0.2);
       TH1F *hg1g2mass_sbsAll = new TH1F("h_g1g2mass_sbsAll","#gamma #gamma invariant mass spectrum",101,0,0.2);
       TH1F *hg1g2mass_sbsSignalOnly = new TH1F("h_g1g2mass_sbsSignalOnly","#gamma #gamma invariant mass spectrum",101,0,0.2);
       TH1F *hg1g2mass_sbsSidebandOnlyUnweighted = new TH1F("h_g1g2mass_sbsSidebandOnlyUnweighted","#gamma #gamma invariant mass spectrum",101,0,0.2);
@@ -419,6 +425,9 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       TH1F *hpippimg1g2mass_sbsAll = new TH1F("h_pippimg1g2mass_sbsAll","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted",101,0.45,0.65);
       TH1F *hpippimg1g2mass_sbsSidebandOnly = new TH1F("h_pippimg1g2mass_sbsSidebandOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (sideband only)",101,0.45,0.65);
       TH1F *hpippimg1g2mass_sbsSignalOnly = new TH1F("h_pippimg1g2mass_sbsSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (signal only)",101,0.45,0.65);
+      TH2F *h2DalitzPlotEta3Pi_sbsAll = new TH2F("h2_DalitzPlotEta3Pi_sbsAll","",101,-1.0,1.0,101,-1.0,1.0);
+      TH2F *h2DalitzPlotEta3Pi_sbsSignalOnly = new TH2F("h2_DalitzPlotEta3Pi_sbsSignalOnly","",101,-1.0,1.0,101,-1.0,1.0);
+      TH2F *h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted = new TH2F("h2_DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted","",101,-1.0,1.0,101,-1.0,1.0);
       // TH2F *h2g1g2massdiffbkgsubs = new TH2F("h2_g2g2MassDiffvsInvMassBkgSubs","Two-photon energy difference vs invariant mass (GeV)",1000,0.,0.2,1000,-0.0000001,0.0000001);	
       // TH2F *h2anglePi0TwoGammasbkgsubs = new TH2F("h2_anglePi0TwoGammasBkgSubs","Two-photon angle vs invariant mass",100,0.07,0.2,1000,-2*TMath::Pi(),2*TMath::Pi());
 
@@ -476,22 +485,46 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
               if (enablePhotonsThetaCut) PhotonThetaCut = (theta_photon1*TMath::RadToDeg() < 10.3 || theta_photon1*TMath::RadToDeg() > 11.9) && (theta_photon2*TMath::RadToDeg() < 10.3 || theta_photon2*TMath::RadToDeg() > 11.9);
               else PhotonThetaCut = kTRUE; //always true
 
+                  
+              //calculate X and Y
+              TLorentzVector eta = (*pip_p4_kin + *pim_p4_kin + *g1_p4_kin + *g2_p4_kin);
+              TVector3 eta_boost = eta.BoostVector();
+
+              TLorentzVector boosted_p1 = *pip_p4_kin;
+              TLorentzVector boosted_p2 = *pim_p4_kin;
+              TLorentzVector boosted_p3 = *g1_p4_kin + *g2_p4_kin;
+
+              boosted_p1.Boost(eta_boost*(-1));
+              boosted_p2.Boost(eta_boost*(-1));
+              boosted_p3.Boost(eta_boost*(-1));
+
+              Double_t T_plus = boosted_p1.E() - boosted_p1.M();
+              Double_t T_minus = boosted_p2.E() - boosted_p2.M();
+              Double_t T_zero = boosted_p3.E() - boosted_p3.M();
+              Double_t T_all = T_plus + T_minus + T_zero;
+              Double_t X_c = TMath::Sqrt(3.0)*(T_plus - T_minus)/T_all;
+              Double_t Y_c = 3.0*T_zero/T_all - 1.0;
+
               if (Pi0MassCut && PhotonThetaCut) {
                   if ((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])){
                     hg1g2mass_sbsSidebandOnlyUnweighted->Fill(m_g1g2,weight);
+                    h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted->Fill(X_c,Y_c,weight);
                     weight *= weightSideband;
                     hpippimg1g2mass_sbsSidebandOnly->Fill(m_pippimg1g2mass,weight);
                     hpippimg1g2mass_sbsAll->Fill(m_pippimg1g2mass,weight);
                     hg1g2mass_sbsAll->Fill(m_g1g2,weight);
+                    h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                     hg1g2mass_sbsSidebandOnlyWeighted->Fill(m_g1g2,weight);
                     out_tree->Fill();
                   }
                   if((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1])){
                     hg1g2mass_sbsSidebandOnlyUnweighted->Fill(m_g1g2,weight);
+                    h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted->Fill(X_c,Y_c,weight);
                     weight *= weightSideband;
                     hpippimg1g2mass_sbsSidebandOnly->Fill(m_pippimg1g2mass,weight);
                     hpippimg1g2mass_sbsAll->Fill(m_pippimg1g2mass,weight);
                     hg1g2mass_sbsAll->Fill(m_g1g2,weight);
+                    h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                     hg1g2mass_sbsSidebandOnlyWeighted->Fill(m_g1g2,weight);
                     out_tree->Fill();
                   }
@@ -499,7 +532,9 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
                     hpippimg1g2mass_sbsSignalOnly->Fill(m_pippimg1g2mass,weight);
                     hpippimg1g2mass_sbsAll->Fill(m_pippimg1g2mass,weight);
                     hg1g2mass_sbsAll->Fill(m_g1g2,weight);
+                    h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                     hg1g2mass_sbsSignalOnly->Fill(m_g1g2,weight);
+                    h2DalitzPlotEta3Pi_sbsSignalOnly->Fill(X_c,Y_c,weight);
                     out_tree->Fill();
                   }
               }
@@ -540,6 +575,9 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       hpippimg1g2mass_sbsSidebandOnly->Write();
       setHPipPimG1G2Axis(hpippimg1g2mass_sbsSignalOnly);
       hpippimg1g2mass_sbsSignalOnly->Write();
+      h2DalitzPlotEta3Pi_sbsAll->Write();
+      h2DalitzPlotEta3Pi_sbsSignalOnly->Write();
+      h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted->Write();
       out_tree->Write();
     }
   }
