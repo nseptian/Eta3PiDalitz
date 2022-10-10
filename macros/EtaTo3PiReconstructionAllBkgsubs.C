@@ -13,6 +13,7 @@ const Bool_t enablePhotonsThetaCut = kTRUE;
 //user config for sideband substraction
 const Bool_t enableSidebandSubs = kTRUE;
 const Bool_t fitOnly = kFALSE;
+const Bool_t signalOnlyTree = kFALSE;
 const Double_t width = 0.025;
 // const Double_t signalRange[2] = {0.53,0.565}; //commented -> determine using sigma value from the fit
 const Double_t leftSidebandRange[2] = {0.48-width,0.48};
@@ -40,7 +41,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       //GlueX 2018S datasets
       cout << "Dataset used is GlueX 2018S." << endl;
       if (enableSidebandSubs){
-        dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2017/PiPiGG_Tree_2017_data_sideband.root");
+        dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2018S/PiPiGG_Tree_2018S_data_sideband.root");
       }
       else{
         dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2018S/PiPiGG_Tree_2018S_data.root");
@@ -130,6 +131,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
   }
 
   if (enableSidebandSubs) outName += "_sbs";
+  if (signalOnlyTree) outName += "_signalOnlyTree";
   outName += "_";
   outName += cutTag;
   outName += ".root";
@@ -260,9 +262,6 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
             hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
             hg1g2mass->Fill(m_g1g2,weight);
             h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
-            if((m_pippimg1g2mass>=signalRange[0]) && (m_pippimg1g2mass<=signalRange[1])) {
-              hpippimg1g2massSignalOnly->Fill(m_pippimg1g2mass,weight);
-            }
             if (!enableSidebandSubs) out_tree->Fill();
             // h2g1g2massdiff->Fill(m_pi0,diffmassg1g2,weight);
             // h2anglePi0TwoGammas->Fill(m_pi0,anglePi0TwoGammas,weight);
@@ -281,8 +280,6 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     setHPipPimG1G2Axis(hpippimg1g2mass);
     // hpippimg1g2mass->SetStats(0);
     hpippimg1g2mass->Write();
-    hpippimg1g2mass->Write();
-
     setHG1G2Axis(hg1g2mass);
     hg1g2mass->GetYaxis()->SetLabelSize(0.025);
     // hg1g2mass->SetStats(0);
@@ -515,7 +512,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
                     hg1g2mass_sbsAll->Fill(m_g1g2,weight);
                     h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                     hg1g2mass_sbsSidebandOnlyWeighted->Fill(m_g1g2,weight);
-                    out_tree->Fill();
+                    if (!signalOnlyTree) out_tree->Fill();
                   }
                   if((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1])){
                     hg1g2mass_sbsSidebandOnlyUnweighted->Fill(m_g1g2,weight);
@@ -526,7 +523,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
                     hg1g2mass_sbsAll->Fill(m_g1g2,weight);
                     h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                     hg1g2mass_sbsSidebandOnlyWeighted->Fill(m_g1g2,weight);
-                    out_tree->Fill();
+                    if (!signalOnlyTree) out_tree->Fill();
                   }
                   if((m_pippimg1g2mass>=signalRange[0]) && (m_pippimg1g2mass<=signalRange[1])) {
                     hpippimg1g2mass_sbsSignalOnly->Fill(m_pippimg1g2mass,weight);
