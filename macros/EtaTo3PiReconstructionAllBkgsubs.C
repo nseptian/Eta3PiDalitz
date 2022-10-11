@@ -10,14 +10,16 @@ const Double_t Pi0MassRange[2] = {0.11,0.165}; //GeV
 //user config for theta photons cut
 const Bool_t enablePhotonsThetaCut = kTRUE;
 
-//user config for sideband substraction
+//user config for sideband subtraction
 const Bool_t enableSidebandSubs = kTRUE;
 const Bool_t fitOnly = kFALSE;
-const Bool_t signalOnlyTree = kFALSE;
+const Bool_t signalOnlyTree = kTRUE;
 const Double_t width = 0.025;
 // const Double_t signalRange[2] = {0.53,0.565}; //commented -> determine using sigma value from the fit
 const Double_t leftSidebandRange[2] = {0.48-width,0.48};
 const Double_t rightSidebandRange[2] = {0.61,0.61+width};
+
+const Double_t signalRangeMC[2] = {0.52585909,0.56975488}; //2017_data_sbs_10092022
 
 void setHPipPimG1G2Axis(TH1F* h);
 void setHG1G2Axis(TH1F* h);
@@ -131,7 +133,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
   }
 
   if (enableSidebandSubs) outName += "_sbs";
-  if (signalOnlyTree) outName += "_signalOnlyTree";
+  if (signalOnlyTree && !is_mc) outName += "_signalOnlyTree";
   outName += "_";
   outName += cutTag;
   outName += ".root";
@@ -184,7 +186,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
   }
   else{
 
-    //generate invariant mass histogram and tree without sideband substraction
+    //generate invariant mass histogram and tree without sideband subtraction
     hpippimg1g2mass = new TH1F("h_pippimg1g2mass","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
     TH1F *hpippimg1g2massSignalOnly = new TH1F("h_pippimg1g2massSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
     TH1F *hg1g2mass = new TH1F("h_g1g2mass","#gamma_1 #gamma_2 invariant mass spectrum",101,0,0.2);
@@ -200,7 +202,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
         //is_truecombo is for MC data (i.e. simulated data) --> Just look at simulated eta->pi+pi-pi0 and nothing else...
   
         if(is_truecombo && kfit_prob > kfit_cut){
-          if (!enableSidebandSubs){
+          if (!enableSidebandSubs || is_mc){
             EnP1 = pip_p4_kin->E();
             PxP1 = pip_p4_kin->Px();
             PyP1 = pip_p4_kin->Py();
@@ -262,7 +264,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
             hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
             hg1g2mass->Fill(m_g1g2,weight);
             h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
-            if (!enableSidebandSubs) out_tree->Fill();
+            if (!enableSidebandSubs || is_mc) out_tree->Fill();
             // h2g1g2massdiff->Fill(m_pi0,diffmassg1g2,weight);
             // h2anglePi0TwoGammas->Fill(m_pi0,anglePi0TwoGammas,weight);
           }
