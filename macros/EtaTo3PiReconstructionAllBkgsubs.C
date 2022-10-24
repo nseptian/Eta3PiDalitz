@@ -28,11 +28,11 @@ const Double_t signalRangeMC[2] = {0.547123-(2*0.0105783),0.547123+(2*0.0105783)
 const Double_t weightSidebandMC = -0.452449; //2018S_data_sbs_10092022
 */
 
-const Bool_t enableKinematicCut = kTRUE;
+const Bool_t enableKinematicCut = kFALSE;
 
 void setHPipPimG1G2Axis(TH1F* h);
 void setHG1G2Axis(TH1F* h);
-Double_t AcceptanceProb(TFile *f, Double_t X, Double_t Y);
+Double_t AcceptanceProb(TGraph *gr, Double_t X, Double_t Y);
 
 void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, TString cutTag){
   
@@ -165,7 +165,11 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
   outName += ".root";
 
   TFile *fKinematicAcc;
-  if (enableKinematicCut) fKinematicAcc = TFile::Open("/d/home/dlersch/gluex_analysis/Eta_3Pi_Dalitz/kinematic_acceptance_ratio13.root","read");
+  TGraph *DP_kinAccR;
+  if (enableKinematicCut){
+    fKinematicAcc = TFile::Open("/d/home/dlersch/gluex_analysis/Eta_3Pi_Dalitz/kinematic_acceptance_ratio13.root","read");
+    DP_kinAccR = (TGraph*)fKinematicAcc->Get("DP_kinAccR");
+  }
 
   TFile *outfile;
   if (!fitOnly) outfile = new TFile(outName,"RECREATE");
@@ -240,10 +244,25 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       
       //Apply cuts:
       //is_truecombo is for MC data (i.e. simulated data) --> Just look at simulated eta->pi+pi-pi0 and nothing else...
-
-      Double_t X_c_true = 0;
-      Double_t Y_c_true = 0;
-      Double_t m_pippimg1g2_true = 0;
+      if (is_mc && is_truecombo){
+        Double_t X_c_true = 0;
+        Double_t Y_c_true = 0;
+        TLorentzVector eta_true = (*pip_p4_true + *pim_p4_true + *g1_p4_true + *g2_p4_true);
+        TVector3 eta_boost_true = eta_true.BoostVector();
+        TLorentzVector boosted_p1_true = *pip_p4_true;
+        TLorentzVector boosted_p2_true = *pim_p4_true;
+        TLorentzVector boosted_p3_true = *g1_p4_true + *g2_p4_true;
+        boosted_p1_true.Boost(eta_boost_true*(-1));
+        boosted_p2_true.Boost(eta_boost_true*(-1));
+        boosted_p3_true.Boost(eta_boost_true*(-1));
+        Double_t T_plus_true = boosted_p1_true.E() - boosted_p1_true.M();
+        Double_t T_minus_true = boosted_p2_true.E() - boosted_p2_true.M();
+        Double_t T_zero_true = boosted_p3_true.E() - boosted_p3_true.M();
+        Double_t T_all_true = T_plus_true + T_minus_true + T_zero_true;
+        X_c_true = TMath::Sqrt(3.0)*(T_plus_true - T_minus_true)/T_all_true;
+        Y_c_true = 3.0*T_zero_true/T_all_true - 1.0;
+        h2DalitzPlotEta3Pi_true->Fill(X_c_true,Y_c_true);
+      }
 
       if(is_truecombo && kfit_prob > kfit_cut){
         if (!enableSidebandSubs || is_mc){
@@ -260,22 +279,6 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
           PxP3 = (*g1_p4_kin + *g2_p4_kin).Px();
           PyP3 = (*g1_p4_kin + *g2_p4_kin).Py();
           PzP3 = (*g1_p4_kin + *g2_p4_kin).Pz();
-
-          TLorentzVector eta_true = (*pip_p4_true + *pim_p4_true + *g1_p4_true + *g2_p4_true);
-          m_pippimg1g2_true = eta_true.M();
-          TVector3 eta_boost_true = eta_true.BoostVector();
-          TLorentzVector boosted_p1_true = *pip_p4_true;
-          TLorentzVector boosted_p2_true = *pim_p4_true;
-          TLorentzVector boosted_p3_true = *g1_p4_true + *g2_p4_true;
-          boosted_p1_true.Boost(eta_boost_true*(-1));
-          boosted_p2_true.Boost(eta_boost_true*(-1));
-          boosted_p3_true.Boost(eta_boost_true*(-1));
-          Double_t T_plus_true = boosted_p1_true.E() - boosted_p1_true.M();
-          Double_t T_minus_true = boosted_p2_true.E() - boosted_p2_true.M();
-          Double_t T_zero_true = boosted_p3_true.E() - boosted_p3_true.M();
-          Double_t T_all_true = T_plus_true + T_minus_true + T_zero_true;
-          X_c_true = TMath::Sqrt(3.0)*(T_plus_true - T_minus_true)/T_all_true;
-          Y_c_true = 3.0*T_zero_true/T_all_true - 1.0;
         }
         if(dBRT >= -2.0 && dBRT <= 2.0){
             weight = 1.0;
@@ -289,12 +292,6 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
         Double_t theta_photon1 = (*g1_p4_kin).Theta();
         Double_t theta_photon2 = (*g2_p4_kin).Theta();
         // cout << diffmassg1g2 << endl;
-
-        /*
-        Bool_t Pi0MassCut = kFALSE;
-        if (enablePi0MassCut) Pi0MassCut = (m_g1g2 > Pi0MassRange[0]) && (m_g1g2 < Pi0MassRange[1]);
-        else Pi0MassCut = kTRUE; //always true
-        */
 
         Bool_t PhotonThetaCut = kFALSE;
         if (enablePhotonsThetaCut) PhotonThetaCut = (theta_photon1*TMath::RadToDeg() < 10.3 || theta_photon1*TMath::RadToDeg() > 11.9) && (theta_photon2*TMath::RadToDeg() < 10.3 || theta_photon2*TMath::RadToDeg() > 11.9);
@@ -314,13 +311,30 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
         Double_t T_all = T_plus + T_minus + T_zero;
         Double_t X_c = TMath::Sqrt(3.0)*(T_plus - T_minus)/T_all;
         Double_t Y_c = 3.0*T_zero/T_all - 1.0;
+
+        Bool_t kinematicCut = kFALSE;
+        Bool_t Pi0MassCut = kFALSE;
+
+        if (is_mc) {          
+          if (enableKinematicCut){
+            Double_t accProb = AcceptanceProb(DP_kinAccR,X_c,Y_c);
+            kinematicCut = (accProb >= 0.5);
+          }
+          else kinematicCut = kTRUE;
+          if (enablePi0MassCut) Pi0MassCut = (m_g1g2 > Pi0MassRange[0]) && (m_g1g2 < Pi0MassRange[1]);
+          else Pi0MassCut = kTRUE; //always true
+        }
+        else {
+          kinematicCut = kTRUE;
+          Pi0MassCut = kTRUE;
+        }
         
         if (PhotonThetaCut) {
           hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
           hg1g2mass->Fill(m_g1g2,weight);
           // h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
           if (!enableSidebandSubs) out_tree->Fill();
-          if (is_mc && enableSidebandSubs) {
+          if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut) {
             if (((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])) || ((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1]))){
               weight *= weightSidebandMC;
               h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
@@ -328,15 +342,6 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
             }
             if((m_pippimg1g2mass>=signalRangeMC[0]) && (m_pippimg1g2mass<=signalRangeMC[1])) {
               h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
-              out_tree->Fill();
-            }
-            if (((m_pippimg1g2_true>=leftSidebandRange[0]) && (m_pippimg1g2_true<=leftSidebandRange[1])) || ((m_pippimg1g2_true>=rightSidebandRange[0]) && (m_pippimg1g2_true<=rightSidebandRange[1]))){
-              weight *= weightSidebandMC;
-              h2DalitzPlotEta3Pi_true->Fill(X_c_true,Y_c_true,weight);
-              if(!signalOnlyTree) out_tree->Fill();
-            }
-            if((m_pippimg1g2_true>=signalRangeMC[0]) && (m_pippimg1g2_true<=signalRangeMC[1])) {
-              h2DalitzPlotEta3Pi_true->Fill(X_c_true,Y_c_true,weight);
               out_tree->Fill();
             }
           }
@@ -535,6 +540,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       TH2F *h2DalitzPlotEta3Pi_sbsAll = new TH2F("h2_DalitzPlotEta3Pi_sbsAll","",101,-1.0,1.0,101,-1.0,1.0);
       TH2F *h2DalitzPlotEta3Pi_sbsSignalOnly = new TH2F("h2_DalitzPlotEta3Pi_sbsSignalOnly","",101,-1.0,1.0,101,-1.0,1.0);
       TH2F *h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted = new TH2F("h2_DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted","",101,-1.0,1.0,101,-1.0,1.0);
+      TH2F *h2DalitzPlotEta3Pi_tree = new TH2F("h2_DalitzPlotEta3Pi_tree","",101,-1.0,1.0,101,-1.0,1.0);
       // TH2F *h2g1g2massdiffbkgsubs = new TH2F("h2_g2g2MassDiffvsInvMassBkgSubs","Two-photon energy difference vs invariant mass (GeV)",1000,0.,0.2,1000,-0.0000001,0.0000001);	
       // TH2F *h2anglePi0TwoGammasbkgsubs = new TH2F("h2_anglePi0TwoGammasBkgSubs","Two-photon angle vs invariant mass",100,0.07,0.2,1000,-2*TMath::Pi(),2*TMath::Pi());
 
@@ -613,8 +619,14 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
               Double_t X_c = TMath::Sqrt(3.0)*(T_plus - T_minus)/T_all;
               Double_t Y_c = 3.0*T_zero/T_all - 1.0;
 
-              if (Pi0MassCut && PhotonThetaCut) {
-                if (enableKinematicCut) weight *= AcceptanceProb(fKinematicAcc,X_c,Y_c);
+              Bool_t kinematicCut = kFALSE;
+              if (enableKinematicCut) {
+                Double_t accProb = AcceptanceProb(DP_kinAccR,X_c,Y_c);
+                kinematicCut = (accProb >= 0.5);
+              }
+              else kinematicCut = kTRUE;
+
+              if (PhotonThetaCut) {
                 if (((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])) || ((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1]))){
                   hg1g2mass_sbsSidebandOnlyUnweighted->Fill(m_g1g2,weight);
                   h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted->Fill(X_c,Y_c,weight);
@@ -624,7 +636,10 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
                   hg1g2mass_sbsAll->Fill(m_g1g2,weight);
                   h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                   hg1g2mass_sbsSidebandOnlyWeighted->Fill(m_g1g2,weight);
-                  if (!signalOnlyTree) out_tree->Fill();
+                  if (!signalOnlyTree && Pi0MassCut && kinematicCut) {
+                    h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
+                    out_tree->Fill();
+                  }
                 }
                 if((m_pippimg1g2mass>=signalRange[0]) && (m_pippimg1g2mass<=signalRange[1])) {
                   hpippimg1g2mass_sbsSignalOnly->Fill(m_pippimg1g2mass,weight);
@@ -633,7 +648,10 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
                   h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                   hg1g2mass_sbsSignalOnly->Fill(m_g1g2,weight);
                   h2DalitzPlotEta3Pi_sbsSignalOnly->Fill(X_c,Y_c,weight);
-                  out_tree->Fill();
+                  if (Pi0MassCut && kinematicCut) {
+                    h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
+                    out_tree->Fill();
+                  }
                 }
               }
 
@@ -658,7 +676,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
               //--------------------------- 
           }
       }
-      fKinematicAcc->Close();
+      if (is_mc) fKinematicAcc->Close();
      
       setHG1G2Axis(hg1g2mass_sbsAll);
       hg1g2mass_sbsAll->Write();
@@ -677,6 +695,7 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       h2DalitzPlotEta3Pi_sbsAll->Write();
       h2DalitzPlotEta3Pi_sbsSignalOnly->Write();
       h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted->Write();
+      h2DalitzPlotEta3Pi_tree->Write();
       out_tree->Write();
     }
   }
@@ -699,10 +718,9 @@ void setHG1G2Axis(TH1F* h){
   h->GetYaxis()->SetLabelSize(0.025);
 }
 
-Double_t AcceptanceProb(TFile *f,Double_t X, Double_t Y){
-  TGraph *DP_kinAccR = (TGraph*)f->Get("DP_kinAccR");
+Double_t AcceptanceProb(TGraph *gr,Double_t X, Double_t Y){
   const Int_t N = 13;
   const Double_t delta = 2.2/N;
   Double_t global_bin_data = TMath::FloorNint((X+1.1)/delta) + N*TMath::FloorNint((Y+1.1)/delta);
-  return DP_kinAccR->Eval(global_bin_data,nullptr,"S"); //using cubic spline interpolation
+  return gr->Eval(global_bin_data,nullptr,"S"); //using cubic spline interpolation
 }

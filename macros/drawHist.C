@@ -191,6 +191,15 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 		h2->SetMinimum(0);
 		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
+		hname = "h2_DalitzPlotEta3Pi_tree";
+		f->GetObject(hname.c_str(),h2);
+		h2->GetXaxis()->SetTitle("X");
+		h2->GetYaxis()->SetTitle("Y");
+		h2->SetTitle("Dalitz plot");
+		h2->Draw("COLZ");
+		h2->SetMinimum(0);
+		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+
 		// c->SetCanvasSize(1200,600);
 		// RooPlot *rp = (RooPlot*)f->Get("frame_h_pippimg1g2massRooFit_65274a0");
 		// rp->SetStats(0);
