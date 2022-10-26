@@ -36,6 +36,7 @@ void gluex_style() {
 	gluex_style->SetOptTitle(0);    // no title by default
 	gluex_style->SetHistLineWidth(2); 
 	gluex_style->SetNdivisions(508,"xyz"); // some ticks were very bunched, lets reduce the number of divisions to label 
+	gluex_style->SetOptFit(0111);
 
 	gluex_style->SetHistFillColor(920);   // grey
 	gluex_style->SetPalette(kViridis); // kViridis is perceptually uniform and colorblind friendly
@@ -67,15 +68,6 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 		h2->SetMinimum(0);
 		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname = "h2_DalitzPlotEta3Pi_true";
-		f->GetObject(hname.c_str(),h2);
-		h2->GetXaxis()->SetTitle("X");
-		h2->GetYaxis()->SetTitle("Y");
-		h2->SetTitle("Dalitz plot thrown MC");
-		h2->Draw("COLZ");
-		h2->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
-
 		hname = "h2_DalitzPlotEta3Pi_efficiency";
 		f->GetObject(hname.c_str(),h2);
 		h2->GetXaxis()->SetTitle("X");
@@ -84,6 +76,28 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 		h2->Draw("COLZ");
 		h2->SetMinimum(0.);
 		h2->SetMaximum(1.);
+		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+
+		hname = "h1_XResolution";
+		f->GetObject(hname.c_str(),h1);
+		TF1 *fXResolution = new TF1("f_XResolution", "gaus", -0.5, 0.5);
+		h1->Fit(fXResolution,"R");
+		h1->GetFunction("f_XResolution")->SetLineColor(kRed);
+		h1->SetMarkerStyle(3);
+		h1->GetXaxis()->SetTitle("X_{thrown} - X_{reconstructed}");
+		h1->Draw();
+		// h1->SetMinimum(0);
+		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+
+		hname = "h1_YResolution";
+		f->GetObject(hname.c_str(),h1);
+		TF1 *fYResolution = new TF1("f_YResolution", "gaus", -0.5, 0.5);
+		h1->Fit(fYResolution,"R");
+		h1->GetFunction("f_YResolution")->SetLineColor(kRed);
+		h1->SetMarkerStyle(3);
+		h1->GetXaxis()->SetTitle("Y_{thrown} - Y_{reconstructed}");
+		h1->Draw();
+		// h1->SetMinimum(0);
 		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 	}
 	else{
