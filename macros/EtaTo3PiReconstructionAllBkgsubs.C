@@ -237,12 +237,51 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     TH2F *h2DalitzPlotEta3Pi_thrown;
     TH1F *hXResolution;
     TH1F *hYResolution;
+
+    const Int_t XResBin = 20;
+    const Int_t YResBin = 20;
+    const Int_t NBinsXYRes = XResBin*YResBin;
+
+    TH1F *hXRes[XResBin][YResBin],*hYRes[XResBin][YResBin];
+    TDirectory *dirRes;
+
     if (is_mc){      
       h2DalitzPlotEta3Pi_kin = new TH2F("h2_DalitzPlotEta3Pi_kin","",101,-1.0,1.0,101,-1.0,1.0);
       h2DalitzPlotEta3Pi_thrown = (TH2F*)mcThrown->Get("h2_DalitzPlotEta3Pi_thrown");
       hXResolution = new TH1F("h1_XResolution","X dalitz variable resolution",101,-1.0,1.0);
       hYResolution = new TH1F("h1_YResolution","Y dalitz variable resolution",101,-1.0,1.0);
+      dirRes = outfile->mkdir("BinnedXYResolution");
+      dirRes->cd();
+      for (Int_t i=0;i<XResBin;i++){
+        for (Int_t j=0;j<YResBin;j++){
+          TString hXResName = "h1_XResolution_";
+          hXResName += i;
+          hXResName += "_";
+          hXResName += j;
+
+          TString hYResName = "h1_YResolution_";
+          hYResName += i;
+          hYResName += "_";
+          hYResName += j;
+          
+          TString hXResTitle = "X resolution for ";
+          hXResTitle += Form("%.1f<X<%.1f",-1.0+i*0.1,-1.0+(i+1)*0.1);
+          hXResTitle += " ";
+          hXResTitle += Form("%.1f<Y<%.1f",-1.0+j*0.1,-1.0+(j+1)*0.1);
+          hXResTitle += "bin";
+          
+          TString hYResTitle = "Y resolution for ";
+          hYResTitle += Form("%.1f<X<%.1f",-1.0+i*0.1,-1.0+(i+1)*0.1);
+          hYResTitle += " ";
+          hYResTitle += Form("%.1f<Y<%.1f",-1.0+j*0.1,-1.0+(j+1)*0.1);
+          hYResTitle += "bin";
+
+          hXRes[i][j] = new TH1F(hXResName,hXResTitle,101,-1.0,1.0);
+          hYRes[i][j] = new TH1F(hYResName,hYResTitle,101,-1.0,1.0);
+        }
+      }
     }
+    outfile->cd();
     // const Double_t pi0MassPDG = 0.1349768;
     //++++++++++++++++++++++++++++++++++++++
 
@@ -346,13 +385,17 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
           hg1g2mass->Fill(m_g1g2,weight);
           // h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
           if (!enableSidebandSubs) out_tree->Fill();
-          if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut) {
+          if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut) {            
             if (((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])) || ((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1]))){
               if(!signalOnlyTree) {
                 weight *= weightSidebandMC;
                 h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
                 hXResolution->Fill(XRes,weight);
                 hYResolution->Fill(YRes,weight);
+                Int_t XBin = TMath::FloorNint(X_c*9.9999999999)+10;
+                Int_t YBin = TMath::FloorNint(Y_c*9.9999999999)+10;
+                hXRes[XBin][YBin]->Fill(XRes,weight);
+                hYRes[XBin][YBin]->Fill(YRes,weight);
                 out_tree->Fill();
               }
             }
@@ -360,6 +403,10 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
               h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
               hXResolution->Fill(XRes,weight);
               hYResolution->Fill(YRes,weight);
+              Int_t XBin = TMath::FloorNint(X_c*9.9999999999)+10;
+              Int_t YBin = TMath::FloorNint(Y_c*9.9999999999)+10;
+              hXRes[XBin][YBin]->Fill(XRes,weight);
+              hYRes[XBin][YBin]->Fill(YRes,weight);
               out_tree->Fill();
             }
           }
@@ -387,6 +434,13 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
       h2DalitzPlotEta3Pi_efficiency->Write();
       hXResolution->Write();
       hYResolution->Write();
+      // dirRes->cd();
+      // for (Int_t i=0;i<XResBin;i++){
+      //   for (Int_t j=0;j<YResBin;j++){
+      //     dirRes->Append(hXRes[i][j]);
+      //     dirRes->Append(hYRes[i][j]);
+      //   }
+      // }
     }
     setHPipPimG1G2Axis(hpippimg1g2mass);
     // hpippimg1g2mass->SetStats(0);
