@@ -33,10 +33,10 @@ void gluex_style() {
  	
 	// histogram settings
 	gluex_style->SetOptStat(0);     // no stats box by default
-	gluex_style->SetOptTitle(0);    // no title by default
+	gluex_style->SetOptTitle(1);    // no title by default
 	gluex_style->SetHistLineWidth(2); 
 	gluex_style->SetNdivisions(508,"xyz"); // some ticks were very bunched, lets reduce the number of divisions to label 
-	gluex_style->SetOptFit(0111);
+	// gluex_style->SetOptFit(0111);
 
 	gluex_style->SetHistFillColor(920);   // grey
 	gluex_style->SetPalette(kViridis); // kViridis is perceptually uniform and colorblind friendly
@@ -51,7 +51,7 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 
 	string drawOptions="HIST";
 
-	TFile* f=new TFile(fileName);
+	TFile* f=new TFile(fileName,"READ");
 	TH1F* h1;
 	TH2F* h2;
 	TBox* box=new TBox();
@@ -99,6 +99,93 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 		h1->Draw();
 		// h1->SetMinimum(0);
 		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+
+		TDirectory *dirRes = (TDirectory*)f->Get("BinnedXYResolution");
+		dirRes->cd();
+
+		const Int_t XResBin = 20;
+    	const Int_t YResBin = 20;
+
+    	TH1F *hXRes[XResBin][YResBin],*hYRes[XResBin][YResBin];
+
+		TH2F *h2NXYBinned = new TH2F("h2_NXYBinned","Number of entries on each bin",20,-1.0,1.0,20,-1.0,1.0);
+		TH2F *h2NXYBinnedEntriesCut = new TH2F("h2_NXYBinnedEntriesCut","Number of entries on each bin",20,-1.0,1.0,20,-1.0,1.0);
+		TH2F *h2XBinnedSigma = new TH2F("h2_XBinnedSigma","X Resolution",20,-1.0,1.0,20,-1.0,1.0);
+		TH2F *h2YBinnedSigma = new TH2F("h2_YBinnedSigma","Y Resolution",20,-1.0,1.0,20,-1.0,1.0);
+
+		Double_t par1[3],par2[3];
+		TF1 *g1 = new TF1("f_g1","gaus",-0.5,0.5);
+   		TF1 *g2 = new TF1("f_g2","gaus",-0.5,0.5);
+
+		gSystem->Exec(("mkdir -p plots/XYBinnedResolution_"+outputTag).c_str());
+
+		for (Int_t i=0;i<20;i++){
+			for (Int_t j=0;j<20;j++){
+				TString hXResName = "h1_XResolution_";
+          		hXResName += i;
+          		hXResName += "_";
+          		hXResName += j;
+
+          		TString hYResName = "h1_YResolution_";
+          		hYResName += i;
+          		hYResName += "_";
+          		hYResName += j;
+
+				hXRes[i][j] = (TH1F*)dirRes->Get(hXResName.Data());
+				hYRes[i][j] = (TH1F*)dirRes->Get(hYResName.Data());
+				h2NXYBinned->SetBinContent(i+1,j+1,hXRes[i][j]->GetEntries());
+				if ((hXRes[i][j]->GetEntries() > 1000)){
+					h2NXYBinnedEntriesCut->SetBinContent(i+1,j+1,hXRes[i][j]->GetEntries());
+					
+					hXRes[i][j]->Fit(g1,"R");
+					g1->GetParameters(&par1[0]);
+					hXRes[i][j]->GetFunction("f_g1")->SetLineColor(kRed);
+					hXRes[i][j]->SetMarkerStyle(3);
+					hXRes[i][j]->GetXaxis()->SetTitle("X_{thrown} - X_{reconstructed}");
+					hXRes[i][j]->GetYaxis()->SetTitle("count");
+					hXRes[i][j]->Draw();
+					hname = "XBinnedResolution";
+					c->SaveAs(("plots/XYBinnedResolution_"+outputTag+"/"+hname+"_"+std::to_string(i)+"_"+std::to_string(j)+"_"+outputTag+".pdf").c_str());					
+					h2XBinnedSigma->SetBinContent(i+1,j+1,par1[2]);
+
+					hYRes[i][j]->Fit(g2,"R");
+					g2->GetParameters(&par2[0]);
+					hYRes[i][j]->GetFunction("f_g2")->SetLineColor(kRed);
+					hYRes[i][j]->SetMarkerStyle(3);
+					hYRes[i][j]->GetXaxis()->SetTitle("Y_{thrown} - Y_{reconstructed}");
+					hYRes[i][j]->GetYaxis()->SetTitle("count");
+					hYRes[i][j]->Draw();
+					hname = "YBinnedResolution";
+					c->SaveAs(("plots/XYBinnedResolution_"+outputTag+"/"+hname+"_"+std::to_string(i)+"_"+std::to_string(j)+"_"+outputTag+".pdf").c_str());
+					h2YBinnedSigma->SetBinContent(i+1,j+1,par2[2]);
+
+				}
+			}
+		}
+		h2NXYBinned->GetXaxis()->SetTitle("X");
+		h2NXYBinned->GetYaxis()->SetTitle("Y");
+		h2NXYBinned->Draw("COLZ");
+		hname = "h2NXYBinned";
+		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+
+		h2NXYBinnedEntriesCut->GetXaxis()->SetTitle("X");
+		h2NXYBinnedEntriesCut->GetYaxis()->SetTitle("Y");
+		h2NXYBinnedEntriesCut->Draw("COLZ");
+		hname = "h2NXYBinnedEntriesCut";
+		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+
+		h2XBinnedSigma->GetXaxis()->SetTitle("X");
+		h2XBinnedSigma->GetYaxis()->SetTitle("Y");
+		h2XBinnedSigma->Draw("COLZ");
+		hname = "h2XBinnedResolution";
+		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+
+		h2YBinnedSigma->GetXaxis()->SetTitle("X");
+		h2YBinnedSigma->GetYaxis()->SetTitle("Y");
+		h2YBinnedSigma->Draw("COLZ");
+		hname = "h2YBinnedResolution";
+		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+
 	}
 	else{
 
