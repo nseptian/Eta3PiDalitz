@@ -34,7 +34,7 @@ void setHPipPimG1G2Axis(TH1F* h);
 void setHG1G2Axis(TH1F* h);
 Double_t AcceptanceProb(TGraph *gr, Double_t X, Double_t Y);
 
-void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, TString cutTag){
+void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTag){
   
   //define input tree chain
   TChain *dataChain = new TChain("myTree");
@@ -240,7 +240,6 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
 
     const Int_t XResBin = 20;
     const Int_t YResBin = 20;
-    const Int_t NBinsXYRes = XResBin*YResBin;
 
     TH1F *hXRes[XResBin][YResBin],*hYRes[XResBin][YResBin];
     TDirectory *dirRes;
@@ -248,8 +247,8 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
     if (is_mc){      
       h2DalitzPlotEta3Pi_kin = new TH2F("h2_DalitzPlotEta3Pi_kin","",101,-1.0,1.0,101,-1.0,1.0);
       h2DalitzPlotEta3Pi_thrown = (TH2F*)mcThrown->Get("h2_DalitzPlotEta3Pi_thrown");
-      hXResolution = new TH1F("h1_XResolution","X dalitz variable resolution",101,-1.0,1.0);
-      hYResolution = new TH1F("h1_YResolution","Y dalitz variable resolution",101,-1.0,1.0);
+      hXResolution = new TH1F("h1_XResolution","X dalitz variable resolution",101,-0.5,0.5);
+      hYResolution = new TH1F("h1_YResolution","Y dalitz variable resolution",101,-0.5,0.5);
       dirRes = outfile->mkdir("BinnedXYResolution");
       dirRes->cd();
       for (Int_t i=0;i<XResBin;i++){
@@ -276,8 +275,8 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
           hYResTitle += Form("%.1f<Y<%.1f",-1.0+j*0.1,-1.0+(j+1)*0.1);
           hYResTitle += "bin";
 
-          hXRes[i][j] = new TH1F(hXResName,hXResTitle,101,-1.0,1.0);
-          hYRes[i][j] = new TH1F(hYResName,hYResTitle,101,-1.0,1.0);
+          hXRes[i][j] = new TH1F(hXResName,hXResTitle,201,-0.5,0.5);
+          hYRes[i][j] = new TH1F(hYResName,hYResTitle,201,-0.5,0.5);
         }
       }
     }
@@ -392,8 +391,8 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
                 h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
                 hXResolution->Fill(XRes,weight);
                 hYResolution->Fill(YRes,weight);
-                Int_t XBin = TMath::FloorNint(X_c*9.9999999999)+10;
-                Int_t YBin = TMath::FloorNint(Y_c*9.9999999999)+10;
+                Int_t XBin = TMath::FloorNint(X_c*10)+10;
+                Int_t YBin = TMath::FloorNint(Y_c*10)+10;
                 hXRes[XBin][YBin]->Fill(XRes,weight);
                 hYRes[XBin][YBin]->Fill(YRes,weight);
                 out_tree->Fill();
@@ -403,8 +402,8 @@ void EtaTo3PiReconstructionAllBkgsubs(int data_set,TString outName,bool is_mc, T
               h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
               hXResolution->Fill(XRes,weight);
               hYResolution->Fill(YRes,weight);
-              Int_t XBin = TMath::FloorNint(X_c*9.9999999999)+10;
-              Int_t YBin = TMath::FloorNint(Y_c*9.9999999999)+10;
+              Int_t XBin = TMath::FloorNint(X_c*10)+10;
+              Int_t YBin = TMath::FloorNint(Y_c*10)+10;
               hXRes[XBin][YBin]->Fill(XRes,weight);
               hYRes[XBin][YBin]->Fill(YRes,weight);
               out_tree->Fill();
