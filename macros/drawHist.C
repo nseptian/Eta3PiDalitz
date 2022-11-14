@@ -107,15 +107,19 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
     	const Int_t YResBin = 20;
 
     	TH1F *hXRes[XResBin][YResBin],*hYRes[XResBin][YResBin];
+		TF1 *g1 = new TF1("f_g1","gaus",-0.5,0.5);
+   		TF1 *g2 = new TF1("f_g2","gaus",-0.5,0.5);
+
+		TString fBinnedResolutionName = "BinnedResolution";
+		fBinnedResolutionName += outputTag;
+		fBinnedResolutionName += ".root";
+
+		TFile *fBinnedResolution = new TFile(fBinnedResolutionName,"RECREATE");
 
 		TH2F *h2NXYBinned = new TH2F("h2_NXYBinned","Number of entries on each bin",20,-1.0,1.0,20,-1.0,1.0);
 		TH2F *h2NXYBinnedEntriesCut = new TH2F("h2_NXYBinnedEntriesCut","Number of entries on each bin",20,-1.0,1.0,20,-1.0,1.0);
 		TH2F *h2XBinnedSigma = new TH2F("h2_XBinnedSigma","X Resolution",20,-1.0,1.0,20,-1.0,1.0);
 		TH2F *h2YBinnedSigma = new TH2F("h2_YBinnedSigma","Y Resolution",20,-1.0,1.0,20,-1.0,1.0);
-
-		Double_t par1[3],par2[3];
-		TF1 *g1 = new TF1("f_g1","gaus",-0.5,0.5);
-   		TF1 *g2 = new TF1("f_g2","gaus",-0.5,0.5);
 
 		gSystem->Exec(("mkdir -p plots/XYBinnedResolution_"+outputTag).c_str());
 
@@ -138,7 +142,6 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 					h2NXYBinnedEntriesCut->SetBinContent(i+1,j+1,hXRes[i][j]->GetEntries());
 					
 					hXRes[i][j]->Fit(g1,"R");
-					g1->GetParameters(&par1[0]);
 					hXRes[i][j]->GetFunction("f_g1")->SetLineColor(kRed);
 					hXRes[i][j]->SetMarkerStyle(3);
 					hXRes[i][j]->GetXaxis()->SetTitle("X_{thrown} - X_{reconstructed}");
@@ -146,10 +149,10 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 					hXRes[i][j]->Draw();
 					hname = "XBinnedResolution";
 					c->SaveAs(("plots/XYBinnedResolution_"+outputTag+"/"+hname+"_"+std::to_string(i)+"_"+std::to_string(j)+"_"+outputTag+".pdf").c_str());					
-					h2XBinnedSigma->SetBinContent(i+1,j+1,par1[2]);
+					h2XBinnedSigma->SetBinContent(i+1,j+1,g1->GetParameter(2));
+					h2XBinnedSigma->SetBinError(i+1,j+1,g1->GetParError(2));
 
 					hYRes[i][j]->Fit(g2,"R");
-					g2->GetParameters(&par2[0]);
 					hYRes[i][j]->GetFunction("f_g2")->SetLineColor(kRed);
 					hYRes[i][j]->SetMarkerStyle(3);
 					hYRes[i][j]->GetXaxis()->SetTitle("Y_{thrown} - Y_{reconstructed}");
@@ -157,7 +160,9 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 					hYRes[i][j]->Draw();
 					hname = "YBinnedResolution";
 					c->SaveAs(("plots/XYBinnedResolution_"+outputTag+"/"+hname+"_"+std::to_string(i)+"_"+std::to_string(j)+"_"+outputTag+".pdf").c_str());
-					h2YBinnedSigma->SetBinContent(i+1,j+1,par2[2]);
+					h2YBinnedSigma->SetBinContent(i+1,j+1,g2->GetParameter(2));
+					h2YBinnedSigma->SetBinError(i+1,j+1,g2->GetParError(2));
+
 
 				}
 			}
@@ -185,6 +190,7 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 		h2YBinnedSigma->Draw("COLZ");
 		hname = "h2YBinnedResolution";
 		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+		fBinnedResolution->Write();
 
 	}
 	else{
