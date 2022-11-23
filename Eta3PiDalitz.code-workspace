@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"path": "/d/home/septian/Eta3PiDalitz/"
+		}
+  ],
+  "settings": {
+    "files.associations": {
+      "*.C": "cpp",
+      "*.cc": "cpp",
+      "*.h": "cpp"
+    },
+    "C_Cpp.default.includePath": [
+      "${default}",
+      "/d/grid13/gluex/gluex_top/root/root-6.24.04/include",
+      "/d/home/septian/AmpTools/AmpTools",
+      "/d/home/septian/AmpTools/AmpPlotter",
+      "/d/home/septian/Eta3PiDalitz"
+    ]
+  },
+  "extensions": {
+    "recommendations": [
+      "albertopdrf.root-file-viewer",
+      "ms-vscode.cpptools"
+    ]
+  }
+}
