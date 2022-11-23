@@ -152,7 +152,7 @@ DecayAmpRes::calcAmplitude( GDouble** pKin, GDouble* userVars ) const {
   GDouble Y = 3.0*T_zero/T_all - 1.0;
   */
 
-  double amp_sq = (1.0 + par_A*Y + par_B*Y*Y + par_C*X + par_D*X*X + par_E*X*Y + par_F*Y*Y*Y + par_G*X*X*Y + par_H*X*Y*Y + par_L*X*X*X);
+  double amp_sq = GetConvolutedAmpSq(X,Y);
   double eta_width = Norm*TMath::Sqrt(amp_sq);
   
   /*
@@ -165,7 +165,7 @@ DecayAmpRes::calcAmplitude( GDouble** pKin, GDouble* userVars ) const {
 DecayAmpRes::~DecayAmpRes(){
 }
 
-double DecayAmpRes::GetResFuncX(GDouble X, GDouble Y){
+double DecayAmpRes::GetResFuncX(GDouble X, GDouble Y) const{
   double par[8];
   par[0]=    0.0455264; 
   par[1]= -3.60591e-05;  
@@ -178,7 +178,7 @@ double DecayAmpRes::GetResFuncX(GDouble X, GDouble Y){
   return par[0] + par[1]*X + par[2]*Y + par[3]*X*Y + par[4]*TMath::Power(X,2) + par[5]*TMath::Power(Y,2) + par[6]*Y*TMath::Power(X,2) + par[7]*X*TMath::Power(Y,2);
 }
 
-double DecayAmpRes::GetResFuncY(GDouble X, GDouble Y){
+double DecayAmpRes::GetResFuncY(GDouble X, GDouble Y) const{
   double par[8];
   par[0]=   0.0455619; 
   par[1]=-0.000163017; 
@@ -191,22 +191,31 @@ double DecayAmpRes::GetResFuncY(GDouble X, GDouble Y){
   return par[0] + par[1]*X + par[2]*Y + par[3]*X*Y + par[4]*TMath::Power(X,2) + par[5]*TMath::Power(Y,2) + par[6]*Y*TMath::Power(X,2) + par[7]*X*TMath::Power(Y,2);
 }
 
-double DecayAmpRes::GetAmpSq(GDouble X, GDouble Y){
+double DecayAmpRes::GetAmpSq(GDouble X, GDouble Y) const{
   return (1.0 + par_A*Y + par_B*Y*Y + par_C*X + par_D*X*X + par_E*X*Y + par_F*Y*Y*Y + par_G*X*X*Y + par_H*X*Y*Y + par_L*X*X*X);
 }
 
-double DecayAmpRes::GetConvolutedAmpSq(GDouble X, GDouble Y){
-  //Do convolution of squared decay amplitude and resolution function of X and Y by numerical integration
+double DecayAmpRes::GetIntegrandFunc(GDouble X, GDouble Y, GDouble XX, GDouble YY) const{
+  return GetAmpSq(X,Y)*GetResFuncX(X-XX,Y-YY)*GetResFuncY(X-XX,Y-YY);
+}
+
+double DecayAmpRes::GetConvolutedAmpSq(GDouble X, GDouble Y) const{
+  //Do convolution between squared decay amplitude and resolution function of X and Y by numerical integration
   Int_t N = 200;
-  Double_t lower_bound = -1.0;
-  Double_t upper_bound = 1.0;
+  Double_t lower_bound = -2.0;
+  Double_t upper_bound = 2.0;
   Double_t h = (upper_bound-lower_bound)/N;
-  //x integration
-  for (Int_t i = 0; i < 200; i++)
-  {
-    
-  }
+  Double_t convolutedAmpSq = 0;
   
+  for (Int_t i = 0; i < N; i++)
+  {
+    for (Int_t j = 0; i < N; i++)
+    {
+      convolutedAmpSq +=  (GetIntegrandFunc(X,Y,lower_bound+i*h,lower_bound+j*h) + GetIntegrandFunc(X,Y,lower_bound+(i+1)*h,lower_bound+j*h) + GetIntegrandFunc(X,Y,lower_bound+i*h,lower_bound+(j+1)*h) + GetIntegrandFunc(X,Y,lower_bound+(i+1)*h,lower_bound+(j+1)*h));
+    }
+  }
+  convolutedAmpSq *= (h*h/4);
+  return convolutedAmpSq;
 }
 
 #ifdef GPU_ACCELERATION

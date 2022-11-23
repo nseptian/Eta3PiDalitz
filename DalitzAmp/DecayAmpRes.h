@@ -38,10 +38,11 @@ public:
 
   complex< GDouble > calcAmplitude( GDouble** pKin, GDouble* userVars ) const;
 
-  double GetResFuncX(GDouble X,GDouble Y);
-  double GetResFuncY(GDouble X,GDouble Y);
-  double GetAmpSq(GDouble X,GDouble Y);
-  double GetConvolutedAmpSq(GDouble X, GDouble Y);
+  double GetResFuncX(GDouble X,GDouble Y) const;
+  double GetResFuncY(GDouble X,GDouble Y) const;
+  double GetAmpSq(GDouble X,GDouble Y) const;
+  double GetIntegrandFunc(GDouble X, GDouble Y, GDouble XX, GDouble YY) const;
+  double GetConvolutedAmpSq(GDouble X, GDouble Y) const;
   
   // **********************
   // The following lines are optional and can be used to precalcualte
