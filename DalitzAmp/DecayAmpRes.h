@@ -42,6 +42,7 @@ public:
   double GetResFuncY(GDouble X,GDouble Y) const;
   double GetAmpSq(GDouble X,GDouble Y) const;
   double GetIntegrandFunc(GDouble X, GDouble Y, GDouble XX, GDouble YY) const;
+  double Get2DNormalizedGaussianFcn(GDouble X, GDouble Y, GDouble XXX, GDouble YYY) const;
   double GetConvolutedAmpSq(GDouble X, GDouble Y) const;
   
   // **********************

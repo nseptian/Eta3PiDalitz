@@ -6,6 +6,7 @@
 
 #include "TLorentzVector.h"
 #include "TVector3.h"
+#include "TMath.h"
 #include "IUAmpTools/Kinematics.h"
 #include "DalitzAmp/DecayAmpRes.h"
 
@@ -153,6 +154,7 @@ DecayAmpRes::calcAmplitude( GDouble** pKin, GDouble* userVars ) const {
   */
 
   double amp_sq = GetConvolutedAmpSq(X,Y);
+  cout << "ConvolutedAmpSq = " << GetConvolutedAmpSq(X,Y) << ", AmpSq = " << GetAmpSq(X,Y) << endl; 
   double eta_width = Norm*TMath::Sqrt(amp_sq);
   
   /*
@@ -167,27 +169,27 @@ DecayAmpRes::~DecayAmpRes(){
 
 double DecayAmpRes::GetResFuncX(GDouble X, GDouble Y) const{
   double par[8];
-  par[0]=    0.0455264; 
-  par[1]= -3.60591e-05;  
-  par[2]=   0.00593144;  
-  par[3]=  0.000501775;  
-  par[4]=   -0.0282956; 
-  par[5]= -0.000221635;  
-  par[6]=   -0.0211081; 
-  par[7]=  0.000346209; 
+  par[0]=  4.56178e-02; 
+  par[1]= -5.31662e-05;  
+  par[2]=  6.30150e-03;  
+  par[3]=  4.12495e-04;  
+  par[4]= -2.95304e-02; 
+  par[5]=  5.18685e-04;  
+  par[6]= -2.21068e-02; 
+  par[7]=  1.29343e-04; 
   return par[0] + par[1]*X + par[2]*Y + par[3]*X*Y + par[4]*TMath::Power(X,2) + par[5]*TMath::Power(Y,2) + par[6]*Y*TMath::Power(X,2) + par[7]*X*TMath::Power(Y,2);
 }
 
 double DecayAmpRes::GetResFuncY(GDouble X, GDouble Y) const{
   double par[8];
-  par[0]=   0.0455619; 
-  par[1]=-0.000163017; 
-  par[2]= -0.00274728; 
-  par[3]= 0.000311031; 
-  par[4]= 0.000858612; 
-  par[5]=  -0.0295981; 
-  par[6]=  -0.0130061; 
-  par[7]=  0.00069991; 
+  par[0]=  4.57198e-02; 
+  par[1]= -2.02205e-04; 
+  par[2]= -1.59946e-03; 
+  par[3]=  1.96253e-05; 
+  par[4]=  1.75347e-03; 
+  par[5]= -3.13544e-02; 
+  par[6]= -1.53797e-02; 
+  par[7]=  1.07954e-03; 
   return par[0] + par[1]*X + par[2]*Y + par[3]*X*Y + par[4]*TMath::Power(X,2) + par[5]*TMath::Power(Y,2) + par[6]*Y*TMath::Power(X,2) + par[7]*X*TMath::Power(Y,2);
 }
 
@@ -196,22 +198,40 @@ double DecayAmpRes::GetAmpSq(GDouble X, GDouble Y) const{
 }
 
 double DecayAmpRes::GetIntegrandFunc(GDouble X, GDouble Y, GDouble XX, GDouble YY) const{
-  return GetAmpSq(X,Y)*GetResFuncX(X-XX,Y-YY)*GetResFuncY(X-XX,Y-YY);
+  if ((XX < 0.05) && (XX > -0.05) && (YY < 0.05) && (YY > -0.05)){
+    // cout << X << "|" << Y << "|" << XX << "|" << YY << "|" << "GaussFcn = " << Get2DNormalizedGaussianFcn(X,Y,XX,YY) << endl;
+  }
+  return GetAmpSq(X,Y)*Get2DNormalizedGaussianFcn(X,Y,XX,YY);
+}
+
+double DecayAmpRes::Get2DNormalizedGaussianFcn(GDouble X, GDouble Y, GDouble XXX, GDouble YYY) const{
+  GDouble sigmaX = GetResFuncX(X,Y);
+  GDouble sigmaY = GetResFuncY(X,Y);
+  // cout << "SigmaX = " << sigmaX << endl;
+  // cout << "SigmaY = " << sigmaY << endl;
+  GDouble zX = (XXX/sigmaX);
+  GDouble zY = (YYY/sigmaY);
+  return TMath::Exp(-0.5*(zX*zX+zY*zY))/(sigmaX*sigmaY*2*TMath::Pi());
 }
 
 double DecayAmpRes::GetConvolutedAmpSq(GDouble X, GDouble Y) const{
   //Do convolution between squared decay amplitude and resolution function of X and Y by numerical integration
-  Int_t N = 200;
-  Double_t lower_bound = -2.0;
-  Double_t upper_bound = 2.0;
-  Double_t h = (upper_bound-lower_bound)/N;
-  Double_t convolutedAmpSq = 0;
+  GDouble h = 0.05/20;
+  GDouble Xlower_bound = X-0.5;
+  GDouble Xupper_bound = X+0.5;
+  GDouble Ylower_bound = Y-0.5;
+  GDouble Yupper_bound = Y+0.5;
+  Int_t NX = TMath::FloorNint((Xupper_bound-Xlower_bound)/h);
+  Int_t NY = TMath::FloorNint((Yupper_bound-Ylower_bound)/h);
+  GDouble convolutedAmpSq = 0.;
   
-  for (Int_t i = 0; i < N; i++)
+  for (Int_t i = 0; i < NX; i++)
   {
-    for (Int_t j = 0; i < N; i++)
+    for (Int_t j = 0; j < NY; j++)
     {
-      convolutedAmpSq +=  (GetIntegrandFunc(X,Y,lower_bound+i*h,lower_bound+j*h) + GetIntegrandFunc(X,Y,lower_bound+(i+1)*h,lower_bound+j*h) + GetIntegrandFunc(X,Y,lower_bound+i*h,lower_bound+(j+1)*h) + GetIntegrandFunc(X,Y,lower_bound+(i+1)*h,lower_bound+(j+1)*h));
+      convolutedAmpSq +=  (GetIntegrandFunc(X,Y,X-(Xlower_bound+i*h),Y-(Ylower_bound+j*h)) + GetIntegrandFunc(X,Y,X-(Xlower_bound+(i+1)*h),Y-(Ylower_bound+j*h)) + GetIntegrandFunc(X,Y,X-(Xlower_bound+i*h),Y-(Ylower_bound+(j+1)*h)) + GetIntegrandFunc(X,Y,X-(Xlower_bound+(i+1)*h),Y-(Ylower_bound+(j+1)*h)));
+      // cout << X << "|" << Y << "|" << i << "|" << j << "|" << convolutedAmpSq << endl;
+      // cout << X << "|" << Y << "|" << X-(Xlower_bound+i*h) << "|" << Y-(Ylower_bound+j*h) << endl;
     }
   }
   convolutedAmpSq *= (h*h/4);
