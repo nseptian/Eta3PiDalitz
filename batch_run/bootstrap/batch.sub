@@ -1,0 +1,12 @@
+Universe   = vanilla
+Executable = /d/home/septian/Eta3PiDalitz/batch_bootstrap/run.sh
+Arguments  = 07122022 $(Process)
+
+Log        = /d/home/septian/Eta3PiDalitz/batch_bootstrap/log/log_$(Process).log
+Output     = /d/home/septian/Eta3PiDalitz/batch_bootstrap/log/out_$(Process).log
+Error      = /d/home/septian/Eta3PiDalitz/batch_bootstrap/log/err_$(Process).log
+
+transfer_input_files = /d/home/septian/Eta3PiDalitz/batch_bootstrap/run.sh,/d/home/septian/Eta3PiDalitz/batch_bootstrap/env.sh,/d/home/septian/Eta3PiDalitz/batch_bootstrap/run_fit.sh
+transfer_output_files = out_$(Process) 
+
+queue Process from seq 100 199 |
