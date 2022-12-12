@@ -198,10 +198,10 @@ double DecayAmpRes::GetAmpSq(GDouble X, GDouble Y) const{
 }
 
 double DecayAmpRes::GetIntegrandFunc(GDouble X, GDouble Y, GDouble XX, GDouble YY) const{
-  if ((XX < 0.05) && (XX > -0.05) && (YY < 0.05) && (YY > -0.05)){
+  // if ((XX < 0.05) && (XX > -0.05) && (YY < 0.05) && (YY > -0.05)){
     // cout << X << "|" << Y << "|" << XX << "|" << YY << "|" << "GaussFcn = " << Get2DNormalizedGaussianFcn(X,Y,XX,YY) << endl;
-  }
-  return GetAmpSq(X,Y)*Get2DNormalizedGaussianFcn(X,Y,XX,YY);
+  // }
+  return GetAmpSq(XX,YY)*Get2DNormalizedGaussianFcn(X,Y,X-XX,Y-YY);
 }
 
 double DecayAmpRes::Get2DNormalizedGaussianFcn(GDouble X, GDouble Y, GDouble XXX, GDouble YYY) const{
@@ -216,20 +216,25 @@ double DecayAmpRes::Get2DNormalizedGaussianFcn(GDouble X, GDouble Y, GDouble XXX
 
 double DecayAmpRes::GetConvolutedAmpSq(GDouble X, GDouble Y) const{
   //Do convolution between squared decay amplitude and resolution function of X and Y by numerical integration
-  GDouble h = 0.05/20;
-  GDouble Xlower_bound = X-0.5;
-  GDouble Xupper_bound = X+0.5;
-  GDouble Ylower_bound = Y-0.5;
-  GDouble Yupper_bound = Y+0.5;
+  GDouble sigmaX = GetResFuncX(X,Y);
+  GDouble sigmaY = GetResFuncY(X,Y);
+  // const Int_t NX = 20;
+  // const Int_t NY = 20;
+  GDouble h = 0.1;
+  GDouble Xlower_bound = -5*sigmaX-1;
+  GDouble Xupper_bound = 5*sigmaX+1;
+  GDouble Ylower_bound = -5*sigmaY-1;
+  GDouble Yupper_bound = 5*sigmaY+1;
   Int_t NX = TMath::FloorNint((Xupper_bound-Xlower_bound)/h);
   Int_t NY = TMath::FloorNint((Yupper_bound-Ylower_bound)/h);
+  cout << "Nx = " << NX << ", Ny = " << NY << endl;
   GDouble convolutedAmpSq = 0.;
   
   for (Int_t i = 0; i < NX; i++)
   {
     for (Int_t j = 0; j < NY; j++)
     {
-      convolutedAmpSq +=  (GetIntegrandFunc(X,Y,X-(Xlower_bound+i*h),Y-(Ylower_bound+j*h)) + GetIntegrandFunc(X,Y,X-(Xlower_bound+(i+1)*h),Y-(Ylower_bound+j*h)) + GetIntegrandFunc(X,Y,X-(Xlower_bound+i*h),Y-(Ylower_bound+(j+1)*h)) + GetIntegrandFunc(X,Y,X-(Xlower_bound+(i+1)*h),Y-(Ylower_bound+(j+1)*h)));
+      convolutedAmpSq +=  (GetIntegrandFunc(X,Y,(Xlower_bound+i*h),(Ylower_bound+j*h)) + GetIntegrandFunc(X,Y,(Xlower_bound+(i+1)*h),(Ylower_bound+j*h)) + GetIntegrandFunc(X,Y,(Xlower_bound+i*h),(Ylower_bound+(j+1)*h)) + GetIntegrandFunc(X,Y,(Xlower_bound+(i+1)*h),(Ylower_bound+(j+1)*h)));
       // cout << X << "|" << Y << "|" << i << "|" << j << "|" << convolutedAmpSq << endl;
       // cout << X << "|" << Y << "|" << X-(Xlower_bound+i*h) << "|" << Y-(Ylower_bound+j*h) << endl;
     }
