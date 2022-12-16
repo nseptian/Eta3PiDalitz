@@ -154,7 +154,7 @@ DecayAmpRes::calcAmplitude( GDouble** pKin, GDouble* userVars ) const {
   */
 
   double amp_sq = GetConvolutedAmpSq(X,Y);
-  cout << "ConvolutedAmpSq = " << GetConvolutedAmpSq(X,Y) << ", AmpSq = " << GetAmpSq(X,Y) << endl; 
+  // cout << "ConvolutedAmpSq = " << GetConvolutedAmpSq(X,Y) << ", AmpSq = " << GetAmpSq(X,Y) << endl; 
   double eta_width = Norm*TMath::Sqrt(amp_sq);
   
   /*
@@ -220,14 +220,14 @@ double DecayAmpRes::GetConvolutedAmpSq(GDouble X, GDouble Y) const{
   GDouble sigmaY = GetResFuncY(X,Y);
   // const Int_t NX = 20;
   // const Int_t NY = 20;
-  GDouble h = 0.1;
+  GDouble h = 0.05;
   GDouble Xlower_bound = -5*sigmaX-1;
   GDouble Xupper_bound = 5*sigmaX+1;
   GDouble Ylower_bound = -5*sigmaY-1;
   GDouble Yupper_bound = 5*sigmaY+1;
   Int_t NX = TMath::FloorNint((Xupper_bound-Xlower_bound)/h);
   Int_t NY = TMath::FloorNint((Yupper_bound-Ylower_bound)/h);
-  cout << "Nx = " << NX << ", Ny = " << NY << endl;
+  // cout << "Nx = " << NX << ", Ny = " << NY << endl;
   GDouble convolutedAmpSq = 0.;
   
   for (Int_t i = 0; i < NX; i++)

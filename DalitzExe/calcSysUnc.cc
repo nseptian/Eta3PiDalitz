@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[]){
     
-    // gStyle->SetOptStat(11);
+    gStyle->SetOptStat(11);
     // gStyle->SetOptStat("ne");
     
     if (argc < 5){
@@ -41,12 +41,12 @@ int main(int argc, char* argv[]){
     TH1F *hPar_H_2 = new TH1F("h_Par_H_2","",50,-0.03,0.07);
     TH1F *hPar_L_2 = new TH1F("h_Par_L_2","",50,-0.05,0.05);
 
-    TH1F *hPar_A_3 = new TH1F("h_Par_A_3","",50,1.02,1.12);
-    TH1F *hPar_B_3 = new TH1F("h_Par_B_3","",50,0.14,0.24);
+    TH1F *hPar_A_3 = new TH1F("h_Par_A_3","",50,0.8,1.5);
+    TH1F *hPar_B_3 = new TH1F("h_Par_B_3","",50,-0.1,0.6);
     TH1F *hPar_C_3 = new TH1F("h_Par_C_3","",50,-0.04,0.06);
-    TH1F *hPar_D_3 = new TH1F("h_Par_D_3","",50,0.025,0.125);
+    TH1F *hPar_D_3 = new TH1F("h_Par_D_3","",50,-0.1,0.6);
     TH1F *hPar_E_3 = new TH1F("h_Par_E_3","",50,-0.05,0.05);
-    TH1F *hPar_F_3 = new TH1F("h_Par_F_3","",50,0.13,0.23);
+    TH1F *hPar_F_3 = new TH1F("h_Par_F_3","",50,-0.1,0.6);
     TH1F *hPar_G_3 = new TH1F("h_Par_G_3","",50,-0.05,0.05);
     TH1F *hPar_H_3 = new TH1F("h_Par_H_3","",50,-0.03,0.07);
     TH1F *hPar_L_3 = new TH1F("h_Par_L_3","",50,-0.05,0.05);

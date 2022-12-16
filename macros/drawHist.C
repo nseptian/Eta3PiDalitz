@@ -120,8 +120,11 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 		TH2F *h2NXYBinnedEntriesCut = new TH2F("h2_NXYBinnedEntriesCut","Number of entries on each bin",20,-1.0,1.0,20,-1.0,1.0);
 		TH2F *h2XBinnedSigma = new TH2F("h2_XBinnedSigma","X Resolution",20,-1.0,1.0,20,-1.0,1.0);
 		TH2F *h2YBinnedSigma = new TH2F("h2_YBinnedSigma","Y Resolution",20,-1.0,1.0,20,-1.0,1.0);
+		TH2I *h2NumberBinLabel = new TH2I("h2_BinNumber","Bin number",20,-1.0,1.0,20,-1.0,1.0);
 
 		gSystem->Exec(("mkdir -p plots/XYBinnedResolution_"+outputTag).c_str());
+
+		Int_t counter=0;
 
 		for (Int_t i=0;i<20;i++){
 			for (Int_t j=0;j<20;j++){
@@ -139,6 +142,8 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 				hYRes[i][j] = (TH1F*)dirRes->Get(hYResName.Data());
 				h2NXYBinned->SetBinContent(i+1,j+1,hXRes[i][j]->GetEntries());
 				if ((hXRes[i][j]->GetEntries() > 1000)){
+					counter++;
+					h2NumberBinLabel->SetBinContent(i+1,j+1,counter);
 					h2NXYBinnedEntriesCut->SetBinContent(i+1,j+1,hXRes[i][j]->GetEntries());
 					
 					hXRes[i][j]->Fit(g1,"R");
@@ -162,7 +167,6 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 					c->SaveAs(("plots/XYBinnedResolution_"+outputTag+"/"+hname+"_"+std::to_string(i)+"_"+std::to_string(j)+"_"+outputTag+".pdf").c_str());
 					h2YBinnedSigma->SetBinContent(i+1,j+1,g2->GetParameter(2));
 					h2YBinnedSigma->SetBinError(i+1,j+1,g2->GetParError(2));
-
 
 				}
 			}
