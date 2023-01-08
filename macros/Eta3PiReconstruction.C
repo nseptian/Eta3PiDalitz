@@ -1,4 +1,21 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+#include "TChain.h"
+#include "TFile.h"
+#include "RooFit.h"
+#include "TLorentzVector.h"
+#include "TGraph.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TTree.h"
+#include "TDirectory.h"
+#include "TString.h"
+#include "TCanvas.h"
+
 using namespace RooFit;
+using namespace std;
 
 //kfit_cut value represents a cut on the kinematic fit probability!
 const Double_t kfit_cut = 0.01;
@@ -10,6 +27,10 @@ const Double_t Pi0MassRange[2] = {0.11,0.165}; //GeV
 //user config for theta photons cut
 const Bool_t enablePhotonsThetaCut = kTRUE;
 
+//user config for energy beam cut
+const Bool_t enablePhotonBeamEnergyCut = kFALSE;
+const Double_t PhotonBeamEnergyRange[2] = {10.0,99.0};
+
 //user config for sideband subtraction
 const Bool_t enableSidebandSubs = kTRUE;
 const Bool_t fitOnly = kFALSE;
@@ -19,7 +40,7 @@ const Double_t width = 0.025;
 const Double_t leftSidebandRange[2] = {0.48-width,0.48};
 const Double_t rightSidebandRange[2] = {0.61,0.61+width};
 
-
+//set this two for every MC
 const Double_t signalRangeMC[2] = {0.52585909,0.56975488}; //2017_data_sbs_10092022
 const Double_t weightSidebandMC = -0.510745; //2017_data_sbs_10092022
 
@@ -126,6 +147,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   TLorentzVector *pim_p4_kin = 0;
   TLorentzVector *g1_p4_kin = 0;
   TLorentzVector *g2_p4_kin = 0;
+  TLorentzVector *beam_p4_kin = 0;
   TLorentzVector *pip_p4_true = 0;
   TLorentzVector *pim_p4_true = 0;
   TLorentzVector *g1_p4_true = 0;
@@ -139,6 +161,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   dataChain->SetBranchStatus("pip_p4_kin",1);
   dataChain->SetBranchStatus("g1_p4_kin",1);
   dataChain->SetBranchStatus("g2_p4_kin",1);
+  dataChain->SetBranchStatus("beam_p4_kin",1);
   
   dataChain->SetBranchAddress("kfit_prob",&kfit_prob);
   dataChain->SetBranchAddress("dBRT",&dBRT);
@@ -146,6 +169,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   dataChain->SetBranchAddress("pim_p4_kin",&pim_p4_kin); //4-vector of pi- 
   dataChain->SetBranchAddress("g1_p4_kin",&g1_p4_kin); //4-vector of photon1 (gamma 1)
   dataChain->SetBranchAddress("g2_p4_kin",&g2_p4_kin); //4-vector of photon2 (gamma 2)
+  dataChain->SetBranchAddress("beam_p4_kin",&beam_p4_kin);
 
   if(is_mc){
       dataChain->SetBranchStatus("is_truecombo",1);
@@ -182,11 +206,19 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   TH1F* hpippimg1g2mass;
 
   //Define output tree
+  Double_t EnBeam,PxBeam,PyBeam,PzBeam;
   Double_t EnP1,PxP1,PyP1,PzP1;
   Double_t EnP2,PxP2,PyP2,PzP2;
   Double_t EnP3,PxP3,PyP3,PzP3;
   Double_t X,Y,weight=1.0;
   TTree *out_tree = new TTree("nt","nt");
+
+  //photon beam
+  out_tree->Branch("EnBeam",&EnBeam,"EnBeam/D");
+  out_tree->Branch("PxBeam",&PxBeam,"PxBeam/D");
+  out_tree->Branch("PyBeam",&PyBeam,"PyBeam/D");
+  out_tree->Branch("PzBeam",&PzBeam,"PzBeam/D");
+
   //Pi+
   out_tree->Branch("EnP1",&EnP1,"EnP1/D");
   out_tree->Branch("PxP1",&PxP1,"PxP1/D");
@@ -238,8 +270,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     TH1F *hXResolution;
     TH1F *hYResolution;
 
-    const Int_t XResBin = 20;
-    const Int_t YResBin = 20;
+    const Int_t XResBin = 40;
+    const Int_t YResBin = 40;
+    const Float_t XBinWidth = 2.0/XResBin;
+    const Float_t YBinWidth = 2.0/YResBin;
 
     TH1F *hXRes[XResBin][YResBin],*hYRes[XResBin][YResBin];
     TDirectory *dirRes;
@@ -264,15 +298,15 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           hYResName += j;
           
           TString hXResTitle = "X resolution for ";
-          hXResTitle += Form("%.1f<X<%.1f",-1.0+i*0.1,-1.0+(i+1)*0.1);
+          hXResTitle += Form("%.1f<X<%.1f",-1.0+i*XBinWidth,-1.0+(i+1)*XBinWidth);
           hXResTitle += " ";
-          hXResTitle += Form("%.1f<Y<%.1f",-1.0+j*0.1,-1.0+(j+1)*0.1);
+          hXResTitle += Form("%.1f<Y<%.1f",-1.0+j*YBinWidth,-1.0+(j+1)*YBinWidth);
           hXResTitle += "bin";
           
           TString hYResTitle = "Y resolution for ";
-          hYResTitle += Form("%.1f<X<%.1f",-1.0+i*0.1,-1.0+(i+1)*0.1);
+          hYResTitle += Form("%.1f<X<%.1f",-1.0+i*XBinWidth,-1.0+(i+1)*XBinWidth);
           hYResTitle += " ";
-          hYResTitle += Form("%.1f<Y<%.1f",-1.0+j*0.1,-1.0+(j+1)*0.1);
+          hYResTitle += Form("%.1f<Y<%.1f",-1.0+j*YBinWidth,-1.0+(j+1)*YBinWidth);
           hYResTitle += "bin";
 
           hXRes[i][j] = new TH1F(hXResName,hXResTitle,201,-0.5,0.5);
@@ -297,6 +331,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           PxP1 = pip_p4_kin->Px();
           PyP1 = pip_p4_kin->Py();
           PzP1 = pip_p4_kin->Pz();
+
           EnP2 = pim_p4_kin->E();
           PxP2 = pim_p4_kin->Px();
           PyP2 = pim_p4_kin->Py();
@@ -306,6 +341,11 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           PxP3 = (*g1_p4_kin + *g2_p4_kin).Px();
           PyP3 = (*g1_p4_kin + *g2_p4_kin).Py();
           PzP3 = (*g1_p4_kin + *g2_p4_kin).Pz();
+
+          EnBeam = beam_p4_kin->E();
+          PxBeam = beam_p4_kin->Px();
+          PyBeam = beam_p4_kin->Py();
+          PzBeam = beam_p4_kin->Pz();
         }
         if(dBRT >= -2.0 && dBRT <= 2.0){
             weight = 1.0;
@@ -322,7 +362,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
 
         Bool_t PhotonThetaCut = kFALSE;
         if (enablePhotonsThetaCut) PhotonThetaCut = (theta_photon1*TMath::RadToDeg() < 10.3 || theta_photon1*TMath::RadToDeg() > 11.9) && (theta_photon2*TMath::RadToDeg() < 10.3 || theta_photon2*TMath::RadToDeg() > 11.9);
-        else PhotonThetaCut = kTRUE; //always true
+        else PhotonThetaCut = kTRUE;
         //calculate X and Y
         TLorentzVector eta = (*pip_p4_kin + *pim_p4_kin + *g1_p4_kin + *g2_p4_kin);
         TVector3 eta_boost = eta.BoostVector();
@@ -341,11 +381,13 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
 
         Bool_t kinematicCut = kFALSE;
         Bool_t Pi0MassCut = kFALSE;
+        Bool_t BeamEnergyCut = kFALSE;
 
         Double_t XRes = 0;
         Double_t YRes = 0;
 
-        if (is_mc) {          
+        if (is_mc) {
+          // Calculating resolution for X and Y          
           Double_t X_c_true = 0;
           Double_t Y_c_true = 0;
           TLorentzVector eta_true = (*pip_p4_true + *pim_p4_true + *g1_p4_true + *g2_p4_true);
@@ -366,17 +408,22 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           XRes = X_c_true - X_c;
           YRes = Y_c_true - Y_c;
 
+          //Selecting events based on Acceptance Probability from global bins
           if (enableKinematicCut){
             Double_t accProb = AcceptanceProb(DP_kinAccR,X_c,Y_c);
             kinematicCut = (accProb >= 0.5);
           }
           else kinematicCut = kTRUE;
           if (enablePi0MassCut) Pi0MassCut = (m_g1g2 > Pi0MassRange[0]) && (m_g1g2 < Pi0MassRange[1]);
-          else Pi0MassCut = kTRUE; //always true
+          else Pi0MassCut = kTRUE;
+
+          if (enablePhotonBeamEnergyCut) BeamEnergyCut = (EnBeam > PhotonBeamEnergyRange[0]) && (EnBeam < PhotonBeamEnergyRange[1]);
+          else BeamEnergyCut = kTRUE;
         }
         else {
           kinematicCut = kTRUE;
           Pi0MassCut = kTRUE;
+          BeamEnergyCut = kTRUE;
         }
         
         if (PhotonThetaCut) {
@@ -384,15 +431,15 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           hg1g2mass->Fill(m_g1g2,weight);
           // h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
           if (!enableSidebandSubs) out_tree->Fill();
-          if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut) {            
+          if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut && BeamEnergyCut) {            
             if (((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])) || ((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1]))){
               if(!signalOnlyTree) {
                 weight *= weightSidebandMC;
                 h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
                 hXResolution->Fill(XRes,weight);
                 hYResolution->Fill(YRes,weight);
-                Int_t XBin = TMath::FloorNint(X_c*10)+10;
-                Int_t YBin = TMath::FloorNint(Y_c*10)+10;
+                Int_t XBin = TMath::FloorNint(X_c/XBinWidth)+TMath::Nint(1/XBinWidth); //generalize using number of bin
+                Int_t YBin = TMath::FloorNint(Y_c/YBinWidth)+TMath::Nint(1/YBinWidth);
                 hXRes[XBin][YBin]->Fill(XRes,weight);
                 hYRes[XBin][YBin]->Fill(YRes,weight);
                 out_tree->Fill();
@@ -402,8 +449,8 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
               h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
               hXResolution->Fill(XRes,weight);
               hYResolution->Fill(YRes,weight);
-              Int_t XBin = TMath::FloorNint(X_c*10)+10;
-              Int_t YBin = TMath::FloorNint(Y_c*10)+10;
+              Int_t XBin = TMath::FloorNint(X_c/XBinWidth)+TMath::Nint(1/XBinWidth);
+              Int_t YBin = TMath::FloorNint(Y_c/YBinWidth)+TMath::Nint(1/YBinWidth);
               hXRes[XBin][YBin]->Fill(XRes,weight);
               hYRes[XBin][YBin]->Fill(YRes,weight);
               out_tree->Fill();
@@ -643,6 +690,11 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
               PyP3 = (*g1_p4_kin + *g2_p4_kin).Py();
               PzP3 = (*g1_p4_kin + *g2_p4_kin).Pz();
 
+              EnBeam = beam_p4_kin->E();
+              PxBeam = beam_p4_kin->Px();
+              PyBeam = beam_p4_kin->Py();
+              PzBeam = beam_p4_kin->Pz();
+
               Double_t m_g1g2 = (*g1_p4_kin + *g2_p4_kin).M();
               // Double_t diffmassg1g2 = (*g1_p4_kin).M() - (*g2_p4_kin).M();
 
@@ -669,7 +721,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
               if (enablePhotonsThetaCut) PhotonThetaCut = (theta_photon1*TMath::RadToDeg() < 10.3 || theta_photon1*TMath::RadToDeg() > 11.9) && (theta_photon2*TMath::RadToDeg() < 10.3 || theta_photon2*TMath::RadToDeg() > 11.9);
               else PhotonThetaCut = kTRUE; //always true
 
-                  
+              Bool_t BeamEnergyCut = kFALSE;
+              if (enablePhotonBeamEnergyCut) BeamEnergyCut = (EnBeam > PhotonBeamEnergyRange[0]) && (EnBeam < PhotonBeamEnergyRange[1]);
+              else BeamEnergyCut = kTRUE;
+
               //calculate X and Y
               TLorentzVector eta = (*pip_p4_kin + *pim_p4_kin + *g1_p4_kin + *g2_p4_kin);
               TVector3 eta_boost = eta.BoostVector();
@@ -706,7 +761,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
                   hg1g2mass_sbsAll->Fill(m_g1g2,weight);
                   h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                   hg1g2mass_sbsSidebandOnlyWeighted->Fill(m_g1g2,weight);
-                  if (!signalOnlyTree && Pi0MassCut && kinematicCut) {
+                  if (!signalOnlyTree && Pi0MassCut && kinematicCut && BeamEnergyCut) {
                     h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
                     out_tree->Fill();
                   }
@@ -718,7 +773,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
                   h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                   hg1g2mass_sbsSignalOnly->Fill(m_g1g2,weight);
                   h2DalitzPlotEta3Pi_sbsSignalOnly->Fill(X_c,Y_c,weight);
-                  if (Pi0MassCut && kinematicCut) {
+                  if (Pi0MassCut && kinematicCut && BeamEnergyCut) {
                     h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
                     out_tree->Fill();
                   }
@@ -766,7 +821,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       h2DalitzPlotEta3Pi_sbsSignalOnly->Write();
       h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted->Write();
       h2DalitzPlotEta3Pi_tree->Write();
-      out_tree->Write();
+      // out_tree->Write();
     }
   }
   if (!fitOnly) outfile->Write();

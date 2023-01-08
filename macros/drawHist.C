@@ -103,8 +103,8 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 		TDirectory *dirRes = (TDirectory*)f->Get("BinnedXYResolution");
 		dirRes->cd();
 
-		const Int_t XResBin = 20;
-    	const Int_t YResBin = 20;
+		const Int_t XResBin = 40;
+    	const Int_t YResBin = 40;
 
     	TH1F *hXRes[XResBin][YResBin],*hYRes[XResBin][YResBin];
 		TF1 *g1 = new TF1("f_g1","gaus",-0.5,0.5);
@@ -116,18 +116,18 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 
 		TFile *fBinnedResolution = new TFile(fBinnedResolutionName,"RECREATE");
 
-		TH2F *h2NXYBinned = new TH2F("h2_NXYBinned","Number of entries on each bin",20,-1.0,1.0,20,-1.0,1.0);
-		TH2F *h2NXYBinnedEntriesCut = new TH2F("h2_NXYBinnedEntriesCut","Number of entries on each bin",20,-1.0,1.0,20,-1.0,1.0);
-		TH2F *h2XBinnedSigma = new TH2F("h2_XBinnedSigma","X Resolution",20,-1.0,1.0,20,-1.0,1.0);
-		TH2F *h2YBinnedSigma = new TH2F("h2_YBinnedSigma","Y Resolution",20,-1.0,1.0,20,-1.0,1.0);
-		TH2I *h2NumberBinLabel = new TH2I("h2_BinNumber","Bin number",20,-1.0,1.0,20,-1.0,1.0);
+		TH2F *h2NXYBinned = new TH2F("h2_NXYBinned","Number of entries on each bin",XResBin,-1.0,1.0,YResBin,-1.0,1.0);
+		TH2F *h2NXYBinnedEntriesCut = new TH2F("h2_NXYBinnedEntriesCut","Number of entries on each bin",XResBin,-1.0,1.0,YResBin,-1.0,1.0);
+		TH2F *h2XBinnedSigma = new TH2F("h2_XBinnedSigma","X Resolution",XResBin,-1.0,1.0,YResBin,-1.0,1.0);
+		TH2F *h2YBinnedSigma = new TH2F("h2_YBinnedSigma","Y Resolution",XResBin,-1.0,1.0,YResBin,-1.0,1.0);
+		TH2I *h2NumberBinLabel = new TH2I("h2_BinNumber","Bin number",XResBin,-1.0,1.0,YResBin,-1.0,1.0);
 
 		gSystem->Exec(("mkdir -p plots/XYBinnedResolution_"+outputTag).c_str());
 
 		Int_t counter=0;
 
-		for (Int_t i=0;i<20;i++){
-			for (Int_t j=0;j<20;j++){
+		for (Int_t i=0;i<XResBin;i++){
+			for (Int_t j=0;j<YResBin;j++){
 				TString hXResName = "h1_XResolution_";
           		hXResName += i;
           		hXResName += "_";
@@ -141,7 +141,7 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 				hXRes[i][j] = (TH1F*)dirRes->Get(hXResName.Data());
 				hYRes[i][j] = (TH1F*)dirRes->Get(hYResName.Data());
 				h2NXYBinned->SetBinContent(i+1,j+1,hXRes[i][j]->GetEntries());
-				if ((hXRes[i][j]->GetEntries() > 1000)){
+				if ((hXRes[i][j]->GetEntries() > 500)){
 					counter++;
 					h2NumberBinLabel->SetBinContent(i+1,j+1,counter);
 					h2NXYBinnedEntriesCut->SetBinContent(i+1,j+1,hXRes[i][j]->GetEntries());

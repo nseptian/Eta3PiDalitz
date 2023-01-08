@@ -96,7 +96,7 @@ Double_t polynomial2DY(Double_t *x, Double_t *par){
 //     return TMath::FloorNint((X+1.1)/delta) + N*TMath::FloorNint((Y+1.1)/delta);
 // }
 
-void fitXYResolution(TString fName = ""){
+void fitXYResolution(TString fName = "", TString tag = ""){
     gSystem->Exec("mkdir -p plots");
 
 	gluex_style();
@@ -119,19 +119,19 @@ void fitXYResolution(TString fName = ""){
 
     fit2DFuncX->SetParameters(iniParamsX);
     h2XBinnedSigma->Draw("SURF2");
-    c->SaveAs("Fittedh2XBinnedSigmaSurf2Polym.pdf");
+    c->SaveAs("Fittedh2XBinnedSigmaSurf2Polym_"+tag+".pdf");
     
     h2XBinnedSigma->Fit(fit2DFuncX,"E");
     cout << "Chi2/NDF of funcX = " << fit2DFuncX->GetChisquare()/fit2DFuncX->GetNDF() << endl;
     h2XBinnedSigma->Draw("COLZ");
     fit2DFuncX->Draw("CONT1 SAME");
     h2NumberBinLabel->Draw("TEXT SAME");
-    c->SaveAs("Fittedh2XBinnedSigmaPolym.pdf");
+    c->SaveAs("Fittedh2XBinnedSigmaPolym_"+tag+".pdf");
     
     fit2DFuncX->Draw("SURF2");
     fit2DFuncX->GetXaxis()->SetTitle("X");
     fit2DFuncX->GetYaxis()->SetTitle("Y");
-    c->SaveAs("FittedTF2XBinnedSigmaSurf2Polym.pdf");
+    c->SaveAs("FittedTF2XBinnedSigmaSurf2Polym_"+tag+".pdf");
 
     TH2F *h2YBinnedSigma = (TH2F*)f->Get("h2_YBinnedSigma");
     // Double_t iniParamsY[10] = {0.05,-2.,-2.,50,20.,0.05,0.05,10.,0.,1.};
@@ -145,36 +145,54 @@ void fitXYResolution(TString fName = ""){
 
     fit2DFuncY->SetParameters(iniParamsY);
     h2YBinnedSigma->Draw("SURF2");
-    c->SaveAs("Fittedh2YBinnedSigmaSurf2Polym.pdf");
+    c->SaveAs("Fittedh2YBinnedSigmaSurf2Polym_"+tag+".pdf");
     h2YBinnedSigma->Fit(fit2DFuncY,"E");
     cout << "Chi2/NDF of funcY = " << fit2DFuncY->GetChisquare()/fit2DFuncY->GetNDF() << endl;
     h2YBinnedSigma->Draw("COLZ");
     fit2DFuncY->Draw("CONT1 SAME");
     h2NumberBinLabel->Draw("TEXT SAME");
-    c->SaveAs("Fittedh2YBinnedSigmaPolym.pdf");
+    c->SaveAs("Fittedh2YBinnedSigmaPolym_"+tag+".pdf");
     
     fit2DFuncY->Draw("SURF2");
     fit2DFuncY->GetXaxis()->SetTitle("X");
     fit2DFuncY->GetYaxis()->SetTitle("Y");
-    c->SaveAs("FittedTF2YBinnedSigmaSurf2Polym.pdf");
+    c->SaveAs("FittedTF2YBinnedSigmaSurf2Polym_"+tag+".pdf");
 
-    TH1F *h1_XResBinned = new TH1F("h1_XResBinned","X Resolution",286,0.5,286.5);
-    TH1F *h1_YResBinned = new TH1F("h1_YResBinned","Y Resolution",286,0.5,286.5);
+    Int_t count=0;
+    Int_t NXResBin = 40;
+    Int_t NYResBin = 40;
+    Float_t XBinWidth = 2.0/NXResBin;
+    Float_t YBinWidth = 2.0/NYResBin;
+    Int_t NXResBin2 = TMath::Nint(NXResBin/2.0);
+    Int_t NYResBin2 = TMath::Nint(NYResBin/2.0);
 
-    Double_t arr_evalF2ResX[286], arr_evalF2ResY[286], arr_count[286];
-    Int_t count = 0;
-
-    for (size_t i = 0; i < 20; i++)
+    for (size_t i = 0; i < NXResBin; i++)
     {
-        for (size_t j = 0; j < 20; j++)
+        for (size_t j = 0; j < NYResBin; j++)
+        {
+            if (h2NumberBinLabel->GetBinContent(i+1,j+1) != 0) count++;
+        }        
+    }
+
+    const Int_t NBinNotZero = count;
+    
+    TH1F *h1_XResBinned = new TH1F("h1_XResBinned","X Resolution",NBinNotZero,0.5,NBinNotZero+0.5);
+    TH1F *h1_YResBinned = new TH1F("h1_YResBinned","Y Resolution",NBinNotZero,0.5,NBinNotZero+0.5);
+
+    Double_t arr_evalF2ResX[NBinNotZero], arr_evalF2ResY[NBinNotZero], arr_count[NBinNotZero];
+    count = 0;
+
+    for (size_t i = 0; i < NXResBin; i++)
+    {
+        for (size_t j = 0; j < NYResBin; j++)
         {
             if (h2NumberBinLabel->GetBinContent(i+1,j+1) != 0) {
                 count++;
                 h1_XResBinned->SetBinContent(count,h2XBinnedSigma->GetBinContent(i+1,j+1));
                 h1_YResBinned->SetBinContent(count,h2YBinnedSigma->GetBinContent(i+1,j+1));
                 arr_count[count-1] = count;
-                Double_t X = (-9.5+i)/10;
-                Double_t Y = (-9.5+j)/10;
+                Double_t X = (-NXResBin2+0.5+i)/NXResBin2;
+                Double_t Y = (-NYResBin2+0.5+j)/NYResBin2;
                 arr_evalF2ResX[count-1] = fit2DFuncX->Eval(X,Y);
                 arr_evalF2ResY[count-1] = fit2DFuncY->Eval(X,Y);
                 cout << count << ". " << X << " " << Y << " " << fit2DFuncX->Eval(X,Y) << " " << fit2DFuncY->Eval(X,Y)  << endl;
@@ -186,28 +204,28 @@ void fitXYResolution(TString fName = ""){
     Tl.SetTextAlign(12);
     Tl.SetTextSize(0.035);
 
-    double_t chi2fitX = fit2DFuncX->GetChisquare()/fit2DFuncX->GetNDF();
+    Double_t chi2fitX = fit2DFuncX->GetChisquare()/fit2DFuncX->GetNDF();
     TString chi2X = Form("#chi^{2}/ndf = %.2f",chi2fitX);
     // cout << "chi2fitX = " << chi2fitX << endl; 
-    double_t chi2fitY = fit2DFuncY->GetChisquare()/fit2DFuncY->GetNDF();
+    Double_t chi2fitY = fit2DFuncY->GetChisquare()/fit2DFuncY->GetNDF();
     TString chi2Y = Form("#chi^{2}/ndf = %.2f",chi2fitY);
     // cout << "chi2fitY = " << chi2fitY << endl;
 
     h1_XResBinned->Draw();
     h1_XResBinned->GetXaxis()->SetTitle("Bin number");
     h1_XResBinned->GetYaxis()->SetTitle("#sigma_{X}");
-    TGraph *gr1_f1X = new TGraph(286,arr_count,arr_evalF2ResX);
+    TGraph *gr1_f1X = new TGraph(NBinNotZero,arr_count,arr_evalF2ResX);
     gr1_f1X->Draw("SAME");
     gr1_f1X->SetLineColor(kRed);
     Tl.DrawLatex(20,0.048,chi2X);
-    c->SaveAs("h1XResBinnedFit.pdf");
+    c->SaveAs("h1XResBinnedFit_"+tag+".pdf");
 
     h1_YResBinned->Draw();
     h1_YResBinned->GetXaxis()->SetTitle("Bin number");
     h1_YResBinned->GetYaxis()->SetTitle("#sigma_{Y}");
-    TGraph *gr1_f1Y = new TGraph(286,arr_count,arr_evalF2ResY);
+    TGraph *gr1_f1Y = new TGraph(NBinNotZero,arr_count,arr_evalF2ResY);
     gr1_f1Y->Draw("SAME");
     gr1_f1Y->SetLineColor(kRed);
     Tl.DrawLatex(20,0.015,chi2Y);
-    c->SaveAs("h1YResBinnedFit.pdf");
+    c->SaveAs("h1YResBinnedFit_"+tag+".pdf");
 }

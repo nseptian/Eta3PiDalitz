@@ -169,27 +169,27 @@ DecayAmpRes::~DecayAmpRes(){
 
 double DecayAmpRes::GetResFuncX(GDouble X, GDouble Y) const{
   double par[8];
-  par[0]=  4.56178e-02; 
-  par[1]= -5.31662e-05;  
-  par[2]=  6.30150e-03;  
-  par[3]=  4.12495e-04;  
-  par[4]= -2.95304e-02; 
-  par[5]=  5.18685e-04;  
-  par[6]= -2.21068e-02; 
-  par[7]=  1.29343e-04; 
+  par[0]=  4.35857e-02; 
+  par[1]= -2.60041e-05;  
+  par[2]=  5.59026e-03;  
+  par[3]= -1.70950e-04;  
+  par[4]= -2.80206e-02; 
+  par[5]= -1.73602e-04;  
+  par[6]= -2.05072e-02; 
+  par[7]= -3.13108e-04; 
   return par[0] + par[1]*X + par[2]*Y + par[3]*X*Y + par[4]*TMath::Power(X,2) + par[5]*TMath::Power(Y,2) + par[6]*Y*TMath::Power(X,2) + par[7]*X*TMath::Power(Y,2);
 }
 
 double DecayAmpRes::GetResFuncY(GDouble X, GDouble Y) const{
   double par[8];
-  par[0]=  4.57198e-02; 
-  par[1]= -2.02205e-04; 
-  par[2]= -1.59946e-03; 
-  par[3]=  1.96253e-05; 
-  par[4]=  1.75347e-03; 
-  par[5]= -3.13544e-02; 
-  par[6]= -1.53797e-02; 
-  par[7]=  1.07954e-03; 
+  par[0]=  4.33572e-02; 
+  par[1]= -4.22402e-04; 
+  par[2]= -1.35078e-03; 
+  par[3]=  8.03131e-05; 
+  par[4]=  2.19416e-03; 
+  par[5]= -3.01652e-02; 
+  par[6]= -1.47371e-02; 
+  par[7]=  1.63157e-03; 
   return par[0] + par[1]*X + par[2]*Y + par[3]*X*Y + par[4]*TMath::Power(X,2) + par[5]*TMath::Power(Y,2) + par[6]*Y*TMath::Power(X,2) + par[7]*X*TMath::Power(Y,2);
 }
 

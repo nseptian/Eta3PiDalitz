@@ -55,10 +55,10 @@ do
             for iter_f in $(seq 0. 0.1 0.5)
             do
                 cp -f $CFGFOLDER/ana_all_$tag.cfg $CFGSYSUNCINITVAL/ana_all_${tag}_${iter}.cfg
-                sed -i 's/par_A -1.095 gaussian -1.095 0.03/par_A -'$iter_a' gaussian -'$iter_a' 0.5/g' $CFGSYSUNCINITVAL/ana_all_${tag}_${iter}.cfg
-                sed -i 's/par_B 0.145  gaussian 0.145 0.03/par_B '$iter_b' gaussian '$iter_b' 0.5/g' $CFGSYSUNCINITVAL/ana_all_${tag}_${iter}.cfg
-                sed -i 's/par_D 0.081 gaussian 0.081 0.03/par_D '$iter_d' gaussian '$iter_d' 0.5/g' $CFGSYSUNCINITVAL/ana_all_${tag}_${iter}.cfg
-                sed -i 's/par_F 0.141 gaussian 0.141 0.03/par_F '$iter_f' gaussian '$iter_f' 0.5/g' $CFGSYSUNCINITVAL/ana_all_${tag}_${iter}.cfg
+                sed -i 's/par_A -1.095 gaussian -1.095 /par_A -'$iter_a' gaussian -'$iter_a' /g' $CFGSYSUNCINITVAL/ana_all_${tag}_${iter}.cfg
+                sed -i 's/par_B 0.145  gaussian 0.145 /par_B '$iter_b' gaussian '$iter_b' /g' $CFGSYSUNCINITVAL/ana_all_${tag}_${iter}.cfg
+                sed -i 's/par_D 0.081 gaussian 0.081 /par_D '$iter_d' gaussian '$iter_d' /g' $CFGSYSUNCINITVAL/ana_all_${tag}_${iter}.cfg
+                sed -i 's/par_F 0.141 gaussian 0.141 /par_F '$iter_f' gaussian '$iter_f' /g' $CFGSYSUNCINITVAL/ana_all_${tag}_${iter}.cfg
                 echo $iter 
                 let iter++
             done
@@ -68,3 +68,4 @@ done
 cd $MACROSFOLDER
 
 # 29082022: all gaussian standard deviation limit changed from 0.03 -> 0.5
+# 12092022: change back all gaussian standard deviation

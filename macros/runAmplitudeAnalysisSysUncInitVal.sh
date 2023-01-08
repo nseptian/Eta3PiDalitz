@@ -5,7 +5,7 @@ read tag
 
 echo 'Cut tag is -> '$tag
 # {216,222,228,234,240,246,432,433,438,439,444,445,450,451,456,457,462,463,468,474,480,486,492,498,648}
-for iter in {300..599}
+for iter in {600..1295}
 do
     $DALITZ/DalitzExe/fitAmplitudesSysUncInitVal cfgSysUncInitVal/ana_all_$tag $iter $iter
 done
