@@ -3,7 +3,8 @@
 echo ===files before we start===
 ls -lh
 
-source env.sh
+source /d/home/septian/.bashrc
+source /d/home/septian/Eta3PiDalitz/set_ana_env.sh
 echo ===environment===
 printenv
 
