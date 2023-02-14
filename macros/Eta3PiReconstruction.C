@@ -18,7 +18,8 @@ using namespace RooFit;
 using namespace std;
 
 //kfit_cut value represents a cut on the kinematic fit probability!
-const Double_t kfit_cut = 0.01;
+Double_t kfit_cut = 0.01;
+Boolt_t enableKfitCut = kTRUE;
 
 //user config for pi_0 invariant mass range cut
 const Bool_t enablePi0MassCut = kTRUE;
@@ -28,8 +29,9 @@ const Double_t Pi0MassRange[2] = {0.11,0.165}; //GeV
 const Bool_t enablePhotonsThetaCut = kTRUE;
 
 //user config for energy beam cut
-const Bool_t enablePhotonBeamEnergyCut = kFALSE;
-const Double_t PhotonBeamEnergyRange[2] = {10.0,99.0};
+//used if enablePhotonBeamEnergyCut = kTRUE
+const Double_t PhotonBeamEnergyBin[6] = {0.0,7.0,8.0,9.0,10.0,99.0};
+const Double_t kfit_cut_Ebeam[5] = {0.01,0.01,0.01,0.01,0.01};
 
 //user config for sideband subtraction
 const Bool_t enableSidebandSubs = kTRUE;
@@ -40,9 +42,12 @@ const Double_t width = 0.025;
 const Double_t leftSidebandRange[2] = {0.48-width,0.48};
 const Double_t rightSidebandRange[2] = {0.61,0.61+width};
 
+//user config for MC
 //set this two for every MC
 const Double_t signalRangeMC[2] = {0.52585909,0.56975488}; //2017_data_sbs_10092022
 const Double_t weightSidebandMC = -0.510745; //2017_data_sbs_10092022
+
+const Bool_t enableResolutionAnalysis = kFALSE;
 
 /*
 const Double_t signalRangeMC[2] = {0.547123-(2*0.0105783),0.547123+(2*0.0105783)}; //2018S_data_sbs_10092022
@@ -55,8 +60,85 @@ void setHPipPimG1G2Axis(TH1F* h);
 void setHG1G2Axis(TH1F* h);
 Double_t AcceptanceProb(TGraph *gr, Double_t X, Double_t Y);
 
-void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTag){
+void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTag, const Bool_t enablePhotonBeamEnergyCut = kFALSE, const Int_t PhotonBeamEnergyRangeIdx = 0){
   
+  const Double_t photonBeamEnergyRange[2] = {PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx],PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx+1]};
+
+  //vector to save cut configuration
+  vector<string> cutConfig;
+
+  //print cut configuration
+  cout << "Cut configuration:" << endl;
+  cout << "Cut tag: " << cutTag << endl;
+  
+  cutConfig.push_back("Cut tag: " + cutTag.Data());
+  if (enableKfitCut){
+    if (enablePhotonBeamEnergyCut){
+      kfit_cut = kfit_cut_Ebeam[PhotonBeamEnergyRangeIdx];
+    }
+    cout << "Kinematic fit probability cut is enabled with value: " << kfit_cut << endl;
+    cutConfig.push_back("Kinematic fit probability cut is enabled with value: " + to_string(kfit_cut));
+  }
+  else{
+    kfit_cut = 0.0;
+    cout << "Kinematic fit probability cut is disabled." << endl;
+    cutConfig.push_back("Kinematic fit probability cut is disabled.");
+  }
+  if (enablePi0MassCut){
+    cout << "Pi0 mass cut is enabled with range: " << Pi0MassRange[0] << " - " << Pi0MassRange[1] << " GeV" << endl;
+    cutConfig.push_back("Pi0 mass cut is enabled with range: " + to_string(Pi0MassRange[0]) + " - " + to_string(Pi0MassRange[1]) + " GeV");
+  }
+  else{
+    cout << "Pi0 mass cut is disabled." << endl;
+    cutConfig.push_back("Pi0 mass cut is disabled.");
+  }
+  if (enablePhotonsThetaCut){
+    cout << "Photon theta cut is enabled." << endl;
+    cutConfig.push_back("Photon theta cut is enabled.");
+  }
+  else{
+    cout << "Photon theta cut is disabled." << endl;
+    cutConfig.push_back("Photon theta cut is disabled.");
+  }
+  if (enablePhotonBeamEnergyCut){
+    cout << "Photon beam energy cut is enabled with range: " << photonBeamEnergyRange[0] << " - " << photonBeamEnergyRange[1] << " GeV" << endl;
+    cutConfig.push_back("Photon beam energy cut is enabled with range: " + to_string(photonBeamEnergyRange[0]) + " - " + to_string(photonBeamEnergyRange[1]) + " GeV");
+  }
+  else{
+    cout << "Photon beam energy cut is disabled." << endl;
+    cutConfig.push_back("Photon beam energy cut is disabled.");
+  }
+  if (enableSidebandSubs){
+    cout << "Sideband subtraction is enabled." << endl;
+    cout << "Left sideband range: " << leftSidebandRange[0] << " - " << leftSidebandRange[1] << " GeV" << endl;
+    cout << "Right sideband range: " << rightSidebandRange[0] << " - " << rightSidebandRange[1] << " GeV" << endl;
+    cutConfig.push_back("Sideband subtraction is enabled.");
+    cutConfig.push_back("Left sideband range: " + to_string(leftSidebandRange[0]) + " - " + to_string(leftSidebandRange[1]) + " GeV");
+    cutConfig.push_back("Right sideband range: " + to_string(rightSidebandRange[0]) + " - " + to_string(rightSidebandRange[1]) + " GeV");
+  }
+  else{
+    cout << "Sideband subtraction is disabled." << endl;
+    cutConfig.push_back("Sideband subtraction is disabled.");
+  }
+  
+  if (enableResolutionAnalysis){
+    cout << "Resolution analysis is enabled." << endl;
+    cutConfig.push_back("Resolution analysis is enabled.");
+  }
+  else{
+    cout << "Resolution analysis is disabled." << endl;
+    cutConfig.push_back("Resolution analysis is disabled.");
+  }
+
+  if (enableKinematicCut){
+    cout << "Kinematic cut is enabled." << endl;
+    cutConfig.push_back("Kinematic cut is enabled.");
+  }
+  else{
+    cout << "Kinematic cut is disabled." << endl;
+    cutConfig.push_back("Kinematic cut is disabled.");
+  }
+
   //define input tree chain
   TChain *dataChain = new TChain("myTree");
   TFile *mcThrown;
@@ -182,7 +264,8 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       dataChain->SetBranchAddress("pim_p4_true",&pim_p4_true); //4-vector of pi- 
       dataChain->SetBranchAddress("g1_p4_true",&g1_p4_true); //4-vector of photon1 (gamma 1)
       dataChain->SetBranchAddress("g2_p4_true",&g2_p4_true); //4-vector of photon2 (gamma 2)
-  }else{
+  }
+  else{
       is_truecombo = true;
   }
 
@@ -267,54 +350,55 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     TH2F *h2DalitzPlotEta3Pi = new TH2F("h2_DalitzPlotEta3Pi","",101,-1.0,1.0,101,-1.0,1.0);
     TH2F *h2DalitzPlotEta3Pi_kin;
     TH2F *h2DalitzPlotEta3Pi_thrown;
+
     TH1F *hXResolution;
     TH1F *hYResolution;
-
     const Int_t XResBin = 40;
     const Int_t YResBin = 40;
     const Float_t XBinWidth = 2.0/XResBin;
     const Float_t YBinWidth = 2.0/YResBin;
-
     TH1F *hXRes[XResBin][YResBin],*hYRes[XResBin][YResBin];
     TDirectory *dirRes;
 
     if (is_mc){      
       h2DalitzPlotEta3Pi_kin = new TH2F("h2_DalitzPlotEta3Pi_kin","",101,-1.0,1.0,101,-1.0,1.0);
       h2DalitzPlotEta3Pi_thrown = (TH2F*)mcThrown->Get("h2_DalitzPlotEta3Pi_thrown");
-      hXResolution = new TH1F("h1_XResolution","X dalitz variable resolution",101,-0.5,0.5);
-      hYResolution = new TH1F("h1_YResolution","Y dalitz variable resolution",101,-0.5,0.5);
-      dirRes = outfile->mkdir("BinnedXYResolution");
-      dirRes->cd();
-      for (Int_t i=0;i<XResBin;i++){
-        for (Int_t j=0;j<YResBin;j++){
-          TString hXResName = "h1_XResolution_";
-          hXResName += i;
-          hXResName += "_";
-          hXResName += j;
+      if (enableResolutionAnalysis){
+        hXResolution = new TH1F("h1_XResolution","X dalitz variable resolution",101,-0.5,0.5);
+        hYResolution = new TH1F("h1_YResolution","Y dalitz variable resolution",101,-0.5,0.5);
+        dirRes = outfile->mkdir("BinnedXYResolution");
+        dirRes->cd();
+        for (Int_t i=0;i<XResBin;i++){
+          for (Int_t j=0;j<YResBin;j++){
+            TString hXResName = "h1_XResolution_";
+            hXResName += i;
+            hXResName += "_";
+            hXResName += j;
 
-          TString hYResName = "h1_YResolution_";
-          hYResName += i;
-          hYResName += "_";
-          hYResName += j;
-          
-          TString hXResTitle = "X resolution for ";
-          hXResTitle += Form("%.1f<X<%.1f",-1.0+i*XBinWidth,-1.0+(i+1)*XBinWidth);
-          hXResTitle += " ";
-          hXResTitle += Form("%.1f<Y<%.1f",-1.0+j*YBinWidth,-1.0+(j+1)*YBinWidth);
-          hXResTitle += "bin";
-          
-          TString hYResTitle = "Y resolution for ";
-          hYResTitle += Form("%.1f<X<%.1f",-1.0+i*XBinWidth,-1.0+(i+1)*XBinWidth);
-          hYResTitle += " ";
-          hYResTitle += Form("%.1f<Y<%.1f",-1.0+j*YBinWidth,-1.0+(j+1)*YBinWidth);
-          hYResTitle += "bin";
+            TString hYResName = "h1_YResolution_";
+            hYResName += i;
+            hYResName += "_";
+            hYResName += j;
 
-          hXRes[i][j] = new TH1F(hXResName,hXResTitle,201,-0.5,0.5);
-          hYRes[i][j] = new TH1F(hYResName,hYResTitle,201,-0.5,0.5);
+            TString hXResTitle = "X resolution for ";
+            hXResTitle += Form("%.1f<X<%.1f",-1.0+i*XBinWidth,-1.0+(i+1)*XBinWidth);
+            hXResTitle += " ";
+            hXResTitle += Form("%.1f<Y<%.1f",-1.0+j*YBinWidth,-1.0+(j+1)*YBinWidth);
+            hXResTitle += "bin";
+
+            TString hYResTitle = "Y resolution for ";
+            hYResTitle += Form("%.1f<X<%.1f",-1.0+i*XBinWidth,-1.0+(i+1)*XBinWidth);
+            hYResTitle += " ";
+            hYResTitle += Form("%.1f<Y<%.1f",-1.0+j*YBinWidth,-1.0+(j+1)*YBinWidth);
+            hYResTitle += "bin";
+
+            hXRes[i][j] = new TH1F(hXResName,hXResTitle,201,-0.5,0.5);
+            hYRes[i][j] = new TH1F(hYResName,hYResTitle,201,-0.5,0.5);
+          }
         }
+        outfile->cd();
       }
     }
-    outfile->cd();
     // const Double_t pi0MassPDG = 0.1349768;
     //++++++++++++++++++++++++++++++++++++++
 
@@ -387,26 +471,28 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
         Double_t YRes = 0;
 
         if (is_mc) {
-          // Calculating resolution for X and Y          
-          Double_t X_c_true = 0;
-          Double_t Y_c_true = 0;
-          TLorentzVector eta_true = (*pip_p4_true + *pim_p4_true + *g1_p4_true + *g2_p4_true);
-          TVector3 eta_boost_true = eta_true.BoostVector();
-          TLorentzVector boosted_p1_true = *pip_p4_true;
-          TLorentzVector boosted_p2_true = *pim_p4_true;
-          TLorentzVector boosted_p3_true = *g1_p4_true + *g2_p4_true;
-          boosted_p1_true.Boost(eta_boost_true*(-1));
-          boosted_p2_true.Boost(eta_boost_true*(-1));
-          boosted_p3_true.Boost(eta_boost_true*(-1));
-          Double_t T_plus_true = boosted_p1_true.E() - boosted_p1_true.M();
-          Double_t T_minus_true = boosted_p2_true.E() - boosted_p2_true.M();
-          Double_t T_zero_true = boosted_p3_true.E() - boosted_p3_true.M();
-          Double_t T_all_true = T_plus_true + T_minus_true + T_zero_true;
-          X_c_true = TMath::Sqrt(3.0)*(T_plus_true - T_minus_true)/T_all_true;
-          Y_c_true = 3.0*T_zero_true/T_all_true - 1.0;
-          
-          XRes = X_c_true - X_c;
-          YRes = Y_c_true - Y_c;
+          if (enableResoltionAnalysis){
+            // Calculating resolution for X and Y          
+            Double_t X_c_true = 0;
+            Double_t Y_c_true = 0;
+            TLorentzVector eta_true = (*pip_p4_true + *pim_p4_true + *g1_p4_true + *g2_p4_true);
+            TVector3 eta_boost_true = eta_true.BoostVector();
+            TLorentzVector boosted_p1_true = *pip_p4_true;
+            TLorentzVector boosted_p2_true = *pim_p4_true;
+            TLorentzVector boosted_p3_true = *g1_p4_true + *g2_p4_true;
+            boosted_p1_true.Boost(eta_boost_true*(-1));
+            boosted_p2_true.Boost(eta_boost_true*(-1));
+            boosted_p3_true.Boost(eta_boost_true*(-1));
+            Double_t T_plus_true = boosted_p1_true.E() - boosted_p1_true.M();
+            Double_t T_minus_true = boosted_p2_true.E() - boosted_p2_true.M();
+            Double_t T_zero_true = boosted_p3_true.E() - boosted_p3_true.M();
+            Double_t T_all_true = T_plus_true + T_minus_true + T_zero_true;
+            X_c_true = TMath::Sqrt(3.0)*(T_plus_true - T_minus_true)/T_all_true;
+            Y_c_true = 3.0*T_zero_true/T_all_true - 1.0;
+
+            XRes = X_c_true - X_c;
+            YRes = Y_c_true - Y_c;
+          }
 
           //Selecting events based on Acceptance Probability from global bins
           if (enableKinematicCut){
@@ -436,23 +522,27 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
               if(!signalOnlyTree) {
                 weight *= weightSidebandMC;
                 h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
-                hXResolution->Fill(XRes,weight);
-                hYResolution->Fill(YRes,weight);
-                Int_t XBin = TMath::FloorNint(X_c/XBinWidth)+TMath::Nint(1/XBinWidth); //generalize using number of bin
-                Int_t YBin = TMath::FloorNint(Y_c/YBinWidth)+TMath::Nint(1/YBinWidth);
-                hXRes[XBin][YBin]->Fill(XRes,weight);
-                hYRes[XBin][YBin]->Fill(YRes,weight);
+                if (enableResoltionAnalysis) {
+                  hXResolution->Fill(XRes,weight);
+                  hYResolution->Fill(YRes,weight);
+                  Int_t XBin = TMath::FloorNint(X_c/XBinWidth)+TMath::Nint(1/XBinWidth); //generalize using number of bin
+                  Int_t YBin = TMath::FloorNint(Y_c/YBinWidth)+TMath::Nint(1/YBinWidth);
+                  hXRes[XBin][YBin]->Fill(XRes,weight);
+                  hYRes[XBin][YBin]->Fill(YRes,weight);
+                }
                 out_tree->Fill();
               }
             }
             if((m_pippimg1g2mass>=signalRangeMC[0]) && (m_pippimg1g2mass<=signalRangeMC[1])) {
               h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
-              hXResolution->Fill(XRes,weight);
-              hYResolution->Fill(YRes,weight);
-              Int_t XBin = TMath::FloorNint(X_c/XBinWidth)+TMath::Nint(1/XBinWidth);
-              Int_t YBin = TMath::FloorNint(Y_c/YBinWidth)+TMath::Nint(1/YBinWidth);
-              hXRes[XBin][YBin]->Fill(XRes,weight);
-              hYRes[XBin][YBin]->Fill(YRes,weight);
+              if (enableResoltionAnalysis) {
+                hXResolution->Fill(XRes,weight);
+                hYResolution->Fill(YRes,weight);
+                Int_t XBin = TMath::FloorNint(X_c/XBinWidth)+TMath::Nint(1/XBinWidth);
+                Int_t YBin = TMath::FloorNint(Y_c/YBinWidth)+TMath::Nint(1/YBinWidth);
+                hXRes[XBin][YBin]->Fill(XRes,weight);
+                hYRes[XBin][YBin]->Fill(YRes,weight);
+              }
               out_tree->Fill();
             }
           }
@@ -478,8 +568,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       h2DalitzPlotEta3Pi_efficiency->Divide(h2DalitzPlotEta3Pi_thrown);
       h2DalitzPlotEta3Pi_efficiency->SetName("h2_DalitzPlotEta3Pi_efficiency");
       h2DalitzPlotEta3Pi_efficiency->Write();
-      hXResolution->Write();
-      hYResolution->Write();
+      if (enableResoltionAnalysis){
+        hXResolution->Write();
+        hYResolution->Write();
+      }
       // dirRes->cd();
       // for (Int_t i=0;i<XResBin;i++){
       //   for (Int_t j=0;j<YResBin;j++){
