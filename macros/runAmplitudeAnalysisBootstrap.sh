@@ -5,7 +5,7 @@ read tag
 
 echo 'Cut tag is -> '$tag
 
-for iter in {0..99}
+for iter in {0..0}
 do
-    $DALITZ/DalitzExe/fitAmplitudesBootstrap cfgBootstrap/ana_all_$tag $iter $iter
+    $DALITZ/DalitzExe/fitAmplitudesBootstrap cfgBootstrap/ana_2017_sbs_$tag $iter $iter
 done

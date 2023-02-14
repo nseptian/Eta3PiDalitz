@@ -21,6 +21,19 @@
         "show_fit_pars_merged_HUGS2022.C": "cpp",
         "EtaTo3PiReconstructionBkgsubs.C": "cpp",
         "EtaTo3PiReconstructionAllBkgsubs.C": "cpp",
-        "plotDalitzParameterMomentumCut.C": "cpp"
-    }
+        "plotDalitzParameterMomentumCut.C": "cpp",
+        "show_fit_pars_bkgsub.C": "cpp",
+        "EtaTo3PiReconstruction_legacy.C": "cpp",
+        "runDSelector.C": "cpp",
+        "DSelector_etapi.C": "cpp",
+        "drawCuts.C": "cpp",
+        "drawHist.C": "cpp",
+        "plotXY.C": "cpp",
+        "plotXYMCThrown.C": "cpp",
+        "show_fit_pars_bkgsub_pi0cut.C": "cpp",
+        "show_fit_pars_bkgsub_pi0cut_kinCut.C": "cpp",
+        "fitXYResolution.C": "cpp",
+        "Eta3PiReconstruction.C": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "Enabled"
 }

@@ -13,7 +13,7 @@
 #include "IUAmpTools/ConfigurationInfo.h"
 #include "IUAmpTools/FitResults.h"
 #include "DalitzDataIO/DalitzDataReader.h"
-#include "DalitzAmp/DecayAmp.h"
+#include "DalitzAmp/DecayAmpRes.h"
 #include "DalitzPlot/DalitzPlotGenerator.h"
 
 using std::complex;
@@ -69,7 +69,7 @@ int main( int argc, char* argv[] ){
     // ************************
 
   AmpToolsInterface::registerDataReader( DalitzDataReader() );
-  AmpToolsInterface::registerAmplitude( DecayAmp() );
+  AmpToolsInterface::registerAmplitude( DecayAmpRes() );
   
   DalitzPlotGenerator plotGenerator( results );
   plotGenerator.enableReaction( reactionName );

@@ -2,8 +2,7 @@
 
 export MACROSFOLDER=/d/home/septian/Eta3PiDalitz/macros
 
-echo "Enter cut tag:"
-read tag
+tag=12262022e
 
 # echo "Enter first bootstrap tag (integer):"
 # read fbtag
@@ -28,6 +27,7 @@ cd $MACROSFOLDER
 
 export CFGFOLDER=/d/home/septian/Eta3PiDalitz/macros/cfg
 export CFGBOOTSTRAPFOLDER=/d/home/septian/Eta3PiDalitz/macros/cfgBootstrap
+export ROOT4AMPTOOLSFOLDER=/d/home/septian/Eta3PiDalitz/macros/root4Amptools/
 
 # cd $CFGFOLDER
 
@@ -46,12 +46,13 @@ export CFGBOOTSTRAPFOLDER=/d/home/septian/Eta3PiDalitz/macros/cfgBootstrap
 # sed -i 's/mc_rec_2018F_data/mc_rec_2018F_data_'$tag'/g' ana_2018F_$tag.cfg
 # sed -i 's/eta_2018F_data/eta_2018F_data_'$tag'/g' ana_2018F_$tag.cfg
 
-for iter in {0..99}
+for iter in {0..999}
 do
-    cp -f $CFGFOLDER/ana_all_$tag.cfg $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
-    sed -i 's/DalitzDataReader/DalitzDataReaderBootstrap/g' $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
-    sed -i 's/mc_thrown_all_data.root/mc_thrown_all_data.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
-    sed -i 's/mc_rec_all_data_'$tag'.root/mc_rec_all_data_'$tag'.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
-    sed -i 's/eta_all_data_'$tag'.root/eta_all_data_'$tag'.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
+    echo $iter
+    cp -f $CFGFOLDER/ana_2017_sbs_$tag.cfg $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
+    sed -i 's/DalitzDataReader/DalitzDataReaderBootstrap/g' $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
+    sed -i 's/mc_thrown_2017_data.root/mc_thrown_2017_data.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
+    sed -i 's/mc_rec_2017_data_sbs_'$tag'.root/mc_rec_2017_data_sbs_'$tag'.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
+    sed -i 's/eta_2017_data_sbs_'$tag'.root/eta_2017_data_sbs_'$tag'.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
 done
 cd $MACROSFOLDER

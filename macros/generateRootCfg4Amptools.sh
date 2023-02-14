@@ -8,6 +8,7 @@ MACROSFOLDER=/d/home/septian/Eta3PiDalitz/macros
 # tag=12262022b E = {7,8}
 # tag=12262022c E = {8,9}
 # tag=12262022d E = {9,10}
+# tag=12262022d E = {11,...}
 tag=07012023
 
 echo 'Cut tag is -> '$tag

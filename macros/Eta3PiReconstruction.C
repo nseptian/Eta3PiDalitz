@@ -674,7 +674,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
 
           //Plot m_pi0 or perform a cut: m_pi0 >= 0.12 && m_pi0 < 0.15
 
-          if(is_truecombo && kfit_prob > kfit_cut){
+          if(kfit_prob > kfit_cut){
               EnP1 = pip_p4_kin->E();
               PxP1 = pip_p4_kin->Px();
               PyP1 = pip_p4_kin->Py();

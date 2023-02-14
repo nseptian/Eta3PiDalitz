@@ -1,1 +1,9 @@
 run/
+lib/
+batch_run/bootstrap/log/
+*.dep
+*.o
+*.a
+*.exe
+*.cc~
+*.h~
