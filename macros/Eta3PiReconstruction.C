@@ -19,14 +19,14 @@ using namespace std;
 
 //kfit_cut value represents a cut on the kinematic fit probability!
 Double_t kfit_cut = 0.01;
-Boolt_t enableKfitCut = kTRUE;
+Bool_t enableKfitCut = kTRUE;
 
 //user config for pi_0 invariant mass range cut
 const Bool_t enablePi0MassCut = kTRUE;
 const Double_t Pi0MassRange[2] = {0.11,0.165}; //GeV
 
 //user config for theta photons cut
-const Bool_t enablePhotonsThetaCut = kTRUE;
+const Bool_t enablePhotonsThetaCut = kFALSE;
 
 //user config for energy beam cut
 //used if enablePhotonBeamEnergyCut = kTRUE
@@ -45,7 +45,9 @@ const Double_t rightSidebandRange[2] = {0.61,0.61+width};
 //user config for MC
 //set this two for every MC
 const Double_t signalRangeMC[2] = {0.52585909,0.56975488}; //2017_data_sbs_10092022
-const Double_t weightSidebandMC = -0.510745; //2017_data_sbs_10092022
+// const Double_t weightSidebandMC = -0.510745; //2017_data_sbs_10092022
+// now is retrieved directly from the fitInformatin in the tree from data
+Double_t weightSidebandMC = 0.0;
 
 const Bool_t enableResolutionAnalysis = kFALSE;
 
@@ -62,7 +64,7 @@ Double_t AcceptanceProb(TGraph *gr, Double_t X, Double_t Y);
 
 void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTag, const Bool_t enablePhotonBeamEnergyCut = kFALSE, const Int_t PhotonBeamEnergyRangeIdx = 0){
   
-  const Double_t photonBeamEnergyRange[2] = {PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx],PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx+1]};
+  const Double_t PhotonBeamEnergyRange[2] = {PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx],PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx+1]};
 
   //vector to save cut configuration
   vector<string> cutConfig;
@@ -71,7 +73,9 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   cout << "Cut configuration:" << endl;
   cout << "Cut tag: " << cutTag << endl;
   
-  cutConfig.push_back("Cut tag: " + cutTag.Data());
+  string cutTagStr = "Cut tag:";
+  cutTagStr += cutTag.Data();
+  cutConfig.push_back(cutTagStr);
   if (enableKfitCut){
     if (enablePhotonBeamEnergyCut){
       kfit_cut = kfit_cut_Ebeam[PhotonBeamEnergyRangeIdx];
@@ -84,6 +88,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     cout << "Kinematic fit probability cut is disabled." << endl;
     cutConfig.push_back("Kinematic fit probability cut is disabled.");
   }
+
   if (enablePi0MassCut){
     cout << "Pi0 mass cut is enabled with range: " << Pi0MassRange[0] << " - " << Pi0MassRange[1] << " GeV" << endl;
     cutConfig.push_back("Pi0 mass cut is enabled with range: " + to_string(Pi0MassRange[0]) + " - " + to_string(Pi0MassRange[1]) + " GeV");
@@ -92,6 +97,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     cout << "Pi0 mass cut is disabled." << endl;
     cutConfig.push_back("Pi0 mass cut is disabled.");
   }
+
   if (enablePhotonsThetaCut){
     cout << "Photon theta cut is enabled." << endl;
     cutConfig.push_back("Photon theta cut is enabled.");
@@ -100,14 +106,16 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     cout << "Photon theta cut is disabled." << endl;
     cutConfig.push_back("Photon theta cut is disabled.");
   }
+
   if (enablePhotonBeamEnergyCut){
-    cout << "Photon beam energy cut is enabled with range: " << photonBeamEnergyRange[0] << " - " << photonBeamEnergyRange[1] << " GeV" << endl;
-    cutConfig.push_back("Photon beam energy cut is enabled with range: " + to_string(photonBeamEnergyRange[0]) + " - " + to_string(photonBeamEnergyRange[1]) + " GeV");
+    cout << "Photon beam energy cut is enabled with range: " << PhotonBeamEnergyRange[0] << " - " << PhotonBeamEnergyRange[1] << " GeV" << endl;
+    cutConfig.push_back("Photon beam energy cut is enabled with range: " + to_string(PhotonBeamEnergyRange[0]) + " - " + to_string(PhotonBeamEnergyRange[1]) + " GeV");
   }
   else{
     cout << "Photon beam energy cut is disabled." << endl;
     cutConfig.push_back("Photon beam energy cut is disabled.");
   }
+  
   if (enableSidebandSubs){
     cout << "Sideband subtraction is enabled." << endl;
     cout << "Left sideband range: " << leftSidebandRange[0] << " - " << leftSidebandRange[1] << " GeV" << endl;
@@ -142,6 +150,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   //define input tree chain
   TChain *dataChain = new TChain("myTree");
   TFile *mcThrown;
+  TString outNameDataForMC;
   if(!is_mc){
     if (data_set == 0){
       //GlueX 2017 datasets
@@ -195,24 +204,29 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       cout << "Dataset used is GlueX 2017 MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2017/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2017_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_2017_DP.root","READ");
+      outNameDataForMC = "root4Amptools/eta_2017_data";
     }
     if (data_set == 1) {
       //MC 2018S
       cout << "Dataset used is GlueX 2018S MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018S/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018S_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_2018S_DP.root","READ");
+      outNameDataForMC = "root4Amptools/eta_2018S_data";
     }
     if (data_set == 2) {
       //MC 2018F
       cout << "Dataset used is GlueX 2018F MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018F/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018F_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_2018F_DP.root","READ");
+      outNameDataForMC = "root4Amptools/eta_2018F_data";
     }
     if (data_set == 3){
       cout << "Dataset used is GlueX Phase-I MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2017/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2017_all.root");
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018S/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018S_all.root");
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018F/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018F_all.root");
+      mcThrown = TFile::Open("root4Amptools/mc_thrown_phaseI_DP.root","READ"); //create this file
+      outNameDataForMC = "root4Amptools/eta_phaseI_data";
     }
   }
   Int_t nEntries = dataChain->GetEntries();
@@ -220,9 +234,6 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
 
   //initialize variables on the tree
   Double_t kfit_prob = 0.0;
-  Double_t imassGG_kfit = 0.0;
-  Double_t DP_X = 0.0;
-  Double_t DP_Y = 0.0;
   Double_t dBRT = 0.0;
   Double_t zVertex = 0.0;
   TLorentzVector *pip_p4_kin = 0;
@@ -253,6 +264,23 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   dataChain->SetBranchAddress("g2_p4_kin",&g2_p4_kin); //4-vector of photon2 (gamma 2)
   dataChain->SetBranchAddress("beam_p4_kin",&beam_p4_kin);
 
+  if (enableSidebandSubs) {
+    outName += "_sbs";
+    outNameDataForMC += "_sbs";
+  }
+  if (signalOnlyTree) {
+    outName += "_signalOnlyTree";
+    outNameDataForMC += "_signalOnlyTree";
+  }
+  
+  outName += "_";
+  outName += cutTag;
+  outName += ".root";
+
+  outNameDataForMC += "_";
+  outNameDataForMC += cutTag;
+  outNameDataForMC += ".root";
+
   if(is_mc){
       dataChain->SetBranchStatus("is_truecombo",1);
       dataChain->SetBranchAddress("is_truecombo",&is_truecombo);
@@ -264,16 +292,22 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       dataChain->SetBranchAddress("pim_p4_true",&pim_p4_true); //4-vector of pi- 
       dataChain->SetBranchAddress("g1_p4_true",&g1_p4_true); //4-vector of photon1 (gamma 1)
       dataChain->SetBranchAddress("g2_p4_true",&g2_p4_true); //4-vector of photon2 (gamma 2)
+      
+      //check if the output root file from data for MC and open 
+      TFile *fOutDataForMC = TFile::Open(outNameDataForMC,"READ");
+      if (!fOutDataForMC || fOutDataForMC->IsZombie()) {
+        std::cerr << "Error opening file " << outNameDataForMC << ", please generate the data tree before using MC option." << endl;
+        exit(-1);
+      }
+
+      //get fitInformation std vector object from root file
+      vector<double> *vFitInfoFromDataForMC = (vector<double>*)fOutDataForMC->Get("fitInformation");
+      weightSidebandMC = vFitInfoFromDataForMC->at(5);
+      cout << "weightSidebandMC = " << weightSidebandMC << endl;
   }
   else{
       is_truecombo = true;
   }
-
-  if (enableSidebandSubs) outName += "_sbs";
-  if (signalOnlyTree) outName += "_signalOnlyTree";
-  outName += "_";
-  outName += cutTag;
-  outName += ".root";
 
   TFile *fKinematicAcc;
   TGraph *DP_kinAccR;
@@ -283,7 +317,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   }
 
   TFile *outfile;
-  if (!fitOnly) outfile = new TFile(outName,"RECREATE");
+  if (!fitOnly) {
+    outfile = new TFile(outName,"RECREATE");
+    outfile->WriteObject(&cutConfig,"cutConfig");
+  }
 
   //Declare histogram before the fits here
   TH1F* hpippimg1g2mass;
@@ -348,6 +385,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     TH1F *hpippimg1g2massSignalOnly = new TH1F("h_pippimg1g2massSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
     TH1F *hg1g2mass = new TH1F("h_g1g2mass","#gamma_1 #gamma_2 invariant mass spectrum",101,0,0.2);
     TH2F *h2DalitzPlotEta3Pi = new TH2F("h2_DalitzPlotEta3Pi","",101,-1.0,1.0,101,-1.0,1.0);
+    TH1F *hkFitProb;
     TH2F *h2DalitzPlotEta3Pi_kin;
     TH2F *h2DalitzPlotEta3Pi_thrown;
 
@@ -402,6 +440,8 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     // const Double_t pi0MassPDG = 0.1349768;
     //++++++++++++++++++++++++++++++++++++++
 
+    hkFitProb = new TH1F("h_kFitProb","kFitProb",51,0.,1.0);
+
     cout << "Selecting events..." << endl;
     for(Int_t i=0;i<nEntries;i++){
       dataChain->GetEntry(i);
@@ -431,6 +471,9 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           PyBeam = beam_p4_kin->Py();
           PzBeam = beam_p4_kin->Pz();
         }
+
+
+
         if(dBRT >= -2.0 && dBRT <= 2.0){
             weight = 1.0;
         }
@@ -471,7 +514,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
         Double_t YRes = 0;
 
         if (is_mc) {
-          if (enableResoltionAnalysis){
+          if (enableResolutionAnalysis){
             // Calculating resolution for X and Y          
             Double_t X_c_true = 0;
             Double_t Y_c_true = 0;
@@ -515,6 +558,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
         if (PhotonThetaCut) {
           hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
           hg1g2mass->Fill(m_g1g2,weight);
+          hkFitProb->Fill(kfit_prob,weight);
           // h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
           if (!enableSidebandSubs) out_tree->Fill();
           if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut && BeamEnergyCut) {            
@@ -522,7 +566,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
               if(!signalOnlyTree) {
                 weight *= weightSidebandMC;
                 h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
-                if (enableResoltionAnalysis) {
+                if (enableResolutionAnalysis) {
                   hXResolution->Fill(XRes,weight);
                   hYResolution->Fill(YRes,weight);
                   Int_t XBin = TMath::FloorNint(X_c/XBinWidth)+TMath::Nint(1/XBinWidth); //generalize using number of bin
@@ -535,7 +579,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
             }
             if((m_pippimg1g2mass>=signalRangeMC[0]) && (m_pippimg1g2mass<=signalRangeMC[1])) {
               h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
-              if (enableResoltionAnalysis) {
+              if (enableResolutionAnalysis) {
                 hXResolution->Fill(XRes,weight);
                 hYResolution->Fill(YRes,weight);
                 Int_t XBin = TMath::FloorNint(X_c/XBinWidth)+TMath::Nint(1/XBinWidth);
@@ -568,7 +612,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       h2DalitzPlotEta3Pi_efficiency->Divide(h2DalitzPlotEta3Pi_thrown);
       h2DalitzPlotEta3Pi_efficiency->SetName("h2_DalitzPlotEta3Pi_efficiency");
       h2DalitzPlotEta3Pi_efficiency->Write();
-      if (enableResoltionAnalysis){
+      if (enableResolutionAnalysis){
         hXResolution->Write();
         hYResolution->Write();
       }
