@@ -9,7 +9,8 @@
       "*.C": "cpp",
       "*.cc": "cpp",
       "*.h": "cpp",
-      "ostream": "cpp"
+      "ostream": "cpp",
+      "iostream": "cpp"
     },
     "C_Cpp.default.includePath": [
       "${default}",

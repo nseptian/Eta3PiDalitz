@@ -43,7 +43,7 @@ void gluex_style() {
 	gluex_style->cd();
 }
 
-void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
+void drawHist(TString fileName = "", string outputTag = ""){
 	gSystem->Exec("mkdir -p plots");
 
 	gluex_style();
@@ -57,6 +57,19 @@ void drawHist(TString fileName = "", Bool_t is_mc=false, string outputTag = ""){
 	TBox* box=new TBox();
 	TCanvas* c=new TCanvas("","",800,600);
 	string hname;
+
+	vector<bool>* pCutConfigBool = (vector<bool>*)f->Get("CutConfigBool");
+	// vector<bool> cutConfigBool = *pCutConfigBool;
+
+	bool is_mc = pCutConfigBool->at(0);
+	bool enableSidebandSubs = pCutConfigBool->at(1);
+
+	hname="h_kFitProb";
+	f->GetObject(hname.c_str(),h1);
+	h1->Draw(drawOptions.c_str());
+	h1->GetXaxis()->SetTitle("kinematic fit probability");
+	h1->GetYaxis()->SetTitle("counts");
+	c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
 	if(is_mc){
 		hname = "h2_DalitzPlotEta3Pi_kin";

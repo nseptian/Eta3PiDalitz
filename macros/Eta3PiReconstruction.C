@@ -19,10 +19,10 @@ using namespace std;
 
 //kfit_cut value represents a cut on the kinematic fit probability!
 Double_t kfit_cut = 0.01;
-Bool_t enableKfitCut = kTRUE;
+Bool_t enableKfitCut = kFALSE;
 
 //user config for pi_0 invariant mass range cut
-const Bool_t enablePi0MassCut = kTRUE;
+const Bool_t enablePi0MassCut = kFALSE;
 const Double_t Pi0MassRange[2] = {0.11,0.165}; //GeV
 
 //user config for theta photons cut
@@ -31,10 +31,10 @@ const Bool_t enablePhotonsThetaCut = kFALSE;
 //user config for energy beam cut
 //used if enablePhotonBeamEnergyCut = kTRUE
 const Double_t PhotonBeamEnergyBin[6] = {0.0,7.0,8.0,9.0,10.0,99.0};
-const Double_t kfit_cut_Ebeam[5] = {0.01,0.01,0.01,0.01,0.01};
+const Double_t kfit_cut_Ebeam[5] = {0.0,0.0,0.0,0.0,0.0};
 
 //user config for sideband subtraction
-const Bool_t enableSidebandSubs = kTRUE;
+const Bool_t enableSidebandSubs = kFALSE;
 const Bool_t fitOnly = kFALSE;
 const Bool_t signalOnlyTree = kFALSE;
 const Double_t width = 0.025;
@@ -44,9 +44,10 @@ const Double_t rightSidebandRange[2] = {0.61,0.61+width};
 
 //user config for MC
 //set this two for every MC
-const Double_t signalRangeMC[2] = {0.52585909,0.56975488}; //2017_data_sbs_10092022
+// const Double_t signalRangeMC[2] = {0.52585909,0.56975488}; //2017_data_sbs_10092022
 // const Double_t weightSidebandMC = -0.510745; //2017_data_sbs_10092022
 // now is retrieved directly from the fitInformatin in the tree from data
+Double_t signalRangeMC[2] = {0.0,0.0};
 Double_t weightSidebandMC = 0.0;
 
 const Bool_t enableResolutionAnalysis = kFALSE;
@@ -67,7 +68,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   const Double_t PhotonBeamEnergyRange[2] = {PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx],PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx+1]};
 
   //vector to save cut configuration
-  vector<string> cutConfig;
+  vector<string> cutConfigStr;
 
   //print cut configuration
   cout << "Cut configuration:" << endl;
@@ -75,77 +76,97 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   
   string cutTagStr = "Cut tag:";
   cutTagStr += cutTag.Data();
-  cutConfig.push_back(cutTagStr);
+  cutConfigStr.push_back(cutTagStr);
   if (enableKfitCut){
     if (enablePhotonBeamEnergyCut){
       kfit_cut = kfit_cut_Ebeam[PhotonBeamEnergyRangeIdx];
     }
     cout << "Kinematic fit probability cut is enabled with value: " << kfit_cut << endl;
-    cutConfig.push_back("Kinematic fit probability cut is enabled with value: " + to_string(kfit_cut));
+    cutConfigStr.push_back("Kinematic fit probability cut is enabled with value: " + to_string(kfit_cut));
   }
   else{
     kfit_cut = 0.0;
     cout << "Kinematic fit probability cut is disabled." << endl;
-    cutConfig.push_back("Kinematic fit probability cut is disabled.");
+    cutConfigStr.push_back("Kinematic fit probability cut is disabled.");
   }
 
   if (enablePi0MassCut){
     cout << "Pi0 mass cut is enabled with range: " << Pi0MassRange[0] << " - " << Pi0MassRange[1] << " GeV" << endl;
-    cutConfig.push_back("Pi0 mass cut is enabled with range: " + to_string(Pi0MassRange[0]) + " - " + to_string(Pi0MassRange[1]) + " GeV");
+    cutConfigStr.push_back("Pi0 mass cut is enabled with range: " + to_string(Pi0MassRange[0]) + " - " + to_string(Pi0MassRange[1]) + " GeV");
   }
   else{
     cout << "Pi0 mass cut is disabled." << endl;
-    cutConfig.push_back("Pi0 mass cut is disabled.");
+    cutConfigStr.push_back("Pi0 mass cut is disabled.");
   }
 
   if (enablePhotonsThetaCut){
     cout << "Photon theta cut is enabled." << endl;
-    cutConfig.push_back("Photon theta cut is enabled.");
+    cutConfigStr.push_back("Photon theta cut is enabled.");
   }
   else{
     cout << "Photon theta cut is disabled." << endl;
-    cutConfig.push_back("Photon theta cut is disabled.");
+    cutConfigStr.push_back("Photon theta cut is disabled.");
   }
 
   if (enablePhotonBeamEnergyCut){
     cout << "Photon beam energy cut is enabled with range: " << PhotonBeamEnergyRange[0] << " - " << PhotonBeamEnergyRange[1] << " GeV" << endl;
-    cutConfig.push_back("Photon beam energy cut is enabled with range: " + to_string(PhotonBeamEnergyRange[0]) + " - " + to_string(PhotonBeamEnergyRange[1]) + " GeV");
+    cutConfigStr.push_back("Photon beam energy cut is enabled with range: " + to_string(PhotonBeamEnergyRange[0]) + " - " + to_string(PhotonBeamEnergyRange[1]) + " GeV");
   }
   else{
     cout << "Photon beam energy cut is disabled." << endl;
-    cutConfig.push_back("Photon beam energy cut is disabled.");
+    cutConfigStr.push_back("Photon beam energy cut is disabled.");
   }
   
   if (enableSidebandSubs){
     cout << "Sideband subtraction is enabled." << endl;
     cout << "Left sideband range: " << leftSidebandRange[0] << " - " << leftSidebandRange[1] << " GeV" << endl;
     cout << "Right sideband range: " << rightSidebandRange[0] << " - " << rightSidebandRange[1] << " GeV" << endl;
-    cutConfig.push_back("Sideband subtraction is enabled.");
-    cutConfig.push_back("Left sideband range: " + to_string(leftSidebandRange[0]) + " - " + to_string(leftSidebandRange[1]) + " GeV");
-    cutConfig.push_back("Right sideband range: " + to_string(rightSidebandRange[0]) + " - " + to_string(rightSidebandRange[1]) + " GeV");
+    cutConfigStr.push_back("Sideband subtraction is enabled.");
+    cutConfigStr.push_back("Left sideband range: " + to_string(leftSidebandRange[0]) + " - " + to_string(leftSidebandRange[1]) + " GeV");
+    cutConfigStr.push_back("Right sideband range: " + to_string(rightSidebandRange[0]) + " - " + to_string(rightSidebandRange[1]) + " GeV");
   }
   else{
     cout << "Sideband subtraction is disabled." << endl;
-    cutConfig.push_back("Sideband subtraction is disabled.");
+    cutConfigStr.push_back("Sideband subtraction is disabled.");
   }
   
   if (enableResolutionAnalysis){
     cout << "Resolution analysis is enabled." << endl;
-    cutConfig.push_back("Resolution analysis is enabled.");
+    cutConfigStr.push_back("Resolution analysis is enabled.");
   }
   else{
     cout << "Resolution analysis is disabled." << endl;
-    cutConfig.push_back("Resolution analysis is disabled.");
+    cutConfigStr.push_back("Resolution analysis is disabled.");
   }
 
   if (enableKinematicCut){
     cout << "Kinematic cut is enabled." << endl;
-    cutConfig.push_back("Kinematic cut is enabled.");
+    cutConfigStr.push_back("Kinematic cut is enabled.");
   }
   else{
     cout << "Kinematic cut is disabled." << endl;
-    cutConfig.push_back("Kinematic cut is disabled.");
+    cutConfigStr.push_back("Kinematic cut is disabled.");
   }
+
+  vector<bool> cutConfigBool;
+  cutConfigBool.push_back(is_mc);
+  cutConfigBool.push_back(enableKfitCut);
+  cutConfigBool.push_back(enablePi0MassCut);
+  cutConfigBool.push_back(enablePhotonsThetaCut);
+  cutConfigBool.push_back(enablePhotonBeamEnergyCut);
+  cutConfigBool.push_back(enableSidebandSubs);
+  cutConfigBool.push_back(enableResolutionAnalysis);
+  cutConfigBool.push_back(enableKinematicCut);
+
+  vector<string> cutConfigBoolLabel;
+  cutConfigBoolLabel.push_back("is_mc");
+  cutConfigBoolLabel.push_back("enableKfitCut");
+  cutConfigBoolLabel.push_back("enablePi0MassCut");
+  cutConfigBoolLabel.push_back("enablePhotonsThetaCut");
+  cutConfigBoolLabel.push_back("enablePhotonBeamEnergyCut");
+  cutConfigBoolLabel.push_back("enableSidebandSubs");
+  cutConfigBoolLabel.push_back("enableResolutionAnalysis");
+  cutConfigBoolLabel.push_back("enableKinematicCut");
 
   //define input tree chain
   TChain *dataChain = new TChain("myTree");
@@ -275,10 +296,18 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   
   outName += "_";
   outName += cutTag;
-  outName += ".root";
 
   outNameDataForMC += "_";
   outNameDataForMC += cutTag;
+
+  if (enablePhotonBeamEnergyCut) {
+    outName += "_";
+    outName += to_string(PhotonBeamEnergyRangeIdx);
+    outNameDataForMC += "_";
+    outNameDataForMC += to_string(PhotonBeamEnergyRangeIdx);
+  }
+
+  outName += ".root";
   outNameDataForMC += ".root";
 
   if(is_mc){
@@ -304,6 +333,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       vector<double> *vFitInfoFromDataForMC = (vector<double>*)fOutDataForMC->Get("fitInformation");
       weightSidebandMC = vFitInfoFromDataForMC->at(5);
       cout << "weightSidebandMC = " << weightSidebandMC << endl;
+      double meanSgnValForMC = vFitInfoFromDataForMC->at(0);
+      double sigmaSgnValForMC = vFitInfoFromDataForMC->at(1);
+      signalRangeMC[0] = meanSgnValForMC - 2*sigmaSgnValForMC;
+      signalRangeMC[1] = meanSgnValForMC + 2*sigmaSgnValForMC;
   }
   else{
       is_truecombo = true;
@@ -319,7 +352,9 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   TFile *outfile;
   if (!fitOnly) {
     outfile = new TFile(outName,"RECREATE");
-    outfile->WriteObject(&cutConfig,"cutConfig");
+    outfile->WriteObject(&cutConfigStr,"cutConfigStr");
+    outfile->WriteObject(&cutConfigBool,"cutConfigBool");
+    outfile->WriteObject(&cutConfigBoolLabel,"cutConfigBoolLabel");
   }
 
   //Declare histogram before the fits here
@@ -440,9 +475,12 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     // const Double_t pi0MassPDG = 0.1349768;
     //++++++++++++++++++++++++++++++++++++++
 
-    hkFitProb = new TH1F("h_kFitProb","kFitProb",51,0.,1.0);
+    hkFitProb = new TH1F("h_kFitProb","kFitProb",201,0.,1.0);
 
     cout << "Selecting events..." << endl;
+    if (!enableSidebandSubs || is_mc) cout << "Output: " << outName << endl;
+
+    //Loop over events
     for(Int_t i=0;i<nEntries;i++){
       dataChain->GetEntry(i);
       
@@ -603,7 +641,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     // gStyle->SetOptStat(0);
     h2DalitzPlotEta3Pi->GetXaxis()->SetTitle("X");
     h2DalitzPlotEta3Pi->GetYaxis()->SetTitle("Y");
-    h2DalitzPlotEta3Pi->Write();
+    // h2DalitzPlotEta3Pi->Write();
     if(is_mc){
       h2DalitzPlotEta3Pi_kin->GetXaxis()->SetTitle("X");
       h2DalitzPlotEta3Pi_kin->GetYaxis()->SetTitle("Y");
@@ -624,6 +662,8 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       //   }
       // }
     }
+    hkFitProb->GetXaxis()->SetTitle("kinematic fit probability");
+    hkFitProb->GetYaxis()->SetTitle("counts");
     setHPipPimG1G2Axis(hpippimg1g2mass);
     // hpippimg1g2mass->SetStats(0);
     hpippimg1g2mass->Write();
@@ -632,7 +672,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     // hg1g2mass->SetStats(0);
     hg1g2mass->Write();
 
-    if (!enableSidebandSubs) out_tree->Write();
+    // if (!enableSidebandSubs) out_tree->Write();
   }
 
   if (enableSidebandSubs && !is_mc) {
