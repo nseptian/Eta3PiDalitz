@@ -19,7 +19,7 @@ using namespace std;
 
 //kfit_cut value represents a cut on the kinematic fit probability!
 Double_t kfit_cut = 0.01;
-Bool_t enableKfitCut = kFALSE;
+Bool_t enableKfitCut = kTRUE;
 
 //user config for pi_0 invariant mass range cut
 const Bool_t enablePi0MassCut = kFALSE;
@@ -31,10 +31,10 @@ const Bool_t enablePhotonsThetaCut = kFALSE;
 //user config for energy beam cut
 //used if enablePhotonBeamEnergyCut = kTRUE
 const Double_t PhotonBeamEnergyBin[6] = {0.0,7.0,8.0,9.0,10.0,99.0};
-const Double_t kfit_cut_Ebeam[5] = {0.0,0.0,0.0,0.0,0.0};
+const Double_t kfit_cut_Ebeam[5] = {0.02,0.02,0.02,0.02,0.02};
 
 //user config for sideband subtraction
-const Bool_t enableSidebandSubs = kFALSE;
+const Bool_t enableSidebandSubs = kTRUE;
 const Bool_t fitOnly = kFALSE;
 const Bool_t signalOnlyTree = kFALSE;
 const Double_t width = 0.025;
@@ -285,10 +285,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   dataChain->SetBranchAddress("g2_p4_kin",&g2_p4_kin); //4-vector of photon2 (gamma 2)
   dataChain->SetBranchAddress("beam_p4_kin",&beam_p4_kin);
 
-  if (enableSidebandSubs) {
-    outName += "_sbs";
-    outNameDataForMC += "_sbs";
-  }
+  // if (enableSidebandSubs) {
+  //   outName += "_sbs";
+  //   outNameDataForMC += "_sbs";
+  // }
   if (signalOnlyTree) {
     outName += "_signalOnlyTree";
     outNameDataForMC += "_signalOnlyTree";

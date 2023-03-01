@@ -58,7 +58,7 @@ void drawHist(TString fileName = "", string outputTag = ""){
 	TCanvas* c=new TCanvas("","",800,600);
 	string hname;
 
-	vector<bool>* pCutConfigBool = (vector<bool>*)f->Get("CutConfigBool");
+	vector<bool>* pCutConfigBool = (vector<bool>*)f->Get("cutConfigBool");
 	// vector<bool> cutConfigBool = *pCutConfigBool;
 
 	bool is_mc = pCutConfigBool->at(0);
@@ -211,136 +211,138 @@ void drawHist(TString fileName = "", string outputTag = ""){
 
 	}
 	else{
+		if (enableSidebandSubs) {
 
-		vector<Double_t>* vec = (vector<Double_t>*)f->Get("ranges");
-		vector<Double_t> v = *vec;
+			vector<Double_t>* vec = (vector<Double_t>*)f->Get("ranges");
+			vector<Double_t> v = *vec;
 
-		Double_t signalRange[2] = {v[0],v[1]};
-		Double_t leftSidebandRange[2] = {v[2],v[3]};
-		Double_t rightSidebandRange[2] = {v[4],v[5]};
-		hname="h_pippimg1g2mass";
-		f->GetObject(hname.c_str(),h1);
-		h1->Draw(drawOptions.c_str());
-		// h1->SetMinimum(0);
-		box->SetFillColorAlpha(kRed+2,0.3);
-		box->DrawBox(leftSidebandRange[0],0,leftSidebandRange[1],h1->GetMaximum()*1.05);
-		box->DrawBox(rightSidebandRange[0],0,rightSidebandRange[1],h1->GetMaximum()*1.05);
-		box->SetFillColorAlpha(kGreen+2,0.3);
-		box->DrawBox(signalRange[0],0,signalRange[1],h1->GetMaximum()*1.05);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			Double_t signalRange[2] = {v[0],v[1]};
+			Double_t leftSidebandRange[2] = {v[2],v[3]};
+			Double_t rightSidebandRange[2] = {v[4],v[5]};
+			hname="h_pippimg1g2mass";
+			f->GetObject(hname.c_str(),h1);
+			h1->Draw(drawOptions.c_str());
+			// h1->SetMinimum(0);
+			box->SetFillColorAlpha(kRed+2,0.3);
+			box->DrawBox(leftSidebandRange[0],0,leftSidebandRange[1],h1->GetMaximum()*1.05);
+			box->DrawBox(rightSidebandRange[0],0,rightSidebandRange[1],h1->GetMaximum()*1.05);
+			box->SetFillColorAlpha(kGreen+2,0.3);
+			box->DrawBox(signalRange[0],0,signalRange[1],h1->GetMaximum()*1.05);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname="h_pippimg1g2mass_sbsAll";
-		f->GetObject(hname.c_str(),h1);
-		h1->Draw(drawOptions.c_str());
-		// h1->SetMinimum(0);
-		box->SetFillColorAlpha(kRed+2,0.3);
-		box->DrawBox(leftSidebandRange[0],h1->GetMinimum()*1.05,leftSidebandRange[1],h1->GetMaximum()*1.05);
-		box->DrawBox(rightSidebandRange[0],h1->GetMinimum()*1.05,rightSidebandRange[1],h1->GetMaximum()*1.05);
-		box->SetFillColorAlpha(kGreen+2,0.3);
-		box->DrawBox(signalRange[0],h1->GetMinimum()*1.05,signalRange[1],h1->GetMaximum()*1.05);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname="h_pippimg1g2mass_sbsAll";
+			f->GetObject(hname.c_str(),h1);
+			h1->Draw(drawOptions.c_str());
+			// h1->SetMinimum(0);
+			box->SetFillColorAlpha(kRed+2,0.3);
+			box->DrawBox(leftSidebandRange[0],h1->GetMinimum()*1.05,leftSidebandRange[1],h1->GetMaximum()*1.05);
+			box->DrawBox(rightSidebandRange[0],h1->GetMinimum()*1.05,rightSidebandRange[1],h1->GetMaximum()*1.05);
+			box->SetFillColorAlpha(kGreen+2,0.3);
+			box->DrawBox(signalRange[0],h1->GetMinimum()*1.05,signalRange[1],h1->GetMaximum()*1.05);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname="h_g1g2mass";
-		f->GetObject(hname.c_str(),h1);
-		h1->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
-		h1->Draw(drawOptions.c_str());
-		// h1->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname="h_g1g2mass";
+			f->GetObject(hname.c_str(),h1);
+			h1->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
+			h1->Draw(drawOptions.c_str());
+			// h1->SetMinimum(0);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname="h_g1g2mass_sbsAll";
-		f->GetObject(hname.c_str(),h1);
-		h1->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
-		h1->Draw(drawOptions.c_str());
-		// h1->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname="h_g1g2mass_sbsAll";
+			f->GetObject(hname.c_str(),h1);
+			h1->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
+			h1->Draw(drawOptions.c_str());
+			// h1->SetMinimum(0);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname="h_g1g2mass_sbsSidebandOnlyUnweighted";
-		f->GetObject(hname.c_str(),h1);
-		h1->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
-		h1->Draw(drawOptions.c_str());
-		// h1->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname="h_g1g2mass_sbsSidebandOnlyUnweighted";
+			f->GetObject(hname.c_str(),h1);
+			h1->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
+			h1->Draw(drawOptions.c_str());
+			// h1->SetMinimum(0);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname="h_g1g2mass_sbsSidebandOnlyWeighted";
-		f->GetObject(hname.c_str(),h1);
-		TH1F* h1_0 = new TH1F(*h1);
-		h1->Draw(drawOptions.c_str());
-		// h1->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname="h_g1g2mass_sbsSidebandOnlyWeighted";
+			f->GetObject(hname.c_str(),h1);
+			TH1F* h1_0 = new TH1F(*h1);
+			h1->Draw(drawOptions.c_str());
+			// h1->SetMinimum(0);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname="h_g1g2mass_sbsSignalOnly";
-		f->GetObject(hname.c_str(),h1);
-		TH1F* h1_1 = new TH1F(*h1);
-		h1->Draw(drawOptions.c_str());
-		// h1->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname="h_g1g2mass_sbsSignalOnly";
+			f->GetObject(hname.c_str(),h1);
+			TH1F* h1_1 = new TH1F(*h1);
+			h1->Draw(drawOptions.c_str());
+			// h1->SetMinimum(0);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname = "h_g1g2mass_sbsSignalOnlySidebandOnlyWeighted";
-		h1_0->Draw(drawOptions.c_str());
-		h1_0->SetFillColor(kRed);
-		h1_1->Draw("HISTSAME");
-		h1_0->GetYaxis()->SetRangeUser(h1_0->GetMinimum()*1.05,h1_1->GetMaximum()*1.05);
-		// h1_0->GetYaxis()->SetRangeUser(-2100.,25000.);
+			hname = "h_g1g2mass_sbsSignalOnlySidebandOnlyWeighted";
+			h1_0->Draw(drawOptions.c_str());
+			h1_0->SetFillColor(kRed);
+			h1_1->Draw("HISTSAME");
+			h1_0->GetYaxis()->SetRangeUser(h1_0->GetMinimum()*1.05,h1_1->GetMaximum()*1.05);
+			// h1_0->GetYaxis()->SetRangeUser(-2100.,25000.);
 
-		auto legend = new TLegend(0.25,0.75,0.48,0.9);
-		legend->AddEntry(h1_0,"Sideband only (weighted)","f");
-		legend->AddEntry(h1_1,"Signal only","f");
-		legend->Draw();
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			auto legend = new TLegend(0.25,0.75,0.48,0.9);
+			legend->AddEntry(h1_0,"Sideband only (weighted)","f");
+			legend->AddEntry(h1_1,"Signal only","f");
+			legend->Draw();
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname = "h2_DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted";
-		f->GetObject(hname.c_str(),h2);
-		h2->GetXaxis()->SetTitle("X");
-		h2->GetYaxis()->SetTitle("Y");
-		h2->SetTitle("Dalitz plot");
-		h2->Draw("COLZ");
-		h2->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname = "h2_DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted";
+			f->GetObject(hname.c_str(),h2);
+			h2->GetXaxis()->SetTitle("X");
+			h2->GetYaxis()->SetTitle("Y");
+			h2->SetTitle("Dalitz plot");
+			h2->Draw("COLZ");
+			h2->SetMinimum(0);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname = "h2_DalitzPlotEta3Pi_sbsAll";
-		f->GetObject(hname.c_str(),h2);
-		h2->GetXaxis()->SetTitle("X");
-		h2->GetYaxis()->SetTitle("Y");
-		h2->SetTitle("Dalitz plot");
-		h2->Draw("COLZ");
-		h2->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname = "h2_DalitzPlotEta3Pi_sbsAll";
+			f->GetObject(hname.c_str(),h2);
+			h2->GetXaxis()->SetTitle("X");
+			h2->GetYaxis()->SetTitle("Y");
+			h2->SetTitle("Dalitz plot");
+			h2->Draw("COLZ");
+			h2->SetMinimum(0);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname = "h2_DalitzPlotEta3Pi_sbsSignalOnly";
-		f->GetObject(hname.c_str(),h2);
-		h2->GetXaxis()->SetTitle("X");
-		h2->GetYaxis()->SetTitle("Y");
-		h2->SetTitle("Dalitz plot");
-		h2->Draw("COLZ");
-		h2->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname = "h2_DalitzPlotEta3Pi_sbsSignalOnly";
+			f->GetObject(hname.c_str(),h2);
+			h2->GetXaxis()->SetTitle("X");
+			h2->GetYaxis()->SetTitle("Y");
+			h2->SetTitle("Dalitz plot");
+			h2->Draw("COLZ");
+			h2->SetMinimum(0);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		hname = "h2_DalitzPlotEta3Pi_tree";
-		f->GetObject(hname.c_str(),h2);
-		h2->GetXaxis()->SetTitle("X");
-		h2->GetYaxis()->SetTitle("Y");
-		h2->SetTitle("Dalitz plot");
-		h2->Draw("COLZ");
-		h2->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			hname = "h2_DalitzPlotEta3Pi_tree";
+			f->GetObject(hname.c_str(),h2);
+			h2->GetXaxis()->SetTitle("X");
+			h2->GetYaxis()->SetTitle("Y");
+			h2->SetTitle("Dalitz plot");
+			h2->Draw("COLZ");
+			h2->SetMinimum(0);
+			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
 
-		// c->SetCanvasSize(1200,600);
-		// RooPlot *rp = (RooPlot*)f->Get("frame_h_pippimg1g2massRooFit_65274a0");
-		// rp->SetStats(0);
-		// // rp->Print();
-		// TPaveText *paramBox = (TPaveText*)rp->getObject(5);
-		// paramBox->Print();
-		// paramBox->Clear();
-		// paramBox->SetX1(0.0);
-		// paramBox->SetX2(0.0);
-		// paramBox->SetY1(0.0);
-		// paramBox->SetY2(0.0);
-		// rp->Draw();
-		// box->SetFillColorAlpha(kRed+2,0.3);
-		// box->DrawBox(leftSidebandRange[0],0,leftSidebandRange[1],rp->GetMaximum());
-		// box->DrawBox(rightSidebandRange[0],0,rightSidebandRange[1],rp->GetMaximum());
-		// box->SetFillColorAlpha(kGreen+2,0.3);
-		// box->DrawBox(signalRange[0],0,signalRange[1],rp->GetMaximum());
-		// c->SaveAs(("plots/hfit_"+outputTag+".pdf").c_str());
+			// c->SetCanvasSize(1200,600);
+			// RooPlot *rp = (RooPlot*)f->Get("frame_h_pippimg1g2massRooFit_65274a0");
+			// rp->SetStats(0);
+			// // rp->Print();
+			// TPaveText *paramBox = (TPaveText*)rp->getObject(5);
+			// paramBox->Print();
+			// paramBox->Clear();
+			// paramBox->SetX1(0.0);
+			// paramBox->SetX2(0.0);
+			// paramBox->SetY1(0.0);
+			// paramBox->SetY2(0.0);
+			// rp->Draw();
+			// box->SetFillColorAlpha(kRed+2,0.3);
+			// box->DrawBox(leftSidebandRange[0],0,leftSidebandRange[1],rp->GetMaximum());
+			// box->DrawBox(rightSidebandRange[0],0,rightSidebandRange[1],rp->GetMaximum());
+			// box->SetFillColorAlpha(kGreen+2,0.3);
+			// box->DrawBox(signalRange[0],0,signalRange[1],rp->GetMaximum());
+			// c->SaveAs(("plots/hfit_"+outputTag+".pdf").c_str());
+		}
 	}
 }
