@@ -225,21 +225,21 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       cout << "Dataset used is GlueX 2017 MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2017/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2017_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_2017_DP.root","READ");
-      outNameDataForMC = "root4Amptools/eta_2017_data";
+      outNameDataForMC = "root4AmptoolsEnergyDep/eta_2017_data";
     }
     if (data_set == 1) {
       //MC 2018S
       cout << "Dataset used is GlueX 2018S MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018S/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018S_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_2018S_DP.root","READ");
-      outNameDataForMC = "root4Amptools/eta_2018S_data";
+      outNameDataForMC = "root4AmptoolsEnergyDep/eta_2018S_data";
     }
     if (data_set == 2) {
       //MC 2018F
       cout << "Dataset used is GlueX 2018F MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018F/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018F_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_2018F_DP.root","READ");
-      outNameDataForMC = "root4Amptools/eta_2018F_data";
+      outNameDataForMC = "root4AmptoolsEnergyDep/eta_2018F_data";
     }
     if (data_set == 3){
       cout << "Dataset used is GlueX Phase-I MC." << endl;
@@ -247,7 +247,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018S/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018S_all.root");
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018F/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018F_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_phaseI_DP.root","READ"); //create this file
-      outNameDataForMC = "root4Amptools/eta_phaseI_data";
+      outNameDataForMC = "root4AmptoolsEnergyDep/eta_phaseI_data";
     }
   }
   Int_t nEntries = dataChain->GetEntries();
@@ -324,10 +324,12 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       
       //check if the output root file from data for MC and open 
       TFile *fOutDataForMC = TFile::Open(outNameDataForMC,"READ");
+      cout << "Opening file " << outNameDataForMC << " for MC..." << endl;
       if (!fOutDataForMC || fOutDataForMC->IsZombie()) {
         std::cerr << "Error opening file " << outNameDataForMC << ", please generate the data tree before using MC option." << endl;
         exit(-1);
       }
+      cout << "File " << outNameDataForMC << " opened successfully." << endl;
 
       //get fitInformation std vector object from root file
       vector<double> *vFitInfoFromDataForMC = (vector<double>*)fOutDataForMC->Get("fitInformation");
@@ -488,7 +490,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       //is_truecombo is for MC data (i.e. simulated data) --> Just look at simulated eta->pi+pi-pi0 and nothing else...
 
       if(is_truecombo && kfit_prob > kfit_cut){
-        if (!enableSidebandSubs || is_mc){
+        if (!enableSidebandSubs || is_mc || enablePhotonBeamEnergyCut){
           EnP1 = pip_p4_kin->E();
           PxP1 = pip_p4_kin->Px();
           PyP1 = pip_p4_kin->Py();
@@ -509,8 +511,6 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           PyBeam = beam_p4_kin->Py();
           PzBeam = beam_p4_kin->Pz();
         }
-
-
 
         if(dBRT >= -2.0 && dBRT <= 2.0){
             weight = 1.0;
@@ -583,23 +583,24 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           else kinematicCut = kTRUE;
           if (enablePi0MassCut) Pi0MassCut = (m_g1g2 > Pi0MassRange[0]) && (m_g1g2 < Pi0MassRange[1]);
           else Pi0MassCut = kTRUE;
-
-          if (enablePhotonBeamEnergyCut) BeamEnergyCut = (EnBeam > PhotonBeamEnergyRange[0]) && (EnBeam < PhotonBeamEnergyRange[1]);
-          else BeamEnergyCut = kTRUE;
         }
         else {
           kinematicCut = kTRUE;
           Pi0MassCut = kTRUE;
-          BeamEnergyCut = kTRUE;
         }
+
+        //Apply beam energy cut on MC and data if enabled
+        if (enablePhotonBeamEnergyCut) BeamEnergyCut = (EnBeam > PhotonBeamEnergyRange[0]) && (EnBeam < PhotonBeamEnergyRange[1]);
+        else BeamEnergyCut = kTRUE;
         
-        if (PhotonThetaCut) {
+        //selection nevertheless whether sideband subtraction is enabled or not
+        if (PhotonThetaCut && BeamEnergyCut) {
           hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
           hg1g2mass->Fill(m_g1g2,weight);
           hkFitProb->Fill(kfit_prob,weight);
           // h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
           if (!enableSidebandSubs) out_tree->Fill();
-          if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut && BeamEnergyCut) {            
+          if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut) {            
             if (((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])) || ((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1]))){
               if(!signalOnlyTree) {
                 weight *= weightSidebandMC;
@@ -691,10 +692,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     
     const Double_t eta_mass = 0.547862;
     RooRealVar meanSgn1("meanSgn1","meanSgn1",eta_mass,eta_mass-0.002,eta_mass+0.002);
-    RooRealVar sigmaSgn1("sigmaSgn1","sigmaSgn1",0.01,0.0001,0.03);
+    RooRealVar sigmaSgn1("sigmaSgn1","sigmaSgn1",0.012,0.001,0.03);
     RooGaussian gauss1("gauss1","gauss1",x,meanSgn1,sigmaSgn1);
     RooRealVar meanSgn2("meanSgn2","meanSgn2",eta_mass,eta_mass-0.002,eta_mass+0.002);
-    RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.01,0.0001,0.03);
+    RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.05,0.001,0.03);
     RooGaussian gauss2("gauss2","gauss2",x,meanSgn2,sigmaSgn2);
     RooRealVar cGauss2("cGauss2","cGauss2",0.01,0.01,0.3);
     RooRealVar a("a","a",1.0,0.,2.0);
@@ -745,6 +746,11 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
         }
       }
       outMassFitPdfName += cutTag;
+      if (enablePhotonBeamEnergyCut) {
+        outMassFitPdfName += "_";
+        outMassFitPdfName += PhotonBeamEnergyRangeIdx;
+      }
+
       outMassFitPdfName += ".pdf";
       canvas->Print(outMassFitPdfName);
     }
