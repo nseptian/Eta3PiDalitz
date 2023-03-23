@@ -22,9 +22,10 @@ int main(int argc, char* argv[]){
 
   ofstream ofs(outtxtname, ofstream::out);
   ofs << "// Parameter Values *** " << resultsname << endl;
+  ofs << "{" << endl;
   for (size_t i = 0; i < 5; i++)
   {
-    cout << "Extracting parameter values for energy bin-" << i << "..." << endl;
+    cout << "Extracting parameter values for energy bin-" << i+1 << "..." << endl;
     string iResultsName = resultsname + "_" + to_string(i) + ".fit";
     cout << "Fit result file name = " << iResultsName << endl << endl;
     FitResults results(iResultsName);
@@ -35,13 +36,19 @@ int main(int argc, char* argv[]){
         ofs << parameterValues[i];
         if (i<parameterValues.size()-1) ofs << ",";
     }
-    ofs << "};" << endl;
+    if (i==4) {
+        ofs << "}" << endl;
+    } else {
+        ofs << "}," << endl;
+    }
   }
+  ofs << "};" << endl << endl;
 
   ofs << "// Error Values *** " << resultsname << endl;
-  for (size_t i = 0; i < 4; i++)
+  ofs << "{" << endl;
+  for (size_t i = 0; i < 5; i++)
   {
-    cout << "Extracting error values for energy bin-" << i << endl;
+    cout << "Extracting error values for energy bin-" << i+1 << endl;
     string iResultsName = resultsname + "_" + to_string(i) + ".fit";
     cout << "\tFit results file name = " << iResultsName << endl << endl;
     FitResults results(iResultsName);
@@ -52,8 +59,13 @@ int main(int argc, char* argv[]){
         ofs << errorMatrix[i][i];
         if (i<parameterValues.size()-1) ofs << ",";
     }
-    ofs << "}" << endl;
+    if (i==4) {
+        ofs << "}" << endl;
+    } else {
+        ofs << "}," << endl;
+    }
   }
+  ofs << "};" << endl << endl;
 
   ofs.close();
 

@@ -4,7 +4,7 @@
 RUNFOLDER=/d/home/septian/Eta3PiDalitz/run
 CFGFOLDER=$RUNFOLDER/cfg
 
-tag=02202023_kfit005
+tag=02202023_kfit010
 
 echo 'Cut tag is -> '$tag
 
