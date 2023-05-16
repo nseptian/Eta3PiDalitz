@@ -29,12 +29,21 @@ int main(int argc, char* argv[]){
     string iResultsName = resultsname + "_" + to_string(i) + ".fit";
     cout << "Fit result file name = " << iResultsName << endl << endl;
     FitResults results(iResultsName);
-    vector<double> parameterValues = results.parValueList();
+    cout << "Fit status = " << results.lastMinuitCommandStatus() << endl << endl;
+    vector<double> parameterValues;
+    if (results.lastMinuitCommandStatus() == 0) {
+      parameterValues = results.parValueList();
+    }
+    else{
+      for (int k=0;k<results.parValueList().size();k++){
+        parameterValues.push_back(-10.);
+      }
+    }
     ofs << "{";
-    for (int i=3;i<parameterValues.size();i++){
-        if (i==3) parameterValues[i]*=-1;
-        ofs << parameterValues[i];
-        if (i<parameterValues.size()-1) ofs << ",";
+    for (int k=3;k<parameterValues.size();k++){
+        if (k==3) parameterValues[k]*=-1;
+        ofs << parameterValues[k];
+        if (k<parameterValues.size()-1) ofs << ",";
     }
     if (i==4) {
         ofs << "}" << endl;
@@ -55,9 +64,9 @@ int main(int argc, char* argv[]){
     vector<double> parameterValues = results.parValueList();
     vector<vector<double>> errorMatrix = results.errorMatrix();
     ofs << "{";
-    for (int i=3;i<parameterValues.size();i++){
-        ofs << errorMatrix[i][i];
-        if (i<parameterValues.size()-1) ofs << ",";
+    for (int k=3;k<parameterValues.size();k++){
+        ofs << errorMatrix[k][k];
+        if (k<parameterValues.size()-1) ofs << ",";
     }
     if (i==4) {
         ofs << "}" << endl;

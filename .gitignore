@@ -1,6 +1,7 @@
 run/
 lib/
 batch_run/bootstrap/log/
+batch_run/bootstrap/out*
 *.dep
 *.o
 *.a

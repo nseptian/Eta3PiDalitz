@@ -1,6 +1,6 @@
 Universe   = vanilla
 Executable = /d/home/septian/Eta3PiDalitz/batch_run/bootstrap/run.sh
-Arguments  = 12262022e $(Process)
+Arguments  = 10092022 $(Process)
 
 Log        = /d/home/septian/Eta3PiDalitz/batch_run/bootstrap/log/log_$(Process).log
 Output     = /d/home/septian/Eta3PiDalitz/batch_run/bootstrap/log/out_$(Process).log

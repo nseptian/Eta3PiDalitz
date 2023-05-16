@@ -54,7 +54,7 @@ const Bool_t enableResolutionAnalysis = kFALSE;
 
 //user config for Mandelstam t cut
 const Bool_t enableMandelstamTCut = kTRUE;
-const Double_t MandelstamTCutRange[2] = {0.0,0.1};
+const Double_t MandelstamTCutRange[2] = {0.3,0.4};
 
 /*
 const Double_t signalRangeMC[2] = {0.547123-(2*0.0105783),0.547123+(2*0.0105783)}; //2018S_data_sbs_10092022
@@ -386,7 +386,6 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   Double_t EnP2,PxP2,PyP2,PzP2;
   Double_t EnP3,PxP3,PyP3,PzP3;
   Double_t X,Y,weight=1.0;
-  Double_t mandelstam_t;
   TTree *out_tree = new TTree("nt","nt");
 
   //photon beam
@@ -441,10 +440,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     TH1F *hpippimg1g2massSignalOnly = new TH1F("h_pippimg1g2massSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
     TH1F *hg1g2mass = new TH1F("h_g1g2mass","#gamma_1 #gamma_2 invariant mass spectrum",101,0,0.2);
     TH2F *h2DalitzPlotEta3Pi = new TH2F("h2_DalitzPlotEta3Pi","",101,-1.0,1.0,101,-1.0,1.0);
+    TH1F *hmandelstam_t = new TH1F("h_mandelstam_t","Mandelstam t",101,0.,2.);
     TH1F *hkFitProb;
     TH2F *h2DalitzPlotEta3Pi_kin;
     TH2F *h2DalitzPlotEta3Pi_thrown;
-    TH1F *hmandelstam_t;
 
     TH1F *hXResolution;
     TH1F *hYResolution;
@@ -458,7 +457,6 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     if (is_mc){      
       h2DalitzPlotEta3Pi_kin = new TH2F("h2_DalitzPlotEta3Pi_kin","",101,-1.0,1.0,101,-1.0,1.0);
       h2DalitzPlotEta3Pi_thrown = (TH2F*)mcThrown->Get("h2_DalitzPlotEta3Pi_thrown");
-      if (enableSidebandSubs) hmandelstam_t = new TH1F("h_mandelstam_t","Mandelstam t",101,0.,2.);
       if (enableResolutionAnalysis){
         hXResolution = new TH1F("h1_XResolution","X dalitz variable resolution",101,-0.5,0.5);
         hYResolution = new TH1F("h1_YResolution","Y dalitz variable resolution",101,-0.5,0.5);
@@ -511,7 +509,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       //is_truecombo is for MC data (i.e. simulated data) --> Just look at simulated eta->pi+pi-pi0 and nothing else...
 
       if(is_truecombo && kfit_prob > kfit_cut){
-        if (!enableSidebandSubs || is_mc || enablePhotonBeamEnergyCut){
+        if (!enableSidebandSubs || is_mc || enablePhotonBeamEnergyCut || enableMandelstamTCut){
           EnP1 = pip_p4_kin->E();
           PxP1 = pip_p4_kin->Px();
           PyP1 = pip_p4_kin->Py();
@@ -531,8 +529,6 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           PxBeam = beam_p4_kin->Px();
           PyBeam = beam_p4_kin->Py();
           PzBeam = beam_p4_kin->Pz();
-
-          mandelstam_t = (targetProton_p4 - *p_p4_kin).M2();
         }
 
         if(dBRT >= -2.0 && dBRT <= 2.0){
@@ -616,16 +612,20 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
         if (enablePhotonBeamEnergyCut) BeamEnergyCut = (EnBeam > PhotonBeamEnergyRange[0]) && (EnBeam < PhotonBeamEnergyRange[1]);
         else BeamEnergyCut = kTRUE;
 
-        //Apply mandelstam t cut on MC and data if enabled        
+        //Apply mandelstam t cut on MC and data if enabled
+        
+        Double_t mandelstam_t = (targetProton_p4 - *p_p4_kin).M2();        
         Bool_t MandelstamTCut = kFALSE;
         if (enableMandelstamTCut) MandelstamTCut = (-1.0*mandelstam_t > MandelstamTCutRange[0]) && (-1.0*mandelstam_t < MandelstamTCutRange[1]);
         else MandelstamTCut = kTRUE;
         
         //selection nevertheless whether sideband subtraction is enabled or not
         if (PhotonThetaCut && BeamEnergyCut && MandelstamTCut) {
+          //histogram to fit for sideband subtraction
           hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
           hg1g2mass->Fill(m_g1g2,weight);
           hkFitProb->Fill(kfit_prob,weight);
+          if (Pi0MassCut && kinematicCut) hmandelstam_t->Fill(-1.0*mandelstam_t,weight);
           // h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
           if (!enableSidebandSubs) out_tree->Fill();
           if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut) {            
@@ -641,7 +641,6 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
                   hXRes[XBin][YBin]->Fill(XRes,weight);
                   hYRes[XBin][YBin]->Fill(YRes,weight);
                 }
-                hmandelstam_t->Fill(-1.0*mandelstam_t,weight);
                 out_tree->Fill();
               }
             }
@@ -655,7 +654,6 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
                 hXRes[XBin][YBin]->Fill(XRes,weight);
                 hYRes[XBin][YBin]->Fill(YRes,weight);
               }
-              hmandelstam_t->Fill(-1.0*mandelstam_t,weight);
               out_tree->Fill();
             }
           }
@@ -722,23 +720,23 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     
     const Double_t eta_mass = 0.547862;
     RooRealVar meanSgn1("meanSgn1","meanSgn1",eta_mass,eta_mass-0.002,eta_mass+0.002);
-    RooRealVar sigmaSgn1("sigmaSgn1","sigmaSgn1",0.012,0.001,0.03);
+    RooRealVar sigmaSgn1("sigmaSgn1","sigmaSgn1",0.012,0.005,0.015);
     RooGaussian gauss1("gauss1","gauss1",x,meanSgn1,sigmaSgn1);
     RooRealVar meanSgn2("meanSgn2","meanSgn2",eta_mass,eta_mass-0.002,eta_mass+0.002);
-    RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.05,0.001,0.03);
+    RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.05,0.005,0.015);
     RooGaussian gauss2("gauss2","gauss2",x,meanSgn2,sigmaSgn2);
-    RooRealVar cGauss2("cGauss2","cGauss2",0.01,0.01,0.3);
-    RooRealVar a("a","a",1.0,0.,2.0);
-    RooRealVar b("b","b",0.3,0.,2.0);
-    RooRealVar c("c","c",0.1,0.,2.0);
-    RooRealVar d("d","d",0.2,0.,2.0);
-    RooRealVar e("e","e",0.,0.,2.0);
+    RooRealVar cGauss2("cGauss2","cGauss2",0.3,0.0,0.5);
+    RooRealVar a("a","a",0.5,0.,1.0);
+    RooRealVar b("b","b",0.0,0.,0.0);
+    RooRealVar c("c","c",0.0,0.,0.0);
+    RooRealVar d("d","d",0.0,0.,0.0);
+    RooRealVar e("e","e",0.,0.,0.0);
     // RooPolynomial polyBkg("polyBkg","polyomial background",x,RooArgList(a));
     RooChebychev chebyBkg("chebyBkg","chebychev polyomial background",x,RooArgList(a,b,c,d,e));
     // RooRealVar meanBkg1("meanBkg1","meanBkg1",mass_bkg1,0.07,0.09);
     // RooRealVar sigmaBkg1("sigmaBkg1","sigmaBkg1",0.005,0.001,0.02);
     // RooGaussian gauss2("gauss2","gauss2",x,meanBkg1,sigmaBkg1);
-    RooRealVar cBkg1("cPolyBkg","cPolyBkg",0.2,0.1,1.0);
+    RooRealVar cBkg1("cPolyBkg","cPolyBkg",0.1,0.0,1.0);
     // RooRealVar meanBkg2("meanBkg2","meanBkg2",mass_bkg2,0.095,0.13);
     // RooRealVar sigmaBkg2("sigmaBkg2","sigmaBkg2",0.005,0.001,0.03);
     // RooGaussian gauss3("gauss3","gauss3",x,meanBkg2,sigmaBkg2);
@@ -908,7 +906,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
               PyBeam = beam_p4_kin->Py();
               PzBeam = beam_p4_kin->Pz();
 
-              mandelstam_t = (targetProton_p4 - *p_p4_kin).M2();
+              Double_t mandelstam_t = (targetProton_p4 - *p_p4_kin).M2();
 
               Double_t m_g1g2 = (*g1_p4_kin + *g2_p4_kin).M();
               // Double_t diffmassg1g2 = (*g1_p4_kin).M() - (*g2_p4_kin).M();

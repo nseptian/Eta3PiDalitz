@@ -10,7 +10,8 @@
       "*.cc": "cpp",
       "*.h": "cpp",
       "ostream": "cpp",
-      "iostream": "cpp"
+      "iostream": "cpp",
+      "iosfwd": "cpp"
     },
     "C_Cpp.default.includePath": [
       "${default}",
