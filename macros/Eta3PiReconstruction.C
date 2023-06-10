@@ -238,21 +238,27 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       cout << "Dataset used is GlueX 2017 MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2017/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2017_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_2017_DP.root","READ");
-      outNameDataForMC = "root4AmptoolsEnergyDep/eta_2017_data";
+      outNameDataForMC = "root4Amptools";
+      if (enablePhotonBeamEnergyCut) outNameDataForMC += "EnergyDep";
+      outNameDataForMC += "/eta_2017_data";
     }
     if (data_set == 1) {
       //MC 2018S
       cout << "Dataset used is GlueX 2018S MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018S/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018S_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_2018S_DP.root","READ");
-      outNameDataForMC = "root4AmptoolsEnergyDep/eta_2018S_data";
+      outNameDataForMC = "root4Amptools";
+      if (enablePhotonBeamEnergyCut) outNameDataForMC += "EnergyDep";
+      outNameDataForMC += "/eta_2018S_data";
     }
     if (data_set == 2) {
       //MC 2018F
       cout << "Dataset used is GlueX 2018F MC." << endl;
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018F/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018F_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_2018F_DP.root","READ");
-      outNameDataForMC = "root4AmptoolsEnergyDep/eta_2018F_data";
+      outNameDataForMC = "root4Amptools";
+      if (enablePhotonBeamEnergyCut) outNameDataForMC += "EnergyDep";
+      outNameDataForMC += "/eta_2018F_data";
     }
     if (data_set == 3){
       cout << "Dataset used is GlueX Phase-I MC." << endl;
@@ -260,7 +266,9 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018S/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018S_all.root");
       dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2018F/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2018F_all.root");
       mcThrown = TFile::Open("root4Amptools/mc_thrown_phaseI_DP.root","READ"); //create this file
-      outNameDataForMC = "root4AmptoolsEnergyDep/eta_phaseI_data";
+      outNameDataForMC = "root4Amptools";
+      if (enablePhotonBeamEnergyCut) outNameDataForMC += "EnergyDep";
+      outNameDataForMC += "/eta_phaseI_data";
     }
   }
   Int_t nEntries = dataChain->GetEntries();

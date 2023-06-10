@@ -26,8 +26,8 @@ cd $MACROSFOLDER
 # root -x -q 'EtaTo3PiReconstructionInd.C(2,"root4Amptools/mc_rec_2018F_data_'$tag'",1)'
 # root -x -q 'EtaTo3PiReconstructionAll.C(3,"root4Amptools/mc_rec_all_data_'$tag'",1)'
 
-export CFGFOLDER=/d/home/septian/Eta3PiDalitz/macros/cfg
-export CFGSYSUNCINITVAL=/d/home/septian/Eta3PiDalitz/macros/cfgSysUncInitVal
+export CFGFOLDER=/d/home/septian/Eta3PiDalitz/run/cfg
+export CFGSYSUNCINITVAL=/d/home/septian/Eta3PiDalitz/run/cfgSysUncInitVal
 
 # cd $CFGFOLDER
 
