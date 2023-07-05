@@ -26,7 +26,9 @@ int main( int argc, char* argv[] ){
 
   if (argc < 4){
     cout << "Usage:" << endl << endl;
-    cout << "\tfitAmplitudes <config file name> <first bootstrap tag> <last bootstrap tag>" << endl << endl;
+    cout << "\tfitAmplitudes <config file base name> <first bootstrap tag> <last bootstrap tag>" << endl << endl;
+    cout << "\tIt is preferreble to only fit one sample at a time, i.e. <first bootstrap tag> = <last bootstrap tag>, due to memory leak introduced by temporary fix of gaussian error fit." << endl;
+    cout << "\tUse only multiple fit for testing purpose." << endl << endl;
     return 0;
   }
 
@@ -39,7 +41,7 @@ int main( int argc, char* argv[] ){
   }
 
   if (last_tag-first_tag+1 > 20) {
-    cout << "Error! Samples cannot more than 20!" << endl;
+    cout << "Error! Samples for multiple fit cannot more than 20!" << endl;
     return 0;
   }
 
@@ -106,5 +108,3 @@ int main( int argc, char* argv[] ){
   return 0;
 
 }
-
-

@@ -13,7 +13,7 @@ DecayAmp::DecayAmp( const vector< string >& args ) :
 UserAmplitude< DecayAmp >(args)
 {
 
-  std::cout<<"Test: "<<args.size()<< endl;
+  // std::cout<<"Test: "<<args.size()<< endl;
 
   assert( args.size() == 10 );
 

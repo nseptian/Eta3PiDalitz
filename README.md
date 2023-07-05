@@ -7,7 +7,7 @@ Based on AmpTools: https://github.com/mashephe/AmpTools
 - `batch_run/` - Scripts for running a batch job using HTCondor
 - `DalitzAmp/` - Decay amplitude model for AmpTools
 - `DalitzDataIO` - Data handling for AmpTools
-- `DalitzExe/` - Programs
+- `DalitzExe/` - Programs.
 - `DalitzPlot/` - Generating Dalitz plots from the Decay amplitude model and data
 - `macros` - ROOT and bash macros for event selection, plotting, running the fits, etc.
 - `run/` - Run directory.
@@ -22,4 +22,10 @@ Based on AmpTools: https://github.com/mashephe/AmpTools
 2. run the macro using `root -l -b -q Eta3PiReconstruction.C(<options>)` to generate flat root tree with the reconstructed events for AmpTools.
 3. Write a config file for AmpTools, see the example in `run/cfg/*template.cfg`.
 4. Run the fit using `DalitzExe/fitAmplitudes.exe <config file>`, the fit results (a .fit file) will be saved in the working directory.
-5. It is encourage for the user to run into AmpTools fit tutorial before doing the fit using this code. See https://github.com/mashephe/AmpTools
+5. It is encourage for the user to run into AmpTools fit tutorial before doing the fit using this code.
+
+## Data format
+The data input format for Eta3PiReconstruction.C can be seen at printTree.txt. The data format for AmpTools can be seen at DalitzDataIO/README.md.
+
+## Notes
+- The code is still under development, please contact the author for any questions.

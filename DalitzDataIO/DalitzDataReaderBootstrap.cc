@@ -73,10 +73,10 @@ m_eventCounter( 0 ){
 }
 
 DalitzDataReaderBootstrap::~DalitzDataReaderBootstrap(){
-  cout << "DalitzDataReaderBootstrap destructor begin" << endl;
+  // cout << "DalitzDataReaderBootstrap destructor begin" << endl;
   if (m_inFile!=NULL) m_inFile->Close();
   if (m_randGenerator) delete m_randGenerator;
-  cout << "DalitzDataReaderBootstrap destructor end" << endl;
+  // cout << "DalitzDataReaderBootstrap destructor end" << endl;
 }
 
 

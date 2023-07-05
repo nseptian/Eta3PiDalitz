@@ -56,11 +56,11 @@ int main( int argc, char* argv[] ){
   AmpToolsInterface::registerAmplitude(DecayAmpRes());
   AmpToolsInterface::registerDataReader(DalitzDataReader());
 
-  AmpToolsInterface ATI(cfgInfo);
+  AmpToolsInterface* ATI = new AmpToolsInterface(cfgInfo);
 
-  cout << "LIKELIHOOD BEFORE MINIMIZATION:  " << ATI.likelihood() << endl;
+  cout << "LIKELIHOOD BEFORE MINIMIZATION:  " << ATI->likelihood() << endl;
 
-  MinuitMinimizationManager* fitManager = ATI.minuitMinimizationManager();
+  MinuitMinimizationManager* fitManager = ATI->minuitMinimizationManager();
   fitManager->setPrecision(1E-13);
   fitManager->setStrategy(1);
 
@@ -70,9 +70,9 @@ int main( int argc, char* argv[] ){
     cout << "ERROR: fit failed..." << endl;
   }
 
-  cout << "LIKELIHOOD AFTER MINIMIZATION:  " << ATI.likelihood() << endl;
+  cout << "LIKELIHOOD AFTER MINIMIZATION:  " << ATI->likelihood() << endl;
 
-  ATI.finalizeFit();
+  ATI->finalizeFit();
 
   return 0;
 

@@ -56,11 +56,12 @@ int main( int argc, char* argv[] ){
   AmpToolsInterface::registerAmplitude(DecayAmp());
   AmpToolsInterface::registerDataReader(DalitzDataReader());
 
-  AmpToolsInterface ATI(cfgInfo);
+  // Construct AmpToolsInterface dynamically to temporary fix the segfault problem when fitting with gaussian errors, this fix introduces a memory leak problem
+  AmpToolsInterface* ATI = new AmpToolsInterface(cfgInfo);
 
-  cout << "LIKELIHOOD BEFORE MINIMIZATION:  " << ATI.likelihood() << endl;
+  cout << "LIKELIHOOD BEFORE MINIMIZATION:  " << ATI->likelihood() << endl;
 
-  MinuitMinimizationManager* fitManager = ATI.minuitMinimizationManager();
+  MinuitMinimizationManager* fitManager = ATI->minuitMinimizationManager();
   fitManager->setPrecision(1E-13);
   fitManager->setStrategy(1);
 
@@ -70,9 +71,9 @@ int main( int argc, char* argv[] ){
     cout << "ERROR: fit failed..." << endl;
   }
 
-  cout << "LIKELIHOOD AFTER MINIMIZATION:  " << ATI.likelihood() << endl;
+  cout << "LIKELIHOOD AFTER MINIMIZATION:  " << ATI->likelihood() << endl;
 
-  ATI.finalizeFit();
+  ATI->finalizeFit();
 
   return 0;
 
