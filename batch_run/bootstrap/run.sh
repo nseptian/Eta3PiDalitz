@@ -3,6 +3,7 @@
 echo ===files before we start===
 ls -lh
 
+# source environment
 source /d/home/septian/.bashrc
 source /d/home/septian/Eta3PiDalitz/set_ana_env.sh
 # echo ===environment===
@@ -13,4 +14,3 @@ echo ===run the fit!===
 
 echo ===files when we finish===
 ls -lh
-

@@ -1,7 +1,12 @@
+// Description: Eta -> pi+ pi- pi0 reconstruction macro
+// Author: Nizar Septian, Daniel Lersch, Sean Dobbs
+
+// Standard includes
 #include <iostream>
 #include <vector>
 #include <string>
 
+// ROOT includes
 #include "TChain.h"
 #include "TFile.h"
 #include "RooFit.h"
@@ -22,16 +27,16 @@ Double_t kfit_cut = 0.01;
 Bool_t enableKfitCut = kTRUE;
 
 //user config for pi_0 invariant mass range cut
-const Bool_t enablePi0MassCut = kFALSE;
+const Bool_t enablePi0MassCut = kTRUE;
 const Double_t Pi0MassRange[2] = {0.11,0.165}; //GeV
 
 //user config for theta photons cut
-const Bool_t enablePhotonsThetaCut = kFALSE;
+const Bool_t enablePhotonsThetaCut = kTRUE;
 
 //user config for energy beam cut
 //used if enablePhotonBeamEnergyCut = kTRUE
-const Double_t PhotonBeamEnergyBin[6] = {0.0,7.0,8.0,9.0,10.0,99.0};
-const Double_t kfit_cut_Ebeam[5] = {0.10,0.10,0.10,0.10,0.10};
+const Double_t PhotonBeamEnergyBin[6] = {6.5,7.0,8.0,9.0,10.0,99.0};
+const Double_t kfit_cut_Ebeam[5] = {0.01,0.01,0.01,0.01,0.01};
 
 //user config for sideband subtraction
 const Bool_t enableSidebandSubs = kTRUE;
@@ -54,7 +59,7 @@ const Bool_t enableResolutionAnalysis = kFALSE;
 
 //user config for Mandelstam t cut
 const Bool_t enableMandelstamTCut = kTRUE;
-const Double_t MandelstamTCutRange[2] = {0.3,0.4};
+const Double_t MandelstamTCutRange[2] = {0.1,0.6};
 
 /*
 const Double_t signalRangeMC[2] = {0.547123-(2*0.0105783),0.547123+(2*0.0105783)}; //2018S_data_sbs_10092022
@@ -348,23 +353,25 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       dataChain->SetBranchAddress("g1_p4_true",&g1_p4_true); //4-vector of photon1 (gamma 1)
       dataChain->SetBranchAddress("g2_p4_true",&g2_p4_true); //4-vector of photon2 (gamma 2)
       
-      //check if the output root file from data for MC and open 
-      TFile *fOutDataForMC = TFile::Open(outNameDataForMC,"READ");
-      cout << "Opening file " << outNameDataForMC << " for MC..." << endl;
-      if (!fOutDataForMC || fOutDataForMC->IsZombie()) {
-        std::cerr << "Error opening file " << outNameDataForMC << ", please generate the data tree before using MC option." << endl;
-        exit(-1);
+      if (enableSidebandSubs) {
+        //check if the output root file from data for MC and open 
+        TFile *fOutDataForMC = TFile::Open(outNameDataForMC,"READ");
+        cout << "Opening file " << outNameDataForMC << " for MC..." << endl;
+        if (!fOutDataForMC || fOutDataForMC->IsZombie()) {
+          std::cerr << "Error opening file " << outNameDataForMC << ", please generate the data tree before using MC option." << endl;
+          exit(-1);
+        }
+        cout << "File " << outNameDataForMC << " opened successfully." << endl;
+  
+        //get fitInformation std vector object from root file
+        vector<double> *vFitInfoFromDataForMC = (vector<double>*)fOutDataForMC->Get("fitInformation");
+        weightSidebandMC = vFitInfoFromDataForMC->at(5);
+        cout << "weightSidebandMC = " << weightSidebandMC << endl;
+        double meanSgnValForMC = vFitInfoFromDataForMC->at(0);
+        double sigmaSgnValForMC = vFitInfoFromDataForMC->at(1);
+        signalRangeMC[0] = meanSgnValForMC - 2*sigmaSgnValForMC;
+        signalRangeMC[1] = meanSgnValForMC + 2*sigmaSgnValForMC;
       }
-      cout << "File " << outNameDataForMC << " opened successfully." << endl;
-
-      //get fitInformation std vector object from root file
-      vector<double> *vFitInfoFromDataForMC = (vector<double>*)fOutDataForMC->Get("fitInformation");
-      weightSidebandMC = vFitInfoFromDataForMC->at(5);
-      cout << "weightSidebandMC = " << weightSidebandMC << endl;
-      double meanSgnValForMC = vFitInfoFromDataForMC->at(0);
-      double sigmaSgnValForMC = vFitInfoFromDataForMC->at(1);
-      signalRangeMC[0] = meanSgnValForMC - 2*sigmaSgnValForMC;
-      signalRangeMC[1] = meanSgnValForMC + 2*sigmaSgnValForMC;
   }
   else{
       is_truecombo = true;
@@ -445,10 +452,11 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
 
     //generate invariant mass histogram and tree without sideband subtraction
     hpippimg1g2mass = new TH1F("h_pippimg1g2mass","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
-    TH1F *hpippimg1g2massSignalOnly = new TH1F("h_pippimg1g2massSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
+    if (enableSidebandSubs) TH1F *hpippimg1g2massSignalOnly = new TH1F("h_pippimg1g2massSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
     TH1F *hg1g2mass = new TH1F("h_g1g2mass","#gamma_1 #gamma_2 invariant mass spectrum",101,0,0.2);
     TH2F *h2DalitzPlotEta3Pi = new TH2F("h2_DalitzPlotEta3Pi","",101,-1.0,1.0,101,-1.0,1.0);
-    TH1F *hmandelstam_t = new TH1F("h_mandelstam_t","Mandelstam t",101,0.,2.);
+    TH1F *hmandelstam_t = new TH1F("h_mandelstam_t","Mandelstam t",101,MandelstamTCutRange[0],MandelstamTCutRange[1]);
+    TH1F *h_BeamEnergy = new TH1F("h_BeamEnergy","Photon Beam Energy",101,0.0,12.0);
     TH1F *hkFitProb;
     TH2F *h2DalitzPlotEta3Pi_kin;
     TH2F *h2DalitzPlotEta3Pi_thrown;
@@ -633,8 +641,11 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
           hg1g2mass->Fill(m_g1g2,weight);
           hkFitProb->Fill(kfit_prob,weight);
-          if (Pi0MassCut && kinematicCut) hmandelstam_t->Fill(-1.0*mandelstam_t,weight);
-          // h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
+          if (Pi0MassCut && kinematicCut) {
+            hmandelstam_t->Fill(-1.0*mandelstam_t,weight);
+            h_BeamEnergy->Fill(EnBeam,weight);
+            h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
+          }
           if (!enableSidebandSubs) out_tree->Fill();
           if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut) {            
             if (((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])) || ((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1]))){
@@ -728,17 +739,17 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     
     const Double_t eta_mass = 0.547862;
     RooRealVar meanSgn1("meanSgn1","meanSgn1",eta_mass,eta_mass-0.002,eta_mass+0.002);
-    RooRealVar sigmaSgn1("sigmaSgn1","sigmaSgn1",0.012,0.005,0.015);
+    RooRealVar sigmaSgn1("sigmaSgn1","sigmaSgn1",0.002,0.001,0.02);
     RooGaussian gauss1("gauss1","gauss1",x,meanSgn1,sigmaSgn1);
     RooRealVar meanSgn2("meanSgn2","meanSgn2",eta_mass,eta_mass-0.002,eta_mass+0.002);
-    RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.05,0.005,0.015);
+    RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.002,0.001,0.02);
     RooGaussian gauss2("gauss2","gauss2",x,meanSgn2,sigmaSgn2);
     RooRealVar cGauss2("cGauss2","cGauss2",0.3,0.0,0.5);
-    RooRealVar a("a","a",0.5,0.,1.0);
-    RooRealVar b("b","b",0.0,0.,0.0);
-    RooRealVar c("c","c",0.0,0.,0.0);
-    RooRealVar d("d","d",0.0,0.,0.0);
-    RooRealVar e("e","e",0.,0.,0.0);
+    RooRealVar a("a","a",1.5,0.1,3.0);
+    RooRealVar b("b","b",1.0,0.2,1.5);
+    RooRealVar c("c","c",0.3,0.1,1.0);
+    RooRealVar d("d","d",0.2,0.01,1.0);
+    RooRealVar e("e","e",0.1,0.001,1.0);
     // RooPolynomial polyBkg("polyBkg","polyomial background",x,RooArgList(a));
     RooChebychev chebyBkg("chebyBkg","chebychev polyomial background",x,RooArgList(a,b,c,d,e));
     // RooRealVar meanBkg1("meanBkg1","meanBkg1",mass_bkg1,0.07,0.09);

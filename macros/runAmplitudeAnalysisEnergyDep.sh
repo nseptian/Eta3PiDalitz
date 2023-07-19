@@ -5,7 +5,7 @@ CFGFOLDER=$RUNFOLDER/cfg
 FITFOLDER=$RUNFOLDER/fitEnergyDep
 RESULTSFOLDER=$RUNFOLDER/resultsEnergyDep
 
-tag=02202023_t_0607
+tag=t0003
 
 echo 'Cut tag is -> '$tag
 cd $RUNFOLDER
