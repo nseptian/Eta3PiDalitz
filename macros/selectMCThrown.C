@@ -1,4 +1,4 @@
-const Double_t PhotonBeamEnergyBin[6] = {0.65,7.0,8.0,9.0,10.0,99.0};
+const Double_t PhotonBeamEnergyBin[6] = {6.5,7.0,8.0,9.0,10.0,99.0};
 const Double_t MandelstamtTRange[2] = {0.1,0.6};
 TString fileInputName = "/d/home/septian/Eta3PiDalitz/run/root4Amptools/Eta3Pi_Thrown_2017_genEtaRegge_flat.root";
 TString fileOutputBaseName = "mc_thrown_2017_t0106_";
