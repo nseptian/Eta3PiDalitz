@@ -55,8 +55,9 @@ void DSelector_Eta3Pi_Thrown_genEtaRegge::Init(TTree *locTree)
 	dFlatTreeInterface->Create_Branch_Fundamental<Double_t>("t");
 	dFlatTreeInterface->Create_Branch_Fundamental<Double_t>("EnBeam");
 
-	dHist_PiPlusPiMinusPi0Mass = new TH1F("PiPlusPiMinusPi0Mass", ";M_{#pi^{+}#pi^{-}#pi^{0}} [GeV];", 100, 0.3, 1.3);
+	dHist_PiPlusPiMinusPi0Mass = new TH1F("PiPlusPiMinusPi0InvMass", ";M_{#pi^{+}#pi^{-}#pi^{0}} [GeV];", 100, 0.3, 1.3);
 	dHist_MandelstamT = new TH1F("MandelstamT", ";t [GeV^{2}];", 100, -20.0, 0.0);
+	dHist_Dalitz = new TH2F("h2_DalitzPlotEta3Pi_thrown", ";X;Y;", 101, -1.0, 1.0, 101, -1.0, 1.0);
 
 }
 
@@ -106,7 +107,10 @@ Bool_t DSelector_Eta3Pi_Thrown_genEtaRegge::Process(Long64_t locEntry)
 	TLorentzVector locThrownP4PiPlus;
 	TLorentzVector locThrownP4PiMinus;
 	TLorentzVector locThrownP4Pi0;
+	TLorentzVector locThrownP4Gamma1;
+	TLorentzVector locThrownP4Gamma2;
 	
+	Double_t GammaCounter = 0;
 	for(UInt_t loc_i = 0; loc_i < Get_NumThrown(); ++loc_i)
 	{
 		//Set branch array indices corresponding to this particle
@@ -132,12 +136,25 @@ Bool_t DSelector_Eta3Pi_Thrown_genEtaRegge::Process(Long64_t locEntry)
 			locThrownP4PiMinus = locThrownP4;
 		}
 		//pi0
-		if (locPID == 7) {
-			dFlatTreeInterface->Fill_Fundamental<Double_t>("EnP3", locThrownP4.E());
-			dFlatTreeInterface->Fill_Fundamental<Double_t>("PxP3", locThrownP4.Px());
-			dFlatTreeInterface->Fill_Fundamental<Double_t>("PyP3", locThrownP4.Py());
-			dFlatTreeInterface->Fill_Fundamental<Double_t>("PzP3", locThrownP4.Pz());
-			locThrownP4Pi0 = locThrownP4;
+		// if (locPID == 7) {
+		// 	dFlatTreeInterface->Fill_Fundamental<Double_t>("EnP3", locThrownP4.E());
+		// 	dFlatTreeInterface->Fill_Fundamental<Double_t>("PxP3", locThrownP4.Px());
+		// 	dFlatTreeInterface->Fill_Fundamental<Double_t>("PyP3", locThrownP4.Py());
+		// 	dFlatTreeInterface->Fill_Fundamental<Double_t>("PzP3", locThrownP4.Pz());
+		// 	locThrownP4Pi0 = locThrownP4;
+		// }
+		// pi0 -> 2gamma (new MC)
+		if (locPID==1) {
+			if (GammaCounter==0) locThrownP4Gamma1 = locThrownP4;
+			else {
+				locThrownP4Gamma2 = locThrownP4;
+				locThrownP4Pi0 = locThrownP4Gamma1 + locThrownP4Gamma2;
+				dFlatTreeInterface->Fill_Fundamental<Double_t>("EnP3", locThrownP4Pi0.E());
+				dFlatTreeInterface->Fill_Fundamental<Double_t>("PxP3", locThrownP4Pi0.Px());
+				dFlatTreeInterface->Fill_Fundamental<Double_t>("PyP3", locThrownP4Pi0.Py());
+				dFlatTreeInterface->Fill_Fundamental<Double_t>("PzP3", locThrownP4Pi0.Pz());
+			}
+			GammaCounter++;
 		}
 		//recoil proton
 		if (locPID == 14) {
@@ -156,6 +173,25 @@ Bool_t DSelector_Eta3Pi_Thrown_genEtaRegge::Process(Long64_t locEntry)
 	TLorentzVector locPiPlusPiMinusPi0P4 = locThrownP4PiPlus + locThrownP4PiMinus + locThrownP4Pi0;
 	Double_t locPiPlusPiMinusPi0Mass = locPiPlusPiMinusPi0P4.M();
 	dHist_PiPlusPiMinusPi0Mass->Fill(locPiPlusPiMinusPi0Mass);
+
+	TVector3 BoostVector = locPiPlusPiMinusPi0P4.BoostVector();
+	
+	TLorentzVector boosted_PiPlus = locThrownP4PiPlus;
+	boosted_PiPlus.Boost(-BoostVector);
+	TLorentzVector boosted_PiMinus = locThrownP4PiMinus;
+	boosted_PiMinus.Boost(-BoostVector);
+	TLorentzVector boosted_Pi0 = locThrownP4Pi0;
+	boosted_Pi0.Boost(-BoostVector);
+
+	Double_t TPlus = boosted_PiPlus.E() - boosted_PiPlus.M();
+	Double_t TMinus = boosted_PiMinus.E() - boosted_PiMinus.M();
+	Double_t T0 = boosted_Pi0.E() - boosted_Pi0.M();
+	Double_t sumT = TPlus + TMinus + T0;
+	Double_t X = (TPlus - TMinus) / sumT;
+	Double_t Y = 3*T0/sumT - 1.0;
+
+	dHist_Dalitz->Fill(X, Y);
+
 
 	//Fill flat tree
 	dFlatTreeInterface->Fill_Fundamental<Double_t>("t", locMandelstamT);
