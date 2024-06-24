@@ -187,8 +187,8 @@ Bool_t DSelector_Eta3Pi_Thrown_genEtaRegge::Process(Long64_t locEntry)
 	Double_t TMinus = boosted_PiMinus.E() - boosted_PiMinus.M();
 	Double_t T0 = boosted_Pi0.E() - boosted_Pi0.M();
 	Double_t sumT = TPlus + TMinus + T0;
-	Double_t X = (TPlus - TMinus) / sumT;
-	Double_t Y = 3*T0/sumT - 1.0;
+	Double_t X = TMath::Sqrt(3.0)*(TPlus - TMinus) / sumT;
+	Double_t Y = 3.0*T0/sumT - 1.0;
 
 	dHist_Dalitz->Fill(X, Y);
 

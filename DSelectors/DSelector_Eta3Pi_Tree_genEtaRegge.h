@@ -56,7 +56,7 @@ class DSelector_Eta3Pi_Tree_genEtaRegge : public DSelector
 
 		//Step 2
 		DParticleComboStep* dStep2Wrapper;
-		DKinematicData* dDecayingPi0Wrapper;
+		// DKinematicData* dDecayingPi0Wrapper;
 		DNeutralParticleHypothesis* dPhoton1Wrapper;
 		DNeutralParticleHypothesis* dPhoton2Wrapper;
 
@@ -123,7 +123,7 @@ void DSelector_Eta3Pi_Tree_genEtaRegge::Get_ComboWrappers(void)
 
 	//Step 2
 	dStep2Wrapper = dComboWrapper->Get_ParticleComboStep(2);
-	dDecayingPi0Wrapper = dStep2Wrapper->Get_InitialParticle();
+	// dDecayingPi0Wrapper = dStep2Wrapper->Get_InitialParticle();
 	dPhoton1Wrapper = static_cast<DNeutralParticleHypothesis*>(dStep2Wrapper->Get_FinalParticle(0));
 	dPhoton2Wrapper = static_cast<DNeutralParticleHypothesis*>(dStep2Wrapper->Get_FinalParticle(1));
 }

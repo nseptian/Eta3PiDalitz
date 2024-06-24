@@ -28,6 +28,7 @@ class DSelector_Eta3Pi_Thrown_genEtaRegge : public DSelector
 		bool dIsPARAFlag; //else is PERP or AMO
 		TH1F* dHist_PiPlusPiMinusPi0Mass;
 		TH1F* dHist_MandelstamT;
+		TH2F* dHist_Dalitz;
 
 	ClassDef(DSelector_Eta3Pi_Thrown_genEtaRegge, 0);
 };

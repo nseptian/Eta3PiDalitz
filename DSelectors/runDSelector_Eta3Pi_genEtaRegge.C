@@ -22,14 +22,24 @@ void runDSelector_Eta3Pi_genEtaRegge(){
     R__LOAD_LIBRARY(libDSelector);
     gROOT->ProcessLine(".x $ROOT_ANALYSIS_HOME/scripts/Load_DSelector.C");
 
-    TString dirName = "/d/grid17/septian/GlueX_MC/GenEtaRegge_Eta3Pi_2017-01_nseptian_100k_3777/trees/tree_eta__eta_pi0pippim__B4_M14_M17_genEtaRegge/";
-    TString fileName = "tree_eta__eta_pi0pippim__B4_M14_M17_genEtaRegge*.root";
+    // TString dirName = "/d/grid17/septian/GlueX_MC/nseptian_Genr8_Eta3Pi_2017-01_10M_3839/root/trees/";
+    // TString fileName = "tree_eta__eta_pi0pippim__B4_M17_M7_genr8*.root";
+    // TString dSelectorName = "DSelector_Eta3Pi_Tree_genEtaRegge.C";
+    // TString treeName = "eta__eta_pi0pippim__B4_M17_M7_Tree";
+
+    TString dirName = "/d/grid17/septian/GlueX_MC/nseptian_GenEtaRegge_Eta3Pi_2017-01_10M_3826/root/trees/";
+    TString fileName = "tree_eta__eta_pi0pippim__B4_M17_M7_genEtaRegge*.root";
     TString dSelectorName = "DSelector_Eta3Pi_Tree_genEtaRegge.C";
-    TString treeName = "eta__eta_pi0pippim__B4_M14_M17_Tree";
+    TString treeName = "eta__eta_pi0pippim__B4_M17_M7_Tree";
 
     runDSelector(dirName, fileName, dSelectorName, treeName, useProof, numThread);
 
-    dirName = "/d/grid17/septian/GlueX_MC/GenEtaRegge_Eta3Pi_2017-01_nseptian_100k_3777/thrown/";
+    // dirName = "/d/grid17/septian/GlueX_MC/nseptian_Genr8_Eta3Pi_2017-01_10M_3839/root/thrown/";
+    // fileName = "tree_thrown_genr8*.root";
+    // dSelectorName = "DSelector_Eta3Pi_Thrown_genEtaRegge.C";
+    // treeName = "Thrown_Tree";
+
+    dirName = "/d/grid17/septian/GlueX_MC/nseptian_GenEtaRegge_Eta3Pi_2017-01_10M_3826/root/thrown/";
     fileName = "tree_thrown_genEtaRegge*.root";
     dSelectorName = "DSelector_Eta3Pi_Thrown_genEtaRegge.C";
     treeName = "Thrown_Tree";

@@ -52,7 +52,10 @@ void DSelector_Eta3Pi_Tree_genEtaRegge::Init(TTree *locTree)
 	//dAnalysisActions.push_back(new DCutAction_EachPIDFOM(dComboWrapper, 0.1));
 
 	//MASSES
-	//dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, false, Lambda, 1000, 1.0, 1.2, "Lambda"));
+	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, PiPlus, 100, 0.1, 0.15, "PiPlus"));
+	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, PiMinus, 100, 0.1, 0.15, "PiMinus"));
+	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, Pi0, 100, 0.1, 0.15, "Pi0"));
+	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, 1, MyEta, 100, 0.0, 1.0, "Eta"));
 	//dAnalysisActions.push_back(new DHistogramAction_MissingMassSquared(dComboWrapper, false, 1000, -0.1, 0.1));
 
 	//KINFIT RESULTS
@@ -66,7 +69,8 @@ void DSelector_Eta3Pi_Tree_genEtaRegge::Init(TTree *locTree)
 
 	//BEAM ENERGY
 	dAnalysisActions.push_back(new DHistogramAction_BeamEnergy(dComboWrapper, false));
-	//dAnalysisActions.push_back(new DCutAction_BeamEnergy(dComboWrapper, false, 8.2, 8.8));  // Coherent peak for runs in the range 30000-59999
+	// dAnalysisActions.push_back(new DCutAction_BeamEnergy(dComboWrapper, false, 8.2, 8.8));  // Coherent peak for runs in the range 30000-59999
+	dAnalysisActions.push_back(new DCutAction_BeamEnergy(dComboWrapper, true, 6.5, 11.6));  // ccdb beam flux 2017
 
 	//KINEMATICS
 	dAnalysisActions.push_back(new DHistogramAction_ParticleComboKinematics(dComboWrapper, false));
@@ -242,9 +246,9 @@ Bool_t DSelector_Eta3Pi_Tree_genEtaRegge::Process(Long64_t locEntry)
 		//In general: Could have multiple particles with the same PID: Use a set of Int_t's
 		//In general: Multiple PIDs, so multiple sets: Contain within a map
 		//Multiple combos: Contain maps within a set (easier, faster to search)
-	// set<map<Particle_t, set<Int_t> > > locUsedSoFar_MissingMass;
-	set<map<Particle_t, set<Int_t> > > locUsedSoFar_Topology;
-	bool usedTopology = false;
+	set<map<Particle_t, set<Int_t> > > locUsedSoFar_MissingMass;
+	// set<map<Particle_t, set<Int_t> > > locUsedSoFar_Topology;
+	// bool usedTopology = false;
 
 	//INSERT USER ANALYSIS UNIQUENESS TRACKING HERE
 
@@ -327,7 +331,7 @@ Bool_t DSelector_Eta3Pi_Tree_genEtaRegge::Process(Long64_t locEntry)
 		TLorentzVector locPiPlusP4 = dPiPlusWrapper->Get_P4();
 		TLorentzVector locPiMinusP4 = dPiMinusWrapper->Get_P4();
 		//Step 2
-		TLorentzVector locDecayingPi0P4 = dDecayingPi0Wrapper->Get_P4();
+		// TLorentzVector locDecayingPi0P4 = dDecayingPi0Wrapper->Get_P4();
 		TLorentzVector locPhoton1P4 = dPhoton1Wrapper->Get_P4();
 		TLorentzVector locPhoton2P4 = dPhoton2Wrapper->Get_P4();
 
@@ -504,36 +508,39 @@ Bool_t DSelector_Eta3Pi_Tree_genEtaRegge::Process(Long64_t locEntry)
 
 		//Uniqueness tracking: Build the map of particles used for the missing mass
 			//For beam: Don't want to group with final-state photons. Instead use "Unknown" PID (not ideal, but it's easy).
-		// map<Particle_t, set<Int_t> > locUsedThisCombo_MissingMass;
-		// locUsedThisCombo_MissingMass[Unknown].insert(locBeamID); //beam
-		// locUsedThisCombo_MissingMass[PiPlus].insert(locPiPlusTrackID);
-		// locUsedThisCombo_MissingMass[PiMinus].insert(locPiMinusTrackID);
-		// locUsedThisCombo_MissingMass[Gamma].insert(locPhoton1NeutralID);
-		// locUsedThisCombo_MissingMass[Gamma].insert(locPhoton2NeutralID);
+		map<Particle_t, set<Int_t> > locUsedThisCombo_MissingMass;
+		locUsedThisCombo_MissingMass[Unknown].insert(locBeamID); //beam
+		locUsedThisCombo_MissingMass[Proton].insert(locProtonTrackID);
+		locUsedThisCombo_MissingMass[PiPlus].insert(locPiPlusTrackID);
+		locUsedThisCombo_MissingMass[PiMinus].insert(locPiMinusTrackID);
+		locUsedThisCombo_MissingMass[Gamma].insert(locPhoton1NeutralID);
+		locUsedThisCombo_MissingMass[Gamma].insert(locPhoton2NeutralID);
 
 		//compare to what's been used so far
-		// if(locUsedSoFar_MissingMass.find(locUsedThisCombo_MissingMass) == locUsedSoFar_MissingMass.end())
-		// {
-		// 	//unique missing mass combo: histogram it, and register this combo of particles
-		// 	dHist_MissingMassSquared->Fill(locMissingMassSquared); // Fills in-time and out-of-time beam photon combos
-		// 	//dHist_MissingMassSquared->Fill(locMissingMassSquared,locHistAccidWeightFactor); // Alternate version with accidental subtraction
-
-		// 	locUsedSoFar_MissingMass.insert(locUsedThisCombo_MissingMass);
-		// }
-
-		map<Particle_t, set<Int_t> > locUsedThisCombo_Topology;
-		locUsedThisCombo_Topology[Unknown].insert(locBeamID); //beam
-		locUsedThisCombo_Topology[Proton].insert(locProtonTrackID);
-		locUsedThisCombo_Topology[PiPlus].insert(locPiPlusTrackID);
-		locUsedThisCombo_Topology[PiMinus].insert(locPiMinusTrackID);
-		locUsedThisCombo_Topology[Gamma].insert(locPhoton1NeutralID);
-		locUsedThisCombo_Topology[Gamma].insert(locPhoton2NeutralID);
-
-		if(locUsedSoFar_Topology.find(locUsedThisCombo_Topology) == locUsedSoFar_Topology.end())
+		if(locUsedSoFar_MissingMass.find(locUsedThisCombo_MissingMass) == locUsedSoFar_MissingMass.end())
 		{
-			locUsedSoFar_Topology.insert(locUsedThisCombo_Topology);
-			usedTopology = true;
-		}else usedTopology = false;
+			//unique missing mass combo: histogram it, and register this combo of particles
+			dHist_MissingMassSquared->Fill(locMissingMassSquared); // Fills in-time and out-of-time beam photon combos
+			//dHist_MissingMassSquared->Fill(locMissingMassSquared,locHistAccidWeightFactor); // Alternate version with accidental subtraction
+
+			locUsedSoFar_MissingMass.insert(locUsedThisCombo_MissingMass);
+		}
+
+		// map<Particle_t, set<Int_t> > locUsedThisCombo_Topology;
+		// locUsedThisCombo_Topology[Unknown].insert(locBeamID); //beam
+		// locUsedThisCombo_Topology[Proton].insert(locProtonTrackID);
+		// locUsedThisCombo_Topology[PiPlus].insert(locPiPlusTrackID);
+		// locUsedThisCombo_Topology[PiMinus].insert(locPiMinusTrackID);
+		// locUsedThisCombo_Topology[Gamma].insert(locPhoton1NeutralID);
+		// locUsedThisCombo_Topology[Gamma].insert(locPhoton2NeutralID);
+
+		// if(locUsedSoFar_Topology.find(locUsedThisCombo_Topology) == locUsedSoFar_Topology.end())
+		// {
+		// 	locUsedSoFar_Topology.insert(locUsedThisCombo_Topology);
+		// 	usedTopology = true;
+		// }else usedTopology = false;
+
+		if ((missZ<-320) || (missZ>-200)) continue;
 
 		if(kfit_prob > 0.0){
 				 dFlatTreeInterface->Fill_Fundamental<Double_t>("kfit_prob", kfit_prob);
