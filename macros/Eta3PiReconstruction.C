@@ -22,24 +22,32 @@
 using namespace RooFit;
 using namespace std;
 
+TString dataDirMC = "/d/grid17/septian/Eta3PiDalitz/DSelectors";
+TString rootInFileMCRec[3] = {"Eta3Pi_Tree_2017_genEtaRegge_flat.root","Eta3Pi_Tree_2018S_genEtaRegge_flat.root","Eta3Pi_Tree_2018F_genEtaRegge_flat.root"};
+TString rootInFileMCThrown[3] = {"Eta3Pi_Thrown_2017_genEtaRegge_flat.root","Eta3Pi_Thrown_2018S_genEtaRegge_flat.root","Eta3Pi_Thrown_2018F_genEtaRegge_flat.root"};
+TString outDir = "/d/home/septian/Eta3PiDalitzPlots/";
+
 //kfit_cut value represents a cut on the kinematic fit probability!
-Double_t kfit_cut = 0.01;
+Double_t kfit_cut = 0.001;
 Bool_t enableKfitCut = kTRUE;
 
 //user config for pi_0 invariant mass range cut
 const Bool_t enablePi0MassCut = kTRUE;
-const Double_t Pi0MassRange[2] = {0.11,0.165}; //GeV
+const Double_t Pi0MassRange[2] = {0.115,0.155}; //GeV
 
 //user config for theta photons cut
 const Bool_t enablePhotonsThetaCut = kTRUE;
 
 //user config for energy beam cut
 //used if enablePhotonBeamEnergyCut = kTRUE
-const Double_t PhotonBeamEnergyBin[6] = {6.5,7.0,8.0,9.0,10.0,99.0};
-const Double_t kfit_cut_Ebeam[5] = {0.01,0.01,0.01,0.01,0.01};
+// const Double_t PhotonBeamEnergyBin[6] = {6.5,7.5,8.0,9.0,10.0,11.6};
+const Double_t PhotonBeamEnergyBin[2] = {6.5,11.6};
+// const Double_t kfit_cut_Ebeam[5] = {0.001,0.001,0.001,0.001,0.001};
+// analysis note kfit_cut = 0.001
+const Double_t kfit_cut_Ebeam[1] = {0.001}; 
 
 //user config for sideband subtraction
-const Bool_t enableSidebandSubs = kTRUE;
+const Bool_t enableSidebandSub = kTRUE;
 const Bool_t fitOnly = kFALSE;
 const Bool_t signalOnlyTree = kFALSE;
 const Double_t width = 0.025;
@@ -59,7 +67,7 @@ const Bool_t enableResolutionAnalysis = kFALSE;
 
 //user config for Mandelstam t cut
 const Bool_t enableMandelstamTCut = kTRUE;
-const Double_t MandelstamTCutRange[2] = {0.1,0.6};
+const Double_t MandelstamTCutRange[2] = {0.15,0.6};
 
 /*
 const Double_t signalRangeMC[2] = {0.547123-(2*0.0105783),0.547123+(2*0.0105783)}; //2018S_data_sbs_10092022
@@ -71,6 +79,7 @@ const Bool_t enableKinematicCut = kFALSE;
 void setHPipPimG1G2Axis(TH1F* h);
 void setHG1G2Axis(TH1F* h);
 Double_t AcceptanceProb(TGraph *gr, Double_t X, Double_t Y);
+void ProgressBar(Long64_t i, Long64_t n);
 
 void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTag, const Bool_t enablePhotonBeamEnergyCut = kFALSE, const Int_t PhotonBeamEnergyRangeIdx = 0){
   
@@ -126,7 +135,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     cutConfigStr.push_back("Photon beam energy cut is disabled.");
   }
   
-  if (enableSidebandSubs){
+  if (enableSidebandSub){
     cout << "Sideband subtraction is enabled." << endl;
     cout << "Left sideband range: " << leftSidebandRange[0] << " - " << leftSidebandRange[1] << " GeV" << endl;
     cout << "Right sideband range: " << rightSidebandRange[0] << " - " << rightSidebandRange[1] << " GeV" << endl;
@@ -172,7 +181,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   cutConfigBool.push_back(enablePi0MassCut);
   cutConfigBool.push_back(enablePhotonsThetaCut);
   cutConfigBool.push_back(enablePhotonBeamEnergyCut);
-  cutConfigBool.push_back(enableSidebandSubs);
+  cutConfigBool.push_back(enableSidebandSub);
   cutConfigBool.push_back(enableResolutionAnalysis);
   cutConfigBool.push_back(enableKinematicCut);
 
@@ -182,7 +191,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   cutConfigBoolLabel.push_back("enablePi0MassCut");
   cutConfigBoolLabel.push_back("enablePhotonsThetaCut");
   cutConfigBoolLabel.push_back("enablePhotonBeamEnergyCut");
-  cutConfigBoolLabel.push_back("enableSidebandSubs");
+  cutConfigBoolLabel.push_back("enableSidebandSub");
   cutConfigBoolLabel.push_back("enableResolutionAnalysis");
   cutConfigBoolLabel.push_back("enableKinematicCut");
 
@@ -194,7 +203,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     if (data_set == 0){
       //GlueX 2017 datasets
       cout << "Dataset used is GlueX 2017." << endl;
-      if (enableSidebandSubs){
+      if (enableSidebandSub){
         dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2017/PiPiGG_Tree_2017_data_sideband.root");
       }
       else{
@@ -204,7 +213,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     if (data_set == 1){
       //GlueX 2018S datasets
       cout << "Dataset used is GlueX 2018S." << endl;
-      if (enableSidebandSubs){
+      if (enableSidebandSub){
         dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2018S/PiPiGG_Tree_2018S_data_sideband.root");
       }
       else{
@@ -214,7 +223,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     if (data_set == 2){
       //GlueX 2018F datasets
       cout << "Dataset used is GlueX 2018F." << endl;
-      if (enableSidebandSubs){
+      if (enableSidebandSub){
         cout << "GlueX 2018F datasets with sidebands has not been available..." << endl << "Please choose another datasets. Currently available datasets with sideband are 2017 and 2018S." << endl;
         exit(1);
       }
@@ -225,7 +234,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     if (data_set == 3){
       //GlueX-Phase I datasets
       cout << "Dataset used is GlueX Phase-I." << endl;
-      if (enableSidebandSubs){
+      if (enableSidebandSub){
         dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2017/PiPiGG_Tree_2017_data_sideband.root");
         dataChain->Add("/d/grid17/dlersch/AmpTool_Data/data2018S/PiPiGG_Tree_2018S_data_sideband.root");
         //add 2018F datasets if available
@@ -241,10 +250,17 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     if (data_set == 0) {
       //MC 2017
       cout << "Dataset used is GlueX 2017 MC." << endl;
-      dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2017/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2017_all.root");
-      mcThrown = TFile::Open("root4Amptools/mc_thrown_2017_DP.root","READ");
+      // dataChain->Add("/d/grid16/dlersch/eta3pi_mc_data_2017/geant4/ds_trees/PiPiGG_Tree_runSim_Geant4_MC2017_all.root");
+      dataChain->Add("/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_genEtaRegge_flat.root");
+      // mcThrown = TFile::Open("/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Thrown_2017_genEtaRegge.root","READ");
       outNameDataForMC = "root4Amptools";
-      if (enablePhotonBeamEnergyCut) outNameDataForMC += "EnergyDep";
+      if (enablePhotonBeamEnergyCut) {
+        outNameDataForMC += "EnergyDep";
+        mcThrown = TFile::Open(Form("root4AmptoolsEnergyDep/mc_thrown_2017_%s_%d.root",cutTag.Data(),PhotonBeamEnergyRangeIdx),"READ");
+      }
+      else {
+        mcThrown = TFile::Open("root4Amptools/mc_thrown_2017_DP.root","READ");
+      }
       outNameDataForMC += "/eta_2017_data";
     }
     if (data_set == 1) {
@@ -316,7 +332,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   dataChain->SetBranchAddress("beam_p4_kin",&beam_p4_kin);
   dataChain->SetBranchAddress("p_p4_kin",&p_p4_kin);
 
-  // if (enableSidebandSubs) {
+  // if (enableSidebandSub) {
   //   outName += "_sbs";
   //   outNameDataForMC += "_sbs";
   // }
@@ -353,7 +369,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       dataChain->SetBranchAddress("g1_p4_true",&g1_p4_true); //4-vector of photon1 (gamma 1)
       dataChain->SetBranchAddress("g2_p4_true",&g2_p4_true); //4-vector of photon2 (gamma 2)
       
-      if (enableSidebandSubs) {
+      if (enableSidebandSub) {
         //check if the output root file from data for MC and open 
         TFile *fOutDataForMC = TFile::Open(outNameDataForMC,"READ");
         cout << "Opening file " << outNameDataForMC << " for MC..." << endl;
@@ -391,9 +407,6 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     outfile->WriteObject(&cutConfigBool,"cutConfigBool");
     outfile->WriteObject(&cutConfigBoolLabel,"cutConfigBoolLabel");
   }
-
-  //Declare histogram before the fits here
-  TH1F* hpippimg1g2mass;
 
   //Define output tree
   Double_t EnBeam,PxBeam,PyBeam,PzBeam;
@@ -438,6 +451,44 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   //vector to save fit information
   vector<Double_t> fitInformation;
   vector<string> fitInformationLabel;
+
+  //Declare histograms before the invariant mass fit and sideband subtraction
+  TH1F* hpippimg1g2mass;
+  TH1F *hg1g2mass;
+  TH1F *hmandelstam_t;
+  TH1F *h_BeamEnergy;
+  TH1F *hkFitProb;
+  TH2F *h2DalitzPlotEta3Pi_kin;
+  TH2F *h2DalitzPlotEta3Pi_thrown;
+  TH1F *hXResolution;
+  TH1F *hYResolution;
+  
+  const Int_t XResBin = 40;
+  const Int_t YResBin = 40;
+  const Float_t XBinWidth = 2.0/XResBin;
+  const Float_t YBinWidth = 2.0/YResBin;
+  TH1F *hXRes[XResBin][YResBin],*hYRes[XResBin][YResBin];
+
+  // Declare histograms after the invariant mass fit and sideband subtraction
+  TH1F *hg1g2mass_sbsAll;
+  TH1F *hg1g2mass_sbsSignalOnly;
+  TH1F *hg1g2mass_sbsSidebandOnlyUnweighted;
+  TH1F *hg1g2mass_sbsSidebandOnlyWeighted;
+  TH1F *hmandelstam_t_sbsAll;
+  TH1F *h_BeamEnergy_sbsAll;
+  TH1F *hpippimg1g2mass_sbsAll;
+  TH1F *hpippimg1g2mass_sbsSidebandOnly;
+  TH1F *hpippimg1g2mass_sbsSignalOnly;
+  TH2F *h2DalitzPlotEta3Pi_sbsAll;
+  TH2F *h2DalitzPlotEta3Pi_sbsSignalOnly;
+  TH2F *h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted;
+  TH2F *h2DalitzPlotEta3Pi_tree;
+  // TH2F *h2g1g2massdiffbkgsubs = new TH2F("h2_g2g2MassDiffvsInvMassBkgSubs","Two-photon energy difference vs invariant mass (GeV)",1000,0.,0.2,1000,-0.0000001,0.0000001);	
+  // TH2F *h2anglePi0TwoGammasbkgsubs = new TH2F("h2_anglePi0TwoGammasBkgSubs","Two-photon angle vs invariant mass",100,0.07,0.2,1000,-2*TMath::Pi(),2*TMath::Pi());
+
+  TDirectory *dirHist;
+  TDirectory *dirHistSBS;
+  TDirectory *dirRes;
   
   if (fitOnly) {
     TFile *rootFile = TFile::Open(outName);
@@ -450,28 +501,26 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
   }
   else{
 
-    //generate invariant mass histogram and tree without sideband subtraction
+    dirHist = outfile->mkdir("hist");
+    dirHist->cd();
+
+    //generate invariant mass histograms and tree without sideband subtraction
+    hg1g2mass = new TH1F("h_g1g2mass","#gamma_1 #gamma_2 invariant mass spectrum",101,0,0.2);
     hpippimg1g2mass = new TH1F("h_pippimg1g2mass","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
-    if (enableSidebandSubs) TH1F *hpippimg1g2massSignalOnly = new TH1F("h_pippimg1g2massSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
-    TH1F *hg1g2mass = new TH1F("h_g1g2mass","#gamma_1 #gamma_2 invariant mass spectrum",101,0,0.2);
-    TH2F *h2DalitzPlotEta3Pi = new TH2F("h2_DalitzPlotEta3Pi","",101,-1.0,1.0,101,-1.0,1.0);
-    TH1F *hmandelstam_t = new TH1F("h_mandelstam_t","Mandelstam t",101,MandelstamTCutRange[0],MandelstamTCutRange[1]);
-    TH1F *h_BeamEnergy = new TH1F("h_BeamEnergy","Photon Beam Energy",101,0.0,12.0);
-    TH1F *hkFitProb;
-    TH2F *h2DalitzPlotEta3Pi_kin;
-    TH2F *h2DalitzPlotEta3Pi_thrown;
+    hmandelstam_t = new TH1F("h_mandelstam_t","Mandelstam t",101,MandelstamTCutRange[0],MandelstamTCutRange[1]);
+    h_BeamEnergy = new TH1F("h_BeamEnergy","Photon Beam Energy",101,0.0,12.0);
+    hkFitProb = new TH1F("h_kFitProb","kFitProb",201,0.,1.0);
+    h2DalitzPlotEta3Pi_kin = new TH2F("h2_DalitzPlotEta3Pi_kin","",101,-1.0,1.0,101,-1.0,1.0);
 
-    TH1F *hXResolution;
-    TH1F *hYResolution;
-    const Int_t XResBin = 40;
-    const Int_t YResBin = 40;
-    const Float_t XBinWidth = 2.0/XResBin;
-    const Float_t YBinWidth = 2.0/YResBin;
-    TH1F *hXRes[XResBin][YResBin],*hYRes[XResBin][YResBin];
-    TDirectory *dirRes;
+    
+    // const Double_t pi0MassPDG = 0.1349768;
+    //++++++++++++++++++++++++++++++++++++++
 
-    if (is_mc){      
-      h2DalitzPlotEta3Pi_kin = new TH2F("h2_DalitzPlotEta3Pi_kin","",101,-1.0,1.0,101,-1.0,1.0);
+    outfile->cd();
+    
+    // if (enableSidebandSub) TH1F *hpippimg1g2massSignalOnly = new TH1F("h_pippimg1g2massSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum",101,0.45,0.65);
+
+    if (is_mc){
       h2DalitzPlotEta3Pi_thrown = (TH2F*)mcThrown->Get("h2_DalitzPlotEta3Pi_thrown");
       if (enableResolutionAnalysis){
         hXResolution = new TH1F("h1_XResolution","X dalitz variable resolution",101,-0.5,0.5);
@@ -508,24 +557,40 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
         }
         outfile->cd();
       }
+      if (enableSidebandSub) {
+        dirHistSBS = outfile->mkdir("hist_SidebandSub");
+        dirHistSBS->cd();
+        hg1g2mass_sbsAll = new TH1F("h_g1g2mass_sbsAll","#gamma #gamma invariant mass spectrum",101,0,0.2);
+        hmandelstam_t_sbsAll = new TH1F("h_mandelstam_t_sbsAll","Mandelstam t",101,MandelstamTCutRange[0],MandelstamTCutRange[1]);
+        h_BeamEnergy_sbsAll = new TH1F("h_BeamEnergy_sbsAll","Photon Beam Energy",101,0.0,12.0);
+        hg1g2mass_sbsSignalOnly = new TH1F("h_g1g2mass_sbsSignalOnly","#gamma #gamma invariant mass spectrum",101,0,0.2);
+        hg1g2mass_sbsSidebandOnlyUnweighted = new TH1F("h_g1g2mass_sbsSidebandOnlyUnweighted","#gamma #gamma invariant mass spectrum",101,0,0.2);
+        hg1g2mass_sbsSidebandOnlyWeighted = new TH1F("h_g1g2mass_sbsSidebandOnlyWeighted","#gamma #gamma invariant mass spectrum",101,0,0.2);
+        hpippimg1g2mass_sbsAll = new TH1F("h_pippimg1g2mass_sbsAll","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted",101,0.45,0.65);
+        hpippimg1g2mass_sbsSidebandOnly = new TH1F("h_pippimg1g2mass_sbsSidebandOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (sideband only)",101,0.45,0.65);
+        hpippimg1g2mass_sbsSignalOnly = new TH1F("h_pippimg1g2mass_sbsSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (signal only)",101,0.45,0.65);
+        h2DalitzPlotEta3Pi_sbsAll = new TH2F("h2_DalitzPlotEta3Pi_sbsAll","",101,-1.0,1.0,101,-1.0,1.0);
+        h2DalitzPlotEta3Pi_sbsSignalOnly = new TH2F("h2_DalitzPlotEta3Pi_sbsSignalOnly","",101,-1.0,1.0,101,-1.0,1.0);
+        h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted = new TH2F("h2_DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted","",101,-1.0,1.0,101,-1.0,1.0);
+        h2DalitzPlotEta3Pi_tree = new TH2F("h2_DalitzPlotEta3Pi_tree","",101,-1.0,1.0,101,-1.0,1.0);
+        outfile->cd();
+      }
     }
-    // const Double_t pi0MassPDG = 0.1349768;
-    //++++++++++++++++++++++++++++++++++++++
-
-    hkFitProb = new TH1F("h_kFitProb","kFitProb",201,0.,1.0);
 
     cout << "Selecting events..." << endl;
-    if (!enableSidebandSubs || is_mc) cout << "Output: " << outName << endl;
+    if (!enableSidebandSub || is_mc) cout << "Output: " << outName << endl;
+
 
     //Loop over events
     for(Int_t i=0;i<nEntries;i++){
       dataChain->GetEntry(i);
+      // cout << "Processing event " << i << "..." << is_truecombo << endl;
       
       //Apply cuts:
       //is_truecombo is for MC data (i.e. simulated data) --> Just look at simulated eta->pi+pi-pi0 and nothing else...
-
+      is_truecombo = 1;
       if(is_truecombo && kfit_prob > kfit_cut){
-        if (!enableSidebandSubs || is_mc || enablePhotonBeamEnergyCut || enableMandelstamTCut){
+        if (!enableSidebandSub || is_mc || enablePhotonBeamEnergyCut || enableMandelstamTCut){
           EnP1 = pip_p4_kin->E();
           PxP1 = pip_p4_kin->Px();
           PyP1 = pip_p4_kin->Py();
@@ -609,20 +674,15 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
             XRes = X_c_true - X_c;
             YRes = Y_c_true - Y_c;
           }
-
-          //Selecting events based on Acceptance Probability from global bins
-          if (enableKinematicCut){
-            Double_t accProb = AcceptanceProb(DP_kinAccR,X_c,Y_c);
-            kinematicCut = (accProb >= 0.5);
-          }
-          else kinematicCut = kTRUE;
-          if (enablePi0MassCut) Pi0MassCut = (m_g1g2 > Pi0MassRange[0]) && (m_g1g2 < Pi0MassRange[1]);
-          else Pi0MassCut = kTRUE;
         }
-        else {
-          kinematicCut = kTRUE;
-          Pi0MassCut = kTRUE;
+        //Selecting events based on Acceptance Probability from global bins
+        if (enableKinematicCut){
+          Double_t accProb = AcceptanceProb(DP_kinAccR,X_c,Y_c);
+          kinematicCut = (accProb >= 0.5);
         }
+        else kinematicCut = kTRUE;
+        if (enablePi0MassCut) Pi0MassCut = (m_g1g2 > Pi0MassRange[0]) && (m_g1g2 < Pi0MassRange[1]);
+        else Pi0MassCut = kTRUE;
 
         //Apply beam energy cut on MC and data if enabled
         if (enablePhotonBeamEnergyCut) BeamEnergyCut = (EnBeam > PhotonBeamEnergyRange[0]) && (EnBeam < PhotonBeamEnergyRange[1]);
@@ -636,22 +696,31 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
         else MandelstamTCut = kTRUE;
         
         //selection nevertheless whether sideband subtraction is enabled or not
-        if (PhotonThetaCut && BeamEnergyCut && MandelstamTCut) {
+        Bool_t selection = PhotonThetaCut && BeamEnergyCut && MandelstamTCut && kinematicCut && Pi0MassCut;
+        if (selection) {
+          
           //histogram to fit for sideband subtraction
           hpippimg1g2mass->Fill(m_pippimg1g2mass,weight);
           hg1g2mass->Fill(m_g1g2,weight);
           hkFitProb->Fill(kfit_prob,weight);
-          if (Pi0MassCut && kinematicCut) {
-            hmandelstam_t->Fill(-1.0*mandelstam_t,weight);
-            h_BeamEnergy->Fill(EnBeam,weight);
-            h2DalitzPlotEta3Pi->Fill(X_c,Y_c,weight);
-          }
-          if (!enableSidebandSubs) out_tree->Fill();
-          if (is_mc && enableSidebandSubs && Pi0MassCut && kinematicCut) {            
+          hmandelstam_t->Fill(-1.0*mandelstam_t,weight);
+          h_BeamEnergy->Fill(EnBeam,weight);
+          h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);  
+          if (!enableSidebandSub) out_tree->Fill();
+          if (is_mc && enableSidebandSub) {
+                   
             if (((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])) || ((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1]))){
               if(!signalOnlyTree) {
+                hg1g2mass_sbsSidebandOnlyUnweighted->Fill(m_g1g2,weight);
+                h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted->Fill(X_c,Y_c,weight);
                 weight *= weightSidebandMC;
-                h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
+                hg1g2mass_sbsAll->Fill(m_g1g2,weight);
+                hmandelstam_t_sbsAll->Fill(-1.0*mandelstam_t,weight);
+                h_BeamEnergy_sbsAll->Fill(EnBeam,weight);
+                hpippimg1g2mass_sbsAll->Fill(m_pippimg1g2mass,weight);
+                h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
+                out_tree->Fill();
+                h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
                 if (enableResolutionAnalysis) {
                   hXResolution->Fill(XRes,weight);
                   hYResolution->Fill(YRes,weight);
@@ -660,11 +729,19 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
                   hXRes[XBin][YBin]->Fill(XRes,weight);
                   hYRes[XBin][YBin]->Fill(YRes,weight);
                 }
-                out_tree->Fill();
               }
             }
             if((m_pippimg1g2mass>=signalRangeMC[0]) && (m_pippimg1g2mass<=signalRangeMC[1])) {
-              h2DalitzPlotEta3Pi_kin->Fill(X_c,Y_c,weight);
+              hg1g2mass_sbsAll->Fill(m_g1g2,weight);
+              hg1g2mass_sbsSignalOnly->Fill(m_g1g2,weight);
+              hmandelstam_t_sbsAll->Fill(-1.0*mandelstam_t,weight);
+              h_BeamEnergy_sbsAll->Fill(EnBeam,weight);
+              hpippimg1g2mass_sbsAll->Fill(m_pippimg1g2mass,weight);
+              hpippimg1g2mass_sbsSignalOnly->Fill(m_pippimg1g2mass,weight);
+              h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
+              h2DalitzPlotEta3Pi_sbsSignalOnly->Fill(X_c,Y_c,weight);
+              out_tree->Fill();
+              h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
               if (enableResolutionAnalysis) {
                 hXResolution->Fill(XRes,weight);
                 hYResolution->Fill(YRes,weight);
@@ -673,11 +750,14 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
                 hXRes[XBin][YBin]->Fill(XRes,weight);
                 hYRes[XBin][YBin]->Fill(YRes,weight);
               }
-              out_tree->Fill();
             }
           }
           // h2g1g2massdiff->Fill(m_pi0,diffmassg1g2,weight);
           // h2anglePi0TwoGammas->Fill(m_pi0,anglePi0TwoGammas,weight);
+        }
+        // Update progress bar every 100 entries
+        if (i % 100 == 0) {
+            ProgressBar(i, nEntries);
         }
       }
     }
@@ -687,8 +767,8 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     // cout <<"sum2: "<<sum_amp_2<< endl;
 
     // gStyle->SetOptStat(0);
-    h2DalitzPlotEta3Pi->GetXaxis()->SetTitle("X");
-    h2DalitzPlotEta3Pi->GetYaxis()->SetTitle("Y");
+    // h2DalitzPlotEta3Pi->GetXaxis()->SetTitle("X");
+    // h2DalitzPlotEta3Pi->GetYaxis()->SetTitle("Y");
     // h2DalitzPlotEta3Pi->Write();
     if(is_mc){
       h2DalitzPlotEta3Pi_kin->GetXaxis()->SetTitle("X");
@@ -719,11 +799,11 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     hg1g2mass->GetYaxis()->SetLabelSize(0.025);
     // hg1g2mass->SetStats(0);
     hg1g2mass->Write();
-
-    // if (!enableSidebandSubs) out_tree->Write();
+    outfile->cd();
+    // if (!enableSidebandSub) out_tree->Write();
   }
 
-  if (enableSidebandSubs && !is_mc) {
+  if (enableSidebandSub && !is_mc) {
     //generate background substracted tree
     
     // cout << "entries = " << hpippimg1g2mass->GetEntries() << endl;
@@ -745,9 +825,9 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     RooRealVar sigmaSgn2("sigmaSgn2","sigmaSgn2",0.002,0.001,0.02);
     RooGaussian gauss2("gauss2","gauss2",x,meanSgn2,sigmaSgn2);
     RooRealVar cGauss2("cGauss2","cGauss2",0.3,0.0,0.5);
-    RooRealVar a("a","a",1.5,0.1,3.0);
-    RooRealVar b("b","b",1.0,0.2,1.5);
-    RooRealVar c("c","c",0.3,0.1,1.0);
+    RooRealVar a("a","a",1.5,0.01,3.0);
+    RooRealVar b("b","b",1.0,0.01,1.5);
+    RooRealVar c("c","c",0.3,0.01,1.0);
     RooRealVar d("d","d",0.2,0.01,1.0);
     RooRealVar e("e","e",0.1,0.001,1.0);
     // RooPolynomial polyBkg("polyBkg","polyomial background",x,RooArgList(a));
@@ -773,7 +853,7 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
     if (!fitOnly) plotMass->Write();
 
     if (!is_mc) {
-      TString outMassFitPdfName = "pippimg1g2massfit_";
+      TString outMassFitPdfName = outDir+"pippimg1g2massfit_";
       switch(data_set){
         case 0: {
           outMassFitPdfName += "2017_";
@@ -876,20 +956,24 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
       outfile->WriteObject(&fitInformationLabel,"fitInformationLabel");
       cout << "bkgSignal + sideband = " << bkgSignalRangeArea + (weightSideband*LSBArea) + (weightSideband*RSBArea) << endl;
 
-      TH1F *hg1g2mass_sbsAll = new TH1F("h_g1g2mass_sbsAll","#gamma #gamma invariant mass spectrum",101,0,0.2);
-      TH1F *hmandelstam_t_sbsAll = new TH1F("h_mandelstam_t_sbsAll","Mandelstam t",101,0.,2.);
-      TH1F *hg1g2mass_sbsSignalOnly = new TH1F("h_g1g2mass_sbsSignalOnly","#gamma #gamma invariant mass spectrum",101,0,0.2);
-      TH1F *hg1g2mass_sbsSidebandOnlyUnweighted = new TH1F("h_g1g2mass_sbsSidebandOnlyUnweighted","#gamma #gamma invariant mass spectrum",101,0,0.2);
-      TH1F *hg1g2mass_sbsSidebandOnlyWeighted = new TH1F("h_g1g2mass_sbsSidebandOnlyWeighted","#gamma #gamma invariant mass spectrum",101,0,0.2);
-      TH1F *hpippimg1g2mass_sbsAll = new TH1F("h_pippimg1g2mass_sbsAll","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted",101,0.45,0.65);
-      TH1F *hpippimg1g2mass_sbsSidebandOnly = new TH1F("h_pippimg1g2mass_sbsSidebandOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (sideband only)",101,0.45,0.65);
-      TH1F *hpippimg1g2mass_sbsSignalOnly = new TH1F("h_pippimg1g2mass_sbsSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (signal only)",101,0.45,0.65);
-      TH2F *h2DalitzPlotEta3Pi_sbsAll = new TH2F("h2_DalitzPlotEta3Pi_sbsAll","",101,-1.0,1.0,101,-1.0,1.0);
-      TH2F *h2DalitzPlotEta3Pi_sbsSignalOnly = new TH2F("h2_DalitzPlotEta3Pi_sbsSignalOnly","",101,-1.0,1.0,101,-1.0,1.0);
-      TH2F *h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted = new TH2F("h2_DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted","",101,-1.0,1.0,101,-1.0,1.0);
-      TH2F *h2DalitzPlotEta3Pi_tree = new TH2F("h2_DalitzPlotEta3Pi_tree","",101,-1.0,1.0,101,-1.0,1.0);
-      // TH2F *h2g1g2massdiffbkgsubs = new TH2F("h2_g2g2MassDiffvsInvMassBkgSubs","Two-photon energy difference vs invariant mass (GeV)",1000,0.,0.2,1000,-0.0000001,0.0000001);	
-      // TH2F *h2anglePi0TwoGammasbkgsubs = new TH2F("h2_anglePi0TwoGammasBkgSubs","Two-photon angle vs invariant mass",100,0.07,0.2,1000,-2*TMath::Pi(),2*TMath::Pi());
+      TDirectory *dir = outfile->mkdir("hist_SidebandSub");
+      dir->cd();
+
+      hg1g2mass_sbsAll = new TH1F("h_g1g2mass_sbsAll","#gamma #gamma invariant mass spectrum",101,0,0.2);
+      hmandelstam_t_sbsAll = new TH1F("h_mandelstam_t_sbsAll","Mandelstam t",101,MandelstamTCutRange[0],MandelstamTCutRange[1]);
+      h_BeamEnergy_sbsAll = new TH1F("h_BeamEnergy_sbsAll","Photon Beam Energy",101,0.0,12.0);
+      hg1g2mass_sbsSignalOnly = new TH1F("h_g1g2mass_sbsSignalOnly","#gamma #gamma invariant mass spectrum",101,0,0.2);
+      hg1g2mass_sbsSidebandOnlyUnweighted = new TH1F("h_g1g2mass_sbsSidebandOnlyUnweighted","#gamma #gamma invariant mass spectrum",101,0,0.2);
+      hg1g2mass_sbsSidebandOnlyWeighted = new TH1F("h_g1g2mass_sbsSidebandOnlyWeighted","#gamma #gamma invariant mass spectrum",101,0,0.2);
+      hpippimg1g2mass_sbsAll = new TH1F("h_pippimg1g2mass_sbsAll","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted",101,0.45,0.65);
+      hpippimg1g2mass_sbsSidebandOnly = new TH1F("h_pippimg1g2mass_sbsSidebandOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (sideband only)",101,0.45,0.65);
+      hpippimg1g2mass_sbsSignalOnly = new TH1F("h_pippimg1g2mass_sbsSignalOnly","#pi^{+} #pi^{-} #gamma #gamma invariant mass spectrum sidaband substracted (signal only)",101,0.45,0.65);
+      h2DalitzPlotEta3Pi_sbsAll = new TH2F("h2_DalitzPlotEta3Pi_sbsAll","",101,-1.0,1.0,101,-1.0,1.0);
+      h2DalitzPlotEta3Pi_sbsSignalOnly = new TH2F("h2_DalitzPlotEta3Pi_sbsSignalOnly","",101,-1.0,1.0,101,-1.0,1.0);
+      h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted = new TH2F("h2_DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted","",101,-1.0,1.0,101,-1.0,1.0);
+      h2DalitzPlotEta3Pi_tree = new TH2F("h2_DalitzPlotEta3Pi_tree","",101,-1.0,1.0,101,-1.0,1.0);
+      // h2g1g2massdiffbkgsubs = new TH2F("h2_g2g2MassDiffvsInvMassBkgSubs","Two-photon energy difference vs invariant mass (GeV)",1000,0.,0.2,1000,-0.0000001,0.0000001);	
+      // h2anglePi0TwoGammasbkgsubs = new TH2F("h2_anglePi0TwoGammasBkgSubs","Two-photon angle vs invariant mass",100,0.07,0.2,1000,-2*TMath::Pi(),2*TMath::Pi());
 
       cout << "Generating background substracted tree..." << endl;
       cout << "Output: " << outName << endl;
@@ -903,8 +987,8 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
           //One thing to test: (g1_p4_kin + g2_p4_kin) == pi0 --> (g1_p4_kin + g2_p4_kin).M() (should be 0.135 = m(pi0)) --> 
 
           //Plot m_pi0 or perform a cut: m_pi0 >= 0.12 && m_pi0 < 0.15
-
-          if(kfit_prob > kfit_cut){
+          is_truecombo = 1;
+          if(is_truecombo && kfit_prob > kfit_cut){
               EnP1 = pip_p4_kin->E();
               PxP1 = pip_p4_kin->Px();
               PyP1 = pip_p4_kin->Py();
@@ -987,7 +1071,9 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
               }
               else kinematicCut = kTRUE;
 
-              if (PhotonThetaCut && BeamEnergyCut && MandelstamTCut) {
+              Bool_t selection = PhotonThetaCut && BeamEnergyCut && MandelstamTCut && kinematicCut && Pi0MassCut;
+
+              if (selection) {
                 if (((m_pippimg1g2mass>=leftSidebandRange[0]) && (m_pippimg1g2mass<=leftSidebandRange[1])) || ((m_pippimg1g2mass>=rightSidebandRange[0]) && (m_pippimg1g2mass<=rightSidebandRange[1]))){
                   hg1g2mass_sbsSidebandOnlyUnweighted->Fill(m_g1g2,weight);
                   h2DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted->Fill(X_c,Y_c,weight);
@@ -997,9 +1083,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
                   hg1g2mass_sbsAll->Fill(m_g1g2,weight);
                   h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                   hg1g2mass_sbsSidebandOnlyWeighted->Fill(m_g1g2,weight);
-                  if (!signalOnlyTree && Pi0MassCut && kinematicCut) {
-                    h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
-                    hmandelstam_t_sbsAll->Fill(-1.0*mandelstam_t,weight);
+                  h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
+                  hmandelstam_t_sbsAll->Fill(-1.0*mandelstam_t,weight);
+                  h_BeamEnergy_sbsAll->Fill(EnBeam,weight);
+                  if (!signalOnlyTree) {
                     out_tree->Fill();
                   }
                 }
@@ -1010,11 +1097,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
                   h2DalitzPlotEta3Pi_sbsAll->Fill(X_c,Y_c,weight);
                   hg1g2mass_sbsSignalOnly->Fill(m_g1g2,weight);
                   h2DalitzPlotEta3Pi_sbsSignalOnly->Fill(X_c,Y_c,weight);
-                  if (Pi0MassCut && kinematicCut) {
-                    h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
-                    hmandelstam_t_sbsAll->Fill(-1.0*mandelstam_t,weight);
-                    out_tree->Fill();
-                  }
+                  h2DalitzPlotEta3Pi_tree->Fill(X_c,Y_c,weight);
+                  hmandelstam_t_sbsAll->Fill(-1.0*mandelstam_t,weight);
+                  h_BeamEnergy_sbsAll->Fill(EnBeam,weight);
+                  out_tree->Fill();
                 }
               }
 
@@ -1037,6 +1123,10 @@ void Eta3PiReconstruction(int data_set,TString outName,bool is_mc, TString cutTa
               // sum_amp += (amp);
               // sum_amp_2 += (amp_2);
               //--------------------------- 
+              // Update progress bar every 100 entries
+              if (i % 100 == 0) {
+                  ProgressBar(i, nEntries);
+              }
           }
       }
       if (is_mc) fKinematicAcc->Close();
@@ -1086,4 +1176,18 @@ Double_t AcceptanceProb(TGraph *gr,Double_t X, Double_t Y){
   const Double_t delta = 2.2/N;
   Double_t global_bin_data = TMath::FloorNint((X+1.1)/delta) + N*TMath::FloorNint((Y+1.1)/delta);
   return gr->Eval(global_bin_data,nullptr,"S"); //using cubic spline interpolation
+}
+
+void ProgressBar(Long64_t i, Long64_t n) {
+    const int barWidth = 70;
+    float progress = (i+1) * 1.0 / n;
+    std::cout << "[";
+    int pos = barWidth * progress;
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < pos) std::cout << "=";
+        else if (i == pos) std::cout << ">";
+        else std::cout << " ";
+    }
+    std::cout << "] " << int(progress * 100.0) << " %\r";
+    std::cout.flush();
 }

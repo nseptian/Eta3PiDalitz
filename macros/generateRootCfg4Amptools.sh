@@ -3,20 +3,20 @@
 RUNFOLDER=/d/home/septian/Eta3PiDalitz/run
 MACROSFOLDER=/d/home/septian/Eta3PiDalitz/macros
 
-tag=BeamEnergy
+tag=test_new2017MC
 
 echo 'Cut tag is -> '$tag
 
 cd $RUNFOLDER
 
-# root -b -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(0,"root4Amptools/eta_2017_data",0,"'$tag'",0,0)'
+root -b -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(0,"root4Amptools/eta_2017_data",0,"'$tag'",0,0)'
 # root -b -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(1,"root4Amptools/eta_2018S_data",0,"'$tag'",0,0)'
 # root -b -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(2,"root4Amptools/eta_2018F_data",0,"'$tag'",0,0)'
 # root -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(3,"root4Amptools/eta_all_data_'$tag'",0)'
 
-# root -b -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(0,"root4Amptools/mc_rec_2017_data",1,"'$tag'",0,0)'
+root -b -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(0,"/d/grid17/septian/Eta3PiDalitz/run/root4Amptools/mc_rec_2017_data",1,"'$tag'",0,0)'
 # root -b -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(1,"root4Amptools/mc_rec_2018S_data",1,"'$tag'",0,0)'
-root -b -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(2,"root4Amptools/mc_rec_2018F_data",1,"'$tag'",0,0)'
+# root -b -x -q $MACROSFOLDER/'Eta3PiReconstruction.C(2,"root4Amptools/mc_rec_2018F_data",1,"'$tag'",0,0)'
 # root -x -q 'Eta3PiReconstructionAll.C(3,"root4Amptools/mc_rec_all_data_'$tag'",1)'
 
 # root -x -b -q 'drawHist.C("root4Amptools/mc_rec_2017_data_sbs_'$tag'.root",1,"'$tag'")'

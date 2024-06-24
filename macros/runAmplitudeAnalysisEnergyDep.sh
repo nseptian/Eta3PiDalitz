@@ -5,11 +5,11 @@ CFGFOLDER=$RUNFOLDER/cfg
 FITFOLDER=$RUNFOLDER/fitEnergyDep
 RESULTSFOLDER=$RUNFOLDER/resultsEnergyDep
 
-tag=t0003
+tag=t0106_ccdbFlux_oldMC
 
 echo 'Cut tag is -> '$tag
 cd $RUNFOLDER
-for iEnergy in {0..4}
+for iEnergy in {0..0}
 do
     $DALITZ/DalitzExe/fitAmplitudes.exe $CFGFOLDER/ana_2017_${tag}_${iEnergy}.cfg
     mv -f dalitz_2017_data_${tag}_${iEnergy}.fit $FITFOLDER

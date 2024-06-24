@@ -1,12 +1,15 @@
 TString rootFilesDir = "/d/home/septian/Eta3PiDalitz/run/root4AmptoolsEnergyDep/";
-TString outDir = "/d/home/septian/Eta3PiDalitz/run/plots/";
+TString outDir = "/d/home/septian/Eta3PiDalitzPlots/";
 TString fileName = "eta_2017_data";
 TString fileNameMC = "mc_rec_2017_data";
-TString inputTag = "NoSSB_t_30300";
-TString outputTag = "NoSSB";
+TString inputTag = "t01506_ccdbFlux_EgBin_genEtaRegge";
+TString outputTag = "t01506_ccdbFlux_EgBin_genEtaRegge";
 const Int_t NPhotonEnergyBin = 5;
-const Double_t PhotonEnergyBin[NPhotonEnergyBin+1] = {0.0,7.0,8.0,9.0,10.0,99.0};
-const Double_t MandelstamTBin[2] = {3.0,30.0};
+const Double_t PhotonEnergyBin[NPhotonEnergyBin+1] = {6.5,7.5,8.0,9.0,10.0,11.6};
+// const Double_t MandelstamTBin[2] = {3.0,30.0};
+// const Int_t NPhotonEnergyBin = 1;
+// const Double_t PhotonEnergyBin[NPhotonEnergyBin+1] = {6.5,11.6};
+const Double_t MandelstamTBin[2] = {0.15,0.6};
 
 void gluex_style();
 void drawTHistEnergyDep(){
@@ -23,8 +26,8 @@ void drawTHistEnergyDep(){
 	TH1F* h1_MandelstamT[NPhotonEnergyBin];
 	TH1F* h1_MandelstamT_MC[NPhotonEnergyBin];
 	TBox* box=new TBox();
-	TCanvas* c=new TCanvas("","",800,600);
-	TString hname = TString("h_mandelstam_t");
+	TCanvas* c=new TCanvas("","",1200,600);
+	TString hname = TString("h_mandelstam_t_sbsAll");
 
 	TH1F* h1_MandelstamT_5;
 	TH1F* h1_MandelstamT_MC_5;
@@ -36,14 +39,18 @@ void drawTHistEnergyDep(){
 		TFile* f=new TFile(fName,"READ");
 		TFile* fMC=new TFile(fNameMC,"READ");
 
-		hname = TString("h_mandelstam_t");
-		h1_MandelstamT[i] = (TH1F*)f->Get(hname);
+		// get hist_SidebandSub directory from f and fMC
+		TDirectory* dir = (TDirectory*)f->Get("hist_SidebandSub");
+		TDirectory* dirMC = (TDirectory*)fMC->Get("hist_SidebandSub");
+
+		hname = TString("h_mandelstam_t_sbsAll");
+		h1_MandelstamT[i] = (TH1F*)dir->Get(hname);
 		h1_MandelstamT[i]->GetXaxis()->SetTitle("|t| (GeV^{2})");
-		h1_MandelstamT[i]->GetYaxis()->SetTitle("");
-		h1_MandelstamT[i]->SetTitle(Form("Mandelstam t distribution for %0.2f < E_{#gamma} < %0.2f GeV",PhotonEnergyBin[i],PhotonEnergyBin[i+1]));
+		h1_MandelstamT[i]->GetYaxis()->SetTitle(Form("Events/%0.4f GeV^{2}",h1_MandelstamT[i]->GetBinWidth(1)));
+		h1_MandelstamT[i]->SetTitle(Form("%0.2f < E_{#gamma} < %0.2f GeV",PhotonEnergyBin[i],PhotonEnergyBin[i+1]));
 		h1_MandelstamT[i]->GetXaxis()->SetRangeUser(MandelstamTBin[0],MandelstamTBin[1]);
 		
-		h1_MandelstamT_MC[i] = (TH1F*)fMC->Get(hname);
+		h1_MandelstamT_MC[i] = (TH1F*)dirMC->Get(hname);
 		h1_MandelstamT_MC[i]->SetLineColor(kRed);
 		h1_MandelstamT_MC[i]->SetLineWidth(2);
 
@@ -72,12 +79,12 @@ void drawTHistEnergyDep(){
 		h1_MandelstamT_MC[i]->Scale(scale);
 		h1_MandelstamT_MC[i]->Draw(Form("%s SAME",drawOptions.Data()));
 	}
-	c->cd(6);
-	h1_MandelstamT_5->SetTitle(Form("Mandelstam t distribution for %0.2f < E_{#gamma} < %0.2f GeV",PhotonEnergyBin[0],PhotonEnergyBin[NPhotonEnergyBin]));
-	h1_MandelstamT_5->Draw(drawOptions.Data());
-	h1_MandelstamT_MC_5->Scale(h1_MandelstamT_5->Integral()/h1_MandelstamT_MC_5->Integral());
-	h1_MandelstamT_MC_5->Draw(Form("%s SAME",drawOptions.Data()));
-	TLegend *leg = new TLegend(0.4,0.7,0.6,0.8);
+	// c->cd(6);
+	// h1_MandelstamT_5->SetTitle(Form("Mandelstam t distribution for %0.2f < E_{#gamma} < %0.2f GeV",PhotonEnergyBin[0],PhotonEnergyBin[NPhotonEnergyBin]));
+	// h1_MandelstamT_5->Draw(drawOptions.Data());
+	// h1_MandelstamT_MC_5->Scale(h1_MandelstamT_5->Integral()/h1_MandelstamT_MC_5->Integral());
+	// h1_MandelstamT_MC_5->Draw(Form("%s SAME",drawOptions.Data()));
+	TLegend *leg = new TLegend(0.4,0.75,0.6,0.85);
 	leg->AddEntry(h1_MandelstamT_5,"Data","l");
 	leg->AddEntry(h1_MandelstamT_MC_5,"Scaled MC","l");
 	leg->Draw();

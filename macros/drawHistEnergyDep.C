@@ -33,7 +33,7 @@ void gluex_style() {
  	
 	// histogram settings
 	gluex_style->SetOptStat(0);     // no stats box by default
-	gluex_style->SetOptTitle(1);    // no title by default
+	gluex_style->SetOptTitle(0);    // no title by default
 	gluex_style->SetHistLineWidth(2); 
 	gluex_style->SetNdivisions(508,"xyz"); // some ticks were very bunched, lets reduce the number of divisions to label 
 	// gluex_style->SetOptFit(0111);
@@ -43,56 +43,95 @@ void gluex_style() {
 	gluex_style->cd();
 }
 
-void drawHist(TString fileName = "", string outputTag = ""){
-	gSystem->Exec("mkdir -p plots");
+const TString outDir = "/d/home/septian/Eta3PiDalitzPlots/";
+
+void drawTH1ScaledMC(TString histName, TH1F* h1, TH1F* h1MC, TString XAxisLabel, TString YAxisLabel, TString outputTag);
+
+void drawHistEnergyDep(TString fileName = "", TString fileNameMC = "", TString inputTag = "", TString outputTag = ""){
+	// gSystem->Exec("mkdir -p plots");
 
 	gluex_style();
 	gROOT->ForceStyle();	
 
-	string drawOptions="HIST";
+	TString drawOptions="P";
 
 	TFile* f=new TFile(fileName,"READ");
+	TFile* fMC=new TFile(fileNameMC,"READ");
+	TDirectory *dir = (TDirectory*)f->Get("hist");
+	TDirectory *dirMC = (TDirectory*)fMC->Get("hist");
 	TH1F* h1;
+	TH1F* h1MC;
 	TH2F* h2;
 	TBox* box=new TBox();
 	TCanvas* c=new TCanvas("","",800,600);
-	string hname;
+	TString hname;
 
 	vector<bool>* pCutConfigBool = (vector<bool>*)f->Get("cutConfigBool");
 	// vector<bool> cutConfigBool = *pCutConfigBool;
 
-	bool is_mc = pCutConfigBool->at(0);
+	// bool is_mc = pCutConfigBool->at(0);
 	bool enableSidebandSubs = pCutConfigBool->at(1);
 
 	hname="h_kFitProb";
-	f->GetObject(hname.c_str(),h1);
-	h1->Draw(drawOptions.c_str());
+	dir->GetObject(hname.Data(),h1);
+	dirMC->GetObject(hname.Data(),h1MC);
+	h1->Draw(drawOptions.Data());
 	h1->GetXaxis()->SetTitle("kinematic fit probability");
 	h1->GetYaxis()->SetTitle("counts");
-	c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+	h1MC->Scale(h1->Integral()/h1MC->Integral());
+	h1MC->Draw(Form("%s SAME",drawOptions.Data()));
+	h1MC->SetLineColor(kRed);
+	c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 
-	if(is_mc){
+	hname="h_pippimg1g2mass";
+	dir->GetObject(hname.Data(),h1);
+	dirMC->GetObject(hname.Data(),h1MC);
+	drawTH1ScaledMC(hname,h1,h1MC,"M_{#pi^{+}#pi^{-}#gamma#gamma} (GeV)","counts",outputTag);
+
+}
+
+void drawTH1ScaledMC(TString histName, TH1F* h1, TH1F* h1MC, TString XAxisLabel, TString YAxisLabel, TString outputTag){
+	TCanvas *ctemp = new TCanvas("ctemp","ctemp",800,600);
+
+	h1MC->Scale(h1->Integral()/h1MC->Integral());
+	h1MC->Draw("P");
+	h1MC->SetLineColor(kRed);
+
+	h1->Draw("P SAME");
+	h1->GetXaxis()->SetTitle(XAxisLabel);
+	h1->GetYaxis()->SetTitle(YAxisLabel);
+
+	TLegend *legend = new TLegend(0.2,0.8,0.4,0.9);
+	legend->AddEntry(h1,"GlueX-2017","l");
+	legend->AddEntry(h1MC,"Signal MC (genEtaRegge)","l");
+	legend->Draw();
+	ctemp->SaveAs((outDir+histName+"_"+outputTag+".pdf").Data());
+	delete ctemp;
+}
+
+/*
+if(is_mc){
 		hname = "h2_DalitzPlotEta3Pi_kin";
-		f->GetObject(hname.c_str(),h2);
+		f->GetObject(hname.Data(),h2);
 		h2->GetXaxis()->SetTitle("X");
 		h2->GetYaxis()->SetTitle("Y");
 		h2->SetTitle("Dalitz plot reconstructed MC");
 		h2->Draw("COLZ");
 		h2->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+		c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 
 		hname = "h2_DalitzPlotEta3Pi_efficiency";
-		f->GetObject(hname.c_str(),h2);
+		f->GetObject(hname.Data(),h2);
 		h2->GetXaxis()->SetTitle("X");
 		h2->GetYaxis()->SetTitle("Y");
 		h2->SetTitle("Dalitz plot efficiency");
 		h2->Draw("COLZ");
 		h2->SetMinimum(0.);
 		h2->SetMaximum(1.);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+		c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 
 		hname = "h1_XResolution";
-		f->GetObject(hname.c_str(),h1);
+		f->GetObject(hname.Data(),h1);
 		TF1 *fXResolution = new TF1("f_XResolution", "gaus", -0.5, 0.5);
 		h1->Fit(fXResolution,"R");
 		h1->GetFunction("f_XResolution")->SetLineColor(kRed);
@@ -100,10 +139,10 @@ void drawHist(TString fileName = "", string outputTag = ""){
 		h1->GetXaxis()->SetTitle("X_{thrown} - X_{reconstructed}");
 		h1->Draw();
 		// h1->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+		c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 
 		hname = "h1_YResolution";
-		f->GetObject(hname.c_str(),h1);
+		f->GetObject(hname.Data(),h1);
 		TF1 *fYResolution = new TF1("f_YResolution", "gaus", -0.5, 0.5);
 		h1->Fit(fYResolution,"R");
 		h1->GetFunction("f_YResolution")->SetLineColor(kRed);
@@ -111,7 +150,7 @@ void drawHist(TString fileName = "", string outputTag = ""){
 		h1->GetXaxis()->SetTitle("Y_{thrown} - Y_{reconstructed}");
 		h1->Draw();
 		// h1->SetMinimum(0);
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+		c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 
 		TDirectory *dirRes = (TDirectory*)f->Get("BinnedXYResolution");
 		dirRes->cd();
@@ -135,7 +174,7 @@ void drawHist(TString fileName = "", string outputTag = ""){
 		TH2F *h2YBinnedSigma = new TH2F("h2_YBinnedSigma","Y Resolution",XResBin,-1.0,1.0,YResBin,-1.0,1.0);
 		TH2I *h2NumberBinLabel = new TH2I("h2_BinNumber","Bin number",XResBin,-1.0,1.0,YResBin,-1.0,1.0);
 
-		gSystem->Exec(("mkdir -p plots/XYBinnedResolution_"+outputTag).c_str());
+		gSystem->Exec(("mkdir -p plots/XYBinnedResolution_"+outputTag).Data());
 
 		Int_t counter=0;
 
@@ -166,7 +205,7 @@ void drawHist(TString fileName = "", string outputTag = ""){
 					hXRes[i][j]->GetYaxis()->SetTitle("count");
 					hXRes[i][j]->Draw();
 					hname = "XBinnedResolution";
-					c->SaveAs(("plots/XYBinnedResolution_"+outputTag+"/"+hname+"_"+std::to_string(i)+"_"+std::to_string(j)+"_"+outputTag+".pdf").c_str());					
+					c->SaveAs(("plots/XYBinnedResolution_"+outputTag+"/"+hname+"_"+std::to_string(i)+"_"+std::to_string(j)+"_"+outputTag+".pdf").Data());					
 					h2XBinnedSigma->SetBinContent(i+1,j+1,g1->GetParameter(2));
 					h2XBinnedSigma->SetBinError(i+1,j+1,g1->GetParError(2));
 
@@ -177,7 +216,7 @@ void drawHist(TString fileName = "", string outputTag = ""){
 					hYRes[i][j]->GetYaxis()->SetTitle("count");
 					hYRes[i][j]->Draw();
 					hname = "YBinnedResolution";
-					c->SaveAs(("plots/XYBinnedResolution_"+outputTag+"/"+hname+"_"+std::to_string(i)+"_"+std::to_string(j)+"_"+outputTag+".pdf").c_str());
+					c->SaveAs(("plots/XYBinnedResolution_"+outputTag+"/"+hname+"_"+std::to_string(i)+"_"+std::to_string(j)+"_"+outputTag+".pdf").Data());
 					h2YBinnedSigma->SetBinContent(i+1,j+1,g2->GetParameter(2));
 					h2YBinnedSigma->SetBinError(i+1,j+1,g2->GetParError(2));
 
@@ -188,25 +227,25 @@ void drawHist(TString fileName = "", string outputTag = ""){
 		h2NXYBinned->GetYaxis()->SetTitle("Y");
 		h2NXYBinned->Draw("COLZ");
 		hname = "h2NXYBinned";
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+		c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 
 		h2NXYBinnedEntriesCut->GetXaxis()->SetTitle("X");
 		h2NXYBinnedEntriesCut->GetYaxis()->SetTitle("Y");
 		h2NXYBinnedEntriesCut->Draw("COLZ");
 		hname = "h2NXYBinnedEntriesCut";
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+		c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 
 		h2XBinnedSigma->GetXaxis()->SetTitle("X");
 		h2XBinnedSigma->GetYaxis()->SetTitle("Y");
 		h2XBinnedSigma->Draw("COLZ");
 		hname = "h2XBinnedResolution";
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+		c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 
 		h2YBinnedSigma->GetXaxis()->SetTitle("X");
 		h2YBinnedSigma->GetYaxis()->SetTitle("Y");
 		h2YBinnedSigma->Draw("COLZ");
 		hname = "h2YBinnedResolution";
-		c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+		c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 		fBinnedResolution->Write();
 
 	}
@@ -220,64 +259,64 @@ void drawHist(TString fileName = "", string outputTag = ""){
 			Double_t leftSidebandRange[2] = {v[2],v[3]};
 			Double_t rightSidebandRange[2] = {v[4],v[5]};
 			hname="h_pippimg1g2mass";
-			f->GetObject(hname.c_str(),h1);
-			h1->Draw(drawOptions.c_str());
+			f->GetObject(hname.Data(),h1);
+			h1->Draw(drawOptions.Data());
 			// h1->SetMinimum(0);
 			box->SetFillColorAlpha(kRed+2,0.3);
 			box->DrawBox(leftSidebandRange[0],0,leftSidebandRange[1],h1->GetMaximum()*1.05);
 			box->DrawBox(rightSidebandRange[0],0,rightSidebandRange[1],h1->GetMaximum()*1.05);
 			box->SetFillColorAlpha(kGreen+2,0.3);
 			box->DrawBox(signalRange[0],0,signalRange[1],h1->GetMaximum()*1.05);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname="h_pippimg1g2mass_sbsAll";
-			f->GetObject(hname.c_str(),h1);
-			h1->Draw(drawOptions.c_str());
+			f->GetObject(hname.Data(),h1);
+			h1->Draw(drawOptions.Data());
 			// h1->SetMinimum(0);
 			box->SetFillColorAlpha(kRed+2,0.3);
 			box->DrawBox(leftSidebandRange[0],h1->GetMinimum()*1.05,leftSidebandRange[1],h1->GetMaximum()*1.05);
 			box->DrawBox(rightSidebandRange[0],h1->GetMinimum()*1.05,rightSidebandRange[1],h1->GetMaximum()*1.05);
 			box->SetFillColorAlpha(kGreen+2,0.3);
 			box->DrawBox(signalRange[0],h1->GetMinimum()*1.05,signalRange[1],h1->GetMaximum()*1.05);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname="h_g1g2mass";
-			f->GetObject(hname.c_str(),h1);
+			f->GetObject(hname.Data(),h1);
 			h1->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
-			h1->Draw(drawOptions.c_str());
+			h1->Draw(drawOptions.Data());
 			// h1->SetMinimum(0);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname="h_g1g2mass_sbsAll";
-			f->GetObject(hname.c_str(),h1);
+			f->GetObject(hname.Data(),h1);
 			h1->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
-			h1->Draw(drawOptions.c_str());
+			h1->Draw(drawOptions.Data());
 			// h1->SetMinimum(0);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname="h_g1g2mass_sbsSidebandOnlyUnweighted";
-			f->GetObject(hname.c_str(),h1);
+			f->GetObject(hname.Data(),h1);
 			h1->GetXaxis()->SetTitle("M_{#gamma#gamma} (GeV)");
-			h1->Draw(drawOptions.c_str());
+			h1->Draw(drawOptions.Data());
 			// h1->SetMinimum(0);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname="h_g1g2mass_sbsSidebandOnlyWeighted";
-			f->GetObject(hname.c_str(),h1);
+			f->GetObject(hname.Data(),h1);
 			TH1F* h1_0 = new TH1F(*h1);
-			h1->Draw(drawOptions.c_str());
+			h1->Draw(drawOptions.Data());
 			// h1->SetMinimum(0);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname="h_g1g2mass_sbsSignalOnly";
-			f->GetObject(hname.c_str(),h1);
+			f->GetObject(hname.Data(),h1);
 			TH1F* h1_1 = new TH1F(*h1);
-			h1->Draw(drawOptions.c_str());
+			h1->Draw(drawOptions.Data());
 			// h1->SetMinimum(0);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname = "h_g1g2mass_sbsSignalOnlySidebandOnlyWeighted";
-			h1_0->Draw(drawOptions.c_str());
+			h1_0->Draw(drawOptions.Data());
 			h1_0->SetFillColor(kRed);
 			h1_1->Draw("HISTSAME");
 			h1_0->GetYaxis()->SetRangeUser(h1_0->GetMinimum()*1.05,h1_1->GetMaximum()*1.05);
@@ -287,43 +326,43 @@ void drawHist(TString fileName = "", string outputTag = ""){
 			legend->AddEntry(h1_0,"Sideband only (weighted)","f");
 			legend->AddEntry(h1_1,"Signal only","f");
 			legend->Draw();
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname = "h2_DalitzPlotEta3Pi_sbsSidebandOnlyUnweighted";
-			f->GetObject(hname.c_str(),h2);
+			f->GetObject(hname.Data(),h2);
 			h2->GetXaxis()->SetTitle("X");
 			h2->GetYaxis()->SetTitle("Y");
 			h2->SetTitle("Dalitz plot");
 			h2->Draw("COLZ");
 			h2->SetMinimum(0);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname = "h2_DalitzPlotEta3Pi_sbsAll";
-			f->GetObject(hname.c_str(),h2);
+			f->GetObject(hname.Data(),h2);
 			h2->GetXaxis()->SetTitle("X");
 			h2->GetYaxis()->SetTitle("Y");
 			h2->SetTitle("Dalitz plot");
 			h2->Draw("COLZ");
 			h2->SetMinimum(0);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname = "h2_DalitzPlotEta3Pi_sbsSignalOnly";
-			f->GetObject(hname.c_str(),h2);
+			f->GetObject(hname.Data(),h2);
 			h2->GetXaxis()->SetTitle("X");
 			h2->GetYaxis()->SetTitle("Y");
 			h2->SetTitle("Dalitz plot");
 			h2->Draw("COLZ");
 			h2->SetMinimum(0);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			hname = "h2_DalitzPlotEta3Pi_tree";
-			f->GetObject(hname.c_str(),h2);
+			f->GetObject(hname.Data(),h2);
 			h2->GetXaxis()->SetTitle("X");
 			h2->GetYaxis()->SetTitle("Y");
 			h2->SetTitle("Dalitz plot");
 			h2->Draw("COLZ");
 			h2->SetMinimum(0);
-			c->SaveAs(("plots/"+hname+"_"+outputTag+".pdf").c_str());
+			c->SaveAs((outDir+hname+"_"+outputTag+".pdf").Data());
 	
 			// c->SetCanvasSize(1200,600);
 			// RooPlot *rp = (RooPlot*)f->Get("frame_h_pippimg1g2massRooFit_65274a0");
@@ -342,7 +381,7 @@ void drawHist(TString fileName = "", string outputTag = ""){
 			// box->DrawBox(rightSidebandRange[0],0,rightSidebandRange[1],rp->GetMaximum());
 			// box->SetFillColorAlpha(kGreen+2,0.3);
 			// box->DrawBox(signalRange[0],0,signalRange[1],rp->GetMaximum());
-			// c->SaveAs(("plots/hfit_"+outputTag+".pdf").c_str());
+			// c->SaveAs(("plots/hfit_"+outputTag+".pdf").Data());
 		}
 	}
-}
+	*/

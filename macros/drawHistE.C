@@ -1,12 +1,14 @@
 // Purpose: draw beam energy histogram
 
-TString fileName = "/d/home/septian/Eta3PiDalitz/run/root4Amptools/eta_2018F_data_BeamEnergy.root";
-TString fileNameMC = "/d/home/septian/Eta3PiDalitz/run/root4Amptools/mc_rec_2018F_data_BeamEnergy.root";
-TString datasets = "2018F";
+TString fileName = "/d/home/septian/Eta3PiDalitz/run/root4AmptoolsEnergyDep/eta_2017_data_t01506_ccdbFlux_genrEtaRegge_0.root";
+TString fileNameMC = "/d/home/septian/Eta3PiDalitz/run/root4AmptoolsEnergyDep/mc_rec_2017_data_t01506_ccdbFlux_genEtaRegge_0.root";
+TString dataTag = "2017_t01506_ccdbFlux_genEtaRegge";
+TString outDir = "/d/home/septian/Eta3PiDalitzPlots/";
 
 void gluex_style();
 void drawHistE(){
-    gSystem->Exec("mkdir -p plots");
+    // gluex_style();
+    // gSystem->Exec("mkdir -p plots");
 
 	TFile* f=new TFile(fileName,"READ");
     TFile* fMC=new TFile(fileNameMC,"READ");
@@ -19,7 +21,7 @@ void drawHistE(){
     h1MC=(TH1F*)fMC->Get(histName.Data());
 
     //scale h1MC to h1
-    h1MC->Scale(0.5*h1->Integral()/h1MC->Integral());
+    h1MC->Scale(h1->Integral()/h1MC->Integral());
 
     h1->SetLineColor(kRed);
     h1MC->SetLineColor(kBlue);
@@ -28,8 +30,11 @@ void drawHistE(){
     h1MC->SetLineWidth(2);
     h1->SetStats(0);
     h1->SetTitle("");
-    h1->GetXaxis()->SetTitle("Beam Energy [GeV]");
-    h1->GetYaxis()->SetTitle("Events");
+    h1->GetXaxis()->SetTitle("E_{#gamma} (GeV)");
+    h1->GetYaxis()->SetTitle(Form("Events/%0.2f GeV",h1->GetBinWidth(1)));
+    h1->GetYaxis()->SetTitleOffset(1.6);
+    h1->GetXaxis()->SetRangeUser(6.0,12.0);
+    h1->GetYaxis()->SetRangeUser(0.0,1.4*h1->GetMaximum());
 
     //draw h1 and scaled h1 MC in the same canvas
 
@@ -38,12 +43,12 @@ void drawHistE(){
     h1->Draw("HIST");
     h1MC->Draw("HIST SAME");
 
-    TLegend* leg=new TLegend(0.7,0.8,0.9,0.9);
-    leg->AddEntry(h1,TString("Data ")+datasets.Data(),"l");
-    leg->AddEntry(h1MC,"Scaled MC","l");
+    TLegend* leg=new TLegend(0.55,0.8,0.9,0.9);
+    leg->AddEntry(h1,TString("Data ")+dataTag.Data(),"l");
+    leg->AddEntry(h1MC,TString("Normalized signal MC ")+dataTag.Data(),"l");
     leg->Draw();
-    
-    c1->SaveAs(Form("plots/beamEnergy_%s.pdf",datasets.Data()));
+    c1->SetLeftMargin(0.15);
+    c1->SaveAs(Form("%sbeamEnergy_%s.pdf",outDir.Data(),dataTag.Data()));
 
 }
 
@@ -67,7 +72,7 @@ void gluex_style() {
 
 	// let's change the default margins
 	gluex_style->SetPadBottomMargin(0.2);
-	gluex_style->SetPadLeftMargin(0.2);
+	gluex_style->SetPadLeftMargin(1.0);
 	gluex_style->SetPadTopMargin(0.08);
 	gluex_style->SetPadRightMargin(0.15);
 
@@ -77,7 +82,7 @@ void gluex_style() {
  	gluex_style->SetTitleSize(0.06,"xyz"); // size of axis title font
  	gluex_style->SetTitleFont(42,"xyz"); // font option
  	gluex_style->SetLabelFont(42,"xyz"); 
- 	gluex_style->SetTitleOffset(1.5,"y"); 
+ 	gluex_style->SetTitleOffset(0.0,"y"); 
  	gluex_style->SetLabelOffset(0.01,"xyz");   // stop collisions of "0"s at the origin
  	
 	// histogram settings

@@ -2,9 +2,11 @@
 
 RUNFOLDER=/d/home/septian/Eta3PiDalitz/run
 FITFOLDER=$RUNFOLDER/fitEnergyDep
-base_name=dalitz_2017_data_02202023
+base_name=dalitz_2017_data_reweightedMC
+tag=ccdbFlux_EgBin_genEtaRegge
 
 echo 'Base name is -> '$base_name
+echo 'Tag is -> '$tag
 cd $FITFOLDER
 
 # kFit variation
@@ -13,9 +15,9 @@ cd $FITFOLDER
 #     $DALITZ/DalitzExe/extractFitParsEnergyDep.exe ${base_name}_${iKFit} ${base_name}_${iKFit}.txt
 # done
 
-for iT_range in {t_0102,t_0203,t_0304,t_0405,t_0506,t_0607,t_0708,t_0809,t_0910}
+for iT_range in t01506
 do
-    $DALITZ/DalitzExe/extractFitParsEnergyDep.exe ${base_name}_${iT_range} ${base_name}_${iT_range}.txt
+    $DALITZ/DalitzExe/extractFitParsEnergyDep.exe ${base_name}_${iT_range}_${tag} ${base_name}_${iT_range}_${tag}.txt
 done
 
 cd $RUNFOLDER

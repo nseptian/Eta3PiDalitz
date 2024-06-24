@@ -3,13 +3,13 @@
 RUNFOLDER=/d/home/septian/Eta3PiDalitz/run
 CFGFOLDER=$RUNFOLDER/cfg
 FITFOLDER=$RUNFOLDER/fitEnergyDep
-RESULTSFOLDER=$RUNFOLDER/resultsEnergyDep
+RESULTSFOLDER=/d/home/septian/Eta3PiDalitzPlots/
 
-tag=t0106
+tag=t01506_ccdbFlux_EgBin_genEtaRegge
 
 echo 'Cut tag is -> '$tag
 cd $RUNFOLDER
-for iEnergy in {0..4}
+for iEnergy in {0..0}
 do
     $DALITZ/DalitzExe/fitAmplitudes.exe $CFGFOLDER/ana_2017_${tag}_${iEnergy}.cfg
     mv -f dalitz_2017_data_${tag}_${iEnergy}.fit $FITFOLDER

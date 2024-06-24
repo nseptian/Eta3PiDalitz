@@ -4,7 +4,7 @@
 RUNFOLDER=/d/home/septian/Eta3PiDalitz/run
 CFGFOLDER=$RUNFOLDER/cfg
 
-tag=t0106
+tag=t01506_ccdbFlux_EgBin_genEtaRegge
 
 echo 'Cut tag is -> '$tag
 

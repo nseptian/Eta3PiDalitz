@@ -1,16 +1,16 @@
 // Description: Reweight MC reco to match data t slope
 
-const Int_t BeamEnergyBin = 1;
+const Int_t BeamEnergyBin = 0;
 
 TString inputDir = "/d/home/septian/Eta3PiDalitz/run/root4AmptoolsEnergyDep/";
-TString fileInputName = Form("eta_2017_data_t0106_%d.root",BeamEnergyBin);
-TString fileInputNameMC = Form("mc_rec_2017_data_t0106_%d.root",BeamEnergyBin);
+TString fileInputName = Form("eta_2017_data_t01506_ccdbFlux_EgBin_genEtaRegge_%d.root",BeamEnergyBin);
+TString fileInputNameMC = Form("mc_rec_2017_data_t01506_ccdbFlux_EgBin_genEtaRegge_%d.root",BeamEnergyBin);
 
 TString outputDir = "/d/home/septian/Eta3PiDalitz/run/root4AmptoolsEnergyDep/";
-TString fileOutputName = Form("reweighted_mc_rec_2017_data_t0106_%d.root",BeamEnergyBin);
+TString fileOutputName = Form("reweighted_mc_rec_2017_data_t01506_ccdbFlux_EgBin_genEtaRegge_%d.root",BeamEnergyBin);
 
-TString pdfOutDir = "/d/home/septian/Eta3PiDalitz/run/plotsEnergyDep/";
-TString pdfOut_base = Form("2017_data_t0106_%d",BeamEnergyBin);
+TString pdfOutDir = "/d/home/septian/Eta3PiDalitzPlots/";
+TString pdfOut_base = Form("2017_data_t01506_ccdbFlux_EgBin_genEtaRegge_%d",BeamEnergyBin);
 
 Bool_t isGenerateWeightedTrees = kTRUE;
 
@@ -23,10 +23,13 @@ void ReweightMCRec(){
     TFile *fileInput = new TFile(inputDir+fileInputName);
     TFile *fileInputMC = new TFile(inputDir+fileInputNameMC);
 
+    TDirectory *dir = (TDirectory*)fileInput->Get("hist_SidebandSub");
+    TDirectory *dirMC = (TDirectory*)fileInputMC->Get("hist_SidebandSub");
+
     //get mandelstam_t histograms
-    TString hname = "h_mandelstam_t";
-    TH1F *h1_mandelstam_t_data = (TH1F*)fileInput->Get(hname.Data());
-    TH1F *h1_mandelstam_t_MC = (TH1F*)fileInputMC->Get(hname.Data());
+    TString hname = "h_mandelstam_t_sbsAll";
+    TH1F *h1_mandelstam_t_data = (TH1F*)dir->Get(hname.Data());
+    TH1F *h1_mandelstam_t_MC = (TH1F*)dirMC->Get(hname.Data());
     
     //scale h1_mandelstam_t_MC to match h1_mandelstam_t_data
     h1_mandelstam_t_MC->Scale(h1_mandelstam_t_data->Integral()/h1_mandelstam_t_MC->Integral());
@@ -63,7 +66,7 @@ void ReweightMCRec(){
     h1_mandelstam_t_ratio->SetLineWidth(2);
 
     //fit ratio with polynomial function and print as pdf
-    TF1 *fit_mandelstam_t_ratio = new TF1("fit_mandelstam_t_ratio","pol4",0.1,0.6);
+    TF1 *fit_mandelstam_t_ratio = new TF1("fit_mandelstam_t_ratio","pol4",0.15,0.6);
     h1_mandelstam_t_ratio->Fit(fit_mandelstam_t_ratio,"R");
     h1_mandelstam_t_ratio->Draw();
     fit_mandelstam_t_ratio->Draw("SAME");
@@ -117,12 +120,12 @@ void ReweightMCRec(){
         TTree *dataChainWeighted = dataChain->CloneTree(0);
 
         //t histogram for unweighted events
-        TH1F *h1_mandelstam_t_unweighted = new TH1F("h1_mandelstam_t_unweighted","Unweighted mandelstam t",100,0.1,0.6);
+        TH1F *h1_mandelstam_t_unweighted = new TH1F("h1_mandelstam_t_unweighted","Unweighted mandelstam t",100,0.15,0.6);
         h1_mandelstam_t_unweighted->GetXaxis()->SetTitle("|t| [GeV^{2}]");
         h1_mandelstam_t_unweighted->GetYaxis()->SetTitle("Events");
 
         //t histogram for weighted events
-        TH1F *h1_mandelstam_t_weighted = new TH1F("h1_mandelstam_t_weighted","Weighted mandelstam t",100,0.1,0.6);
+        TH1F *h1_mandelstam_t_weighted = new TH1F("h1_mandelstam_t_weighted","Weighted mandelstam t",100,0.15,0.6);
         h1_mandelstam_t_weighted->GetXaxis()->SetTitle("|t| [GeV^{2}]");
         h1_mandelstam_t_weighted->GetYaxis()->SetTitle("Events");
 
@@ -137,9 +140,10 @@ void ReweightMCRec(){
             TLorentzVector P4Beam = TLorentzVector(PxBeam,PyBeam,PzBeam,EnBeam);
 
             Double_t mandelstam_t = -1*(P4Beam-P4Eta).M2();
-            h1_mandelstam_t_unweighted->Fill(mandelstam_t);
+            h1_mandelstam_t_unweighted->Fill(mandelstam_t,weight);
 
             weight *= fit_mandelstam_t_ratio->Eval(mandelstam_t);
+            // cout << "weight: " << fit_mandelstam_t_ratio->Eval(mandelstam_t) << endl;
             dataChainWeighted->Fill();
             h1_mandelstam_t_weighted->Fill(mandelstam_t,weight);
         }
