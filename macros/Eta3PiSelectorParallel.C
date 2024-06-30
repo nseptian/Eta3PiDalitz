@@ -239,6 +239,8 @@ void setMcThrownAndOutName(TFile*& mcThrown, TString& outNameDataForMC, int data
 struct ThreadHistograms {
   TH1F* h1_PiPlusPiMinusGamma1Gamma2InvMass;
   TH1F* h1_Gamma1Gamma2InvMass;
+  TH1F* h1_EnergyBeam;
+  TH1F* h1_MandelstamT;
 
   ThreadHistograms(){
     // Use the thread number to create unique histogram names
@@ -307,7 +309,26 @@ struct ThreadTree {
 
 };
 
-void processEntryRange(TChain* dataChain, Bool_t is_mc, Double_t weightSideband, Long64_t startEntry, Long64_t endEntry, ThreadHistograms*& histograms, ThreadTree*& outputThreadTree) {
+struct SidebandSubtractionParameters {
+  Double_t GaussianMean;
+  Double_t GaussianSigma;
+  Double_t LeftSidebandRange[2];
+  Double_t RightSidebandRange[2];
+  Double_t SignalRange[2];
+  Double_t WeightSidebands=0.0;
+
+  void Print() {
+    cout << "Sideband subtraction parameters:\n";
+    cout << "Gaussian mean: " << GaussianMean << endl;
+    cout << "Gaussian sigma: " << GaussianSigma << endl;
+    cout << "Left sideband range: " << LeftSidebandRange[0] << " - " << LeftSidebandRange[1] << endl;
+    cout << "Right sideband range: " << RightSidebandRange[0] << " - " << RightSidebandRange[1] << endl;
+    cout << "Signal range: " << SignalRange[0] << " - " << SignalRange[1] << endl;
+    cout << "Weight sidebands: " << WeightSidebands << endl;
+  }
+};
+
+void processEntryRange(TChain* dataChain, Bool_t is_mc, SidebandSubtractionParameters sidebandParameters, Long64_t startEntry, Long64_t endEntry, ThreadHistograms*& histograms, ThreadTree*& outputThreadTree) {
   
   cout << "Processing entries from " << startEntry << " to " << endEntry << endl;
   TChain* dataChainProcess = new TChain("myTree");
@@ -320,7 +341,9 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, Double_t weightSideband,
   Double_t EnP3,PxP3,PyP3,PzP3;
   Double_t X,Y,weight=1.0;
 
-  if (weightSideband == 0.0) outputThreadTree = new ThreadTree(treeThreadFileName, "nt", treeThreadDirName, startEntry);
+  sidebandParameters.Print();
+
+  if (sidebandParameters.WeightSidebands == 0.0) outputThreadTree = new ThreadTree(treeThreadFileName, "nt", treeThreadDirName, startEntry);
   else {
     outputThreadTree = new ThreadTree(Form("%s_SidebandSubtracted",treeThreadFileName.Data()), "nt", treeThreadDirName, startEntry);
   }
@@ -429,11 +452,15 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, Double_t weightSideband,
     PyP3 = p_p4_kin->Py();
     PzP3 = p_p4_kin->Pz();
 
-    Bool_t isInSidebandRange = (m_PiPlusPiMinusGamma1Gamma2 >= leftSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= leftSidebandRange[1]) || (m_PiPlusPiMinusGamma1Gamma2 >= rightSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= rightSidebandRange[1]);
-    Bool_t isInSignalRange = m_PiPlusPiMinusGamma1Gamma2 >= signalRangeMC[0] && m_PiPlusPiMinusGamma1Gamma2 <= signalRangeMC[1];
-    if (weightSideband != 0.0 && ((m_PiPlusPiMinusGamma1Gamma2 >= leftSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= leftSidebandRange[1]))) {
-      // Subtract sideband weight
-      weight -= weightSideband;
+    if (sidebandParameters.WeightSidebands < 0.0) {
+      Bool_t isInSidebandRange = (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.LeftSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.LeftSidebandRange[1]) || (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.RightSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.RightSidebandRange[1]);
+      Bool_t isInSignalRange = (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.SignalRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.SignalRange[1]);
+      if (isInSidebandRange) {
+        weight *= sidebandParameters.WeightSidebands;
+      }
+      else if (!isInSignalRange) {
+        continue;
+      }
     }
 
     outputThreadTree->outputTree->Fill();
@@ -447,7 +474,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, Double_t weightSideband,
   delete dataChainProcess;
 }
 
-void parallelProcess(TChain* dataChain, Bool_t is_mc, Double_t weightSideband) {
+void parallelProcess(TChain* dataChain, Bool_t is_mc, SidebandSubtractionParameters sidebandParameters) {
 
     const Long64_t nEntries = dataChain->GetEntries();
     const unsigned nThreads = 64;
@@ -473,11 +500,11 @@ void parallelProcess(TChain* dataChain, Bool_t is_mc, Double_t weightSideband) {
     ThreadTree* outputThreadTree[nThreads];
 
     // Foreach requires a function that can be applied to each element of a collection
-    auto processRange = [dataChain, is_mc, weightSideband, &histograms, &outputThreadTree, entriesPerThread](const std::pair<Int_t, Int_t>& range) {
+    auto processRange = [dataChain, is_mc, sidebandParameters, &histograms, &outputThreadTree, entriesPerThread](const std::pair<Int_t, Int_t>& range) {
         Long64_t startEntry = range.first;
         Long64_t endEntry = range.second;
         unsigned idx = startEntry/entriesPerThread;
-        processEntryRange(dataChain, is_mc, weightSideband, startEntry, endEntry, histograms[idx], outputThreadTree[idx]);
+        processEntryRange(dataChain, is_mc, sidebandParameters, startEntry, endEntry, histograms[idx], outputThreadTree[idx]);
     };
 
     // cout << "Processing " << nEntries << " entries with " << nThreads << " threads" << endl;
@@ -491,7 +518,7 @@ void parallelProcess(TChain* dataChain, Bool_t is_mc, Double_t weightSideband) {
     }
 
     // Merge trees
-    if (weightSideband == 0.0) {
+    if (sidebandParameters.WeightSidebands == 0.0) {
         ThreadTree* MergedOutputTree = new ThreadTree(treeThreadFileName, "nt", treeThreadDirName, -1);
         MergedOutputTree->merge(kTRUE);
     }
@@ -501,7 +528,7 @@ void parallelProcess(TChain* dataChain, Bool_t is_mc, Double_t weightSideband) {
     }
 }
 
-Double_t GetSidebandWeight() {
+SidebandSubtractionParameters GetSidebandParameters() {
   TFile *f = TFile::Open(Form("%smerged_%s.root",treeThreadDirName.Data(),treeThreadFileName.Data()),"READ");
   TTree *t = (TTree*)f->Get("nt");
   // cout << "nEntries = " << t->GetEntries() << endl;
@@ -659,7 +686,18 @@ Double_t GetSidebandWeight() {
   // outfile->WriteObject(&fitInformationLabel,"fitInformationLabel");
   cout << "bkgSignal + sideband = " << bkgSignalRangeArea + (weightSideband*LSBArea) + (weightSideband*RSBArea) << endl;
 
-  return weightSideband;
+  SidebandSubtractionParameters sidebandParameters;
+  sidebandParameters.GaussianMean = meanSgnVal;
+  sidebandParameters.GaussianSigma = sigmaSgnVal;
+  sidebandParameters.LeftSidebandRange[0] = leftSidebandRange[0];
+  sidebandParameters.LeftSidebandRange[1] = leftSidebandRange[1];
+  sidebandParameters.RightSidebandRange[0] = rightSidebandRange[0];
+  sidebandParameters.RightSidebandRange[1] = rightSidebandRange[1];
+  sidebandParameters.SignalRange[0] = signalRange[0];
+  sidebandParameters.SignalRange[1] = signalRange[1];
+  sidebandParameters.WeightSidebands = weightSideband;
+
+  return sidebandParameters;
 }
 
 void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cutTag, const Bool_t enablePhotonBeamEnergyCut = kFALSE, const Int_t PhotonBeamEnergyRangeIdx = 0){
@@ -823,9 +861,20 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
 
   TTree *out_tree = new TTree("nt","nt");
 
-  parallelProcess(dataChain, is_mc, 0.0);
-  Double_t weightSideband = GetSidebandWeight();
-  parallelProcess(dataChain, is_mc, weightSideband);
+  
+  SidebandSubtractionParameters sidebandParameters;
+  sidebandParameters.WeightSidebands = 0.0;
+  parallelProcess(dataChain, is_mc, sidebandParameters);
+  sidebandParameters = GetSidebandParameters();
+  cout << "Sideband subtraction parameters: " << endl;
+  cout << "Gaussian mean: " << sidebandParameters.GaussianMean << endl;
+  cout << "Gaussian sigma: " << sidebandParameters.GaussianSigma << endl;
+  cout << "Left sideband range: " << sidebandParameters.LeftSidebandRange[0] << " - " << sidebandParameters.LeftSidebandRange[1] << endl;
+  cout << "Right sideband range: " << sidebandParameters.RightSidebandRange[0] << " - " << sidebandParameters.RightSidebandRange[1] << endl;
+  cout << "Signal range: " << sidebandParameters.SignalRange[0] << " - " << sidebandParameters.SignalRange[1] << endl;
+  cout << "Weight sidebands: " << sidebandParameters.WeightSidebands << endl;
+
+  parallelProcess(dataChain, is_mc, sidebandParameters);
 
   outfile->cd();
   out_tree->Write();
