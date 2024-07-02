@@ -197,7 +197,7 @@ void addDataToChain(TChain* dataChain, int data_set, bool is_mc) {
     delete tokens; // Clean up to avoid memory leak
   } else {
     if (path.Length() > 0) { // Check if the path is not empty
-      dataChain->Add(path,2000000);
+      dataChain->Add(path);
     }
   }
 }
@@ -237,13 +237,16 @@ void setMcThrownAndOutName(TFile*& mcThrown, TString& outNameDataForMC, int data
 }
 
 struct ThreadHistograms {
-  TH1F* h1_PiPlusPiMinusGamma1Gamma2InvMass;
-  TH1F* h1_Gamma1Gamma2InvMass;
   TH1F* h1_EnergyBeam;
   TH1F* h1_MandelstamT;
+  TH1F* h1_PiPlusPiMinusGamma1Gamma2InvMass;
+  TH1F* h1_Gamma1Gamma2InvMass;
+  TH1F* h1_Dalitz_X;
+  TH1F* h1_Dalitz_Y;
+  TH2F* h2_DalitzPlot;
 
   ThreadHistograms(){
-    // Use the thread number to create unique histogram names
+
     TString name1 = "h1_PiPlusPiMinusGamma1Gamma2InvMass";
     TString title1 = "#pi^{+}#pi^{-}#gamma_{1}#gamma_{2} Invariant";
     h1_PiPlusPiMinusGamma1Gamma2InvMass = new TH1F(name1, title1, 100, 0.45, 0.65);
@@ -251,11 +254,37 @@ struct ThreadHistograms {
     TString name2 = "h1_Gamma1Gamma2InvMass";
     TString title2 = "#gamma_{1}#gamma_{2} Invariant Mass";
     h1_Gamma1Gamma2InvMass = new TH1F(name2, title2, 100, 0.0, 0.2);
+
+    TString name3 = "h1_EnergyBeam";
+    TString title3 = "Beam Energy";
+    h1_EnergyBeam = new TH1F(name3, title3, 121, -0.05, 12.05);
+
+    TString name4 = "h1_MandelstamT";
+    TString title4 = "Mandelstam t";
+    h1_MandelstamT = new TH1F(name4, title4, 100, 0.0, 1.0);
+
+    TString name5 = "h1_Dalitz_X";
+    TString title5 = "Dalitz X";
+    h1_Dalitz_X = new TH1F(name5, title5, 101, -1.0, 1.0);
+    
+    TString name6 = "h1_Dalitz_Y";
+    TString title6 = "Dalitz Y";
+    h1_Dalitz_Y = new TH1F(name6, title6, 101, -1.0, 1.0);
+
+    TString name7 = "h2_DalitzPlot";
+    TString title7 = "Dalitz Plot";
+    h2_DalitzPlot = new TH2F(name7, title7, 101, -1.0, 1.0, 101, -1.0, 1.0);
+
   }
 
   ~ThreadHistograms() {
     delete h1_PiPlusPiMinusGamma1Gamma2InvMass;
     delete h1_Gamma1Gamma2InvMass;
+    delete h1_EnergyBeam;
+    delete h1_MandelstamT;
+    delete h1_Dalitz_X;
+    delete h1_Dalitz_Y;
+    delete h2_DalitzPlot;
   }
 };
 
@@ -309,6 +338,41 @@ struct ThreadTree {
 
 };
 
+struct CutConfig {
+  Bool_t enablePhotonBeamEnergyCut;
+  Int_t PhotonBeamEnergyRange[2];
+  Bool_t enableKfitCut;
+  Double_t kfit_cut;
+  Bool_t enablePi0MassCut;
+  Double_t Pi0MassRange[2];
+  Bool_t enablePhotonsThetaCut;
+  Bool_t enableMandelstamTCut;
+  Double_t MandelstamTCutRange[2];
+
+  CutConfig() {
+    enablePhotonBeamEnergyCut = kFALSE;
+    PhotonBeamEnergyRange[0] = 0;
+    PhotonBeamEnergyRange[1] = 12.0;
+    enableKfitCut = kFALSE;
+    kfit_cut = 0.001;
+    enablePi0MassCut = kFALSE;
+    Pi0MassRange[0] = 0.115;
+    Pi0MassRange[1] = 0.155;
+    enablePhotonsThetaCut = kFALSE;
+    enableMandelstamTCut = kFALSE;
+    MandelstamTCutRange[0] = 0.0;
+    MandelstamTCutRange[1] = 1.0;
+  }
+
+  void Print() {
+    cout << "Cut configuration:\n";
+    cout << "Photon beam energy cut: " << (enablePhotonBeamEnergyCut ? "Enabled" : "Disabled") << " " << PhotonBeamEnergyRange[0] << " - " << PhotonBeamEnergyRange[1] << endl;
+    cout << "Kinematic fit cut: " << (enableKfitCut ? "Enabled" : "Disabled") << " " << kfit_cut << endl;
+    cout << "Pi0 mass cut: " << (enablePi0MassCut ? "Enabled" : "Disabled") << " " << Pi0MassRange[0] << " - " << Pi0MassRange[1] << endl;
+    cout << "Photons theta cut: " << (enablePhotonsThetaCut ? "Enabled" : "Disabled") << endl;
+  }
+};
+
 struct SidebandSubtractionParameters {
   Double_t GaussianMean;
   Double_t GaussianSigma;
@@ -328,7 +392,7 @@ struct SidebandSubtractionParameters {
   }
 };
 
-void processEntryRange(TChain* dataChain, Bool_t is_mc, SidebandSubtractionParameters sidebandParameters, Long64_t startEntry, Long64_t endEntry, ThreadHistograms*& histograms, ThreadTree*& outputThreadTree) {
+void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, SidebandSubtractionParameters sidebandParameters, Long64_t startEntry, Long64_t endEntry, ThreadHistograms*& histograms, ThreadTree*& outputThreadTree) {
   
   cout << "Processing entries from " << startEntry << " to " << endEntry << endl;
   TChain* dataChainProcess = new TChain("myTree");
@@ -341,7 +405,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, SidebandSubtractionParam
   Double_t EnP3,PxP3,PyP3,PzP3;
   Double_t X,Y,weight=1.0;
 
-  sidebandParameters.Print();
+  // sidebandParameters.Print();
 
   if (sidebandParameters.WeightSidebands == 0.0) outputThreadTree = new ThreadTree(treeThreadFileName, "nt", treeThreadDirName, startEntry);
   else {
@@ -419,20 +483,44 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, SidebandSubtractionParam
   for (Long64_t entry = startEntry; entry < endEntry; ++entry) {
     dataChainProcess->GetEntry(entry);
 
-    if (kfit_prob <= kfit_cut) continue;
+    if (cutConfig.enableKfitCut && kfit_prob < cutConfig.kfit_cut) continue;
+
+    if (cutConfig.enablePhotonsThetaCut) {
+      Bool_t isPhoton1InTransitionRegion = g1_p4_kin->Theta()*TMath::RadToDeg() > 10.3 && g1_p4_kin->Theta()*TMath::RadToDeg() < 11.9;
+      Bool_t isPhoton1InLowThetaAngle = g1_p4_kin->Theta()*TMath::RadToDeg() < 2.5;
+      Bool_t isPhoton2InTransitionRegion = g2_p4_kin->Theta()*TMath::RadToDeg() > 10.3 && g2_p4_kin->Theta()*TMath::RadToDeg() < 11.9;
+      Bool_t isPhoton2InLowThetaAngle = g2_p4_kin->Theta()*TMath::RadToDeg() < 2.5;
+      Bool_t isRejectPhotons = isPhoton1InTransitionRegion || isPhoton1InLowThetaAngle || isPhoton2InTransitionRegion || isPhoton2InLowThetaAngle;
+      if (isRejectPhotons) continue;
+    }
+    
+    // cout << "Processing entry " << entry << endl;
+    Double_t MandelstamT = -1.0*(p4_TargetProton - *p_p4_kin).M2();
+    if (cutConfig.enableMandelstamTCut) {
+      Bool_t isMandelstamTInRange = MandelstamT > cutConfig.MandelstamTCutRange[0] && MandelstamT < cutConfig.MandelstamTCutRange[1];
+      if (!isMandelstamTInRange) continue;
+    }
+
+    TLorentzVector p4_Gamma1Gamma2 = (*g1_p4_kin + *g2_p4_kin);
+    Double_t m_Gamma1Gamma2 = p4_Gamma1Gamma2.M();
+    if (cutConfig.enablePi0MassCut) {
+      Bool_t isPi0MassInRange = m_Gamma1Gamma2 > cutConfig.Pi0MassRange[0] && m_Gamma1Gamma2 < cutConfig.Pi0MassRange[1];
+      if (!isPi0MassInRange) continue;
+    }
+    TLorentzVector p4_PiPlusPiMinusGamma1Gamma2 = (*pip_p4_kin + *pim_p4_kin + *g1_p4_kin + *g2_p4_kin);
+    Double_t m_PiPlusPiMinusGamma1Gamma2 = p4_PiPlusPiMinusGamma1Gamma2.M();
+
+    EnBeam = beam_p4_kin->E();    
+    if (cutConfig.enablePhotonBeamEnergyCut) {
+      Bool_t isPhotonBeamEnergyInRange = EnBeam > cutConfig.PhotonBeamEnergyRange[0] && EnBeam < cutConfig.PhotonBeamEnergyRange[1];
+      if (!isPhotonBeamEnergyInRange) continue;
+    }
 
     if(dBRT >= -2.0 && dBRT <= 2.0){
       weight = 1.0;
     }
     else weight = -1.0/8.0;
 
-    TLorentzVector p4_PiPlusPiMinusGamma1Gamma2 = (*pip_p4_kin + *pim_p4_kin + *g1_p4_kin + *g2_p4_kin);
-    TLorentzVector p4_Gamma1Gamma2 = (*g1_p4_kin + *g2_p4_kin);
-
-    Double_t m_PiPlusPiMinusGamma1Gamma2 = p4_PiPlusPiMinusGamma1Gamma2.M();
-    Double_t m_Gamma1Gamma2 = p4_Gamma1Gamma2.M();
-
-    EnBeam = beam_p4_kin->E();
     PxBeam = beam_p4_kin->Px();
     PyBeam = beam_p4_kin->Py();
     PzBeam = beam_p4_kin->Pz();
@@ -463,9 +551,31 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, SidebandSubtractionParam
       }
     }
 
+    // Calculate X and Y
+    TLorentzVector eta = (*pip_p4_kin + *pim_p4_kin + *g1_p4_kin + *g2_p4_kin);
+    TVector3 eta_boost = eta.BoostVector();
+    TLorentzVector boosted_p1 = *pip_p4_kin;
+    TLorentzVector boosted_p2 = *pim_p4_kin;
+    TLorentzVector boosted_p3 = *g1_p4_kin + *g2_p4_kin;
+    boosted_p1.Boost(eta_boost*(-1));
+    boosted_p2.Boost(eta_boost*(-1));
+    boosted_p3.Boost(eta_boost*(-1));
+    Double_t T_plus = boosted_p1.E() - boosted_p1.M();
+    Double_t T_minus = boosted_p2.E() - boosted_p2.M();
+    Double_t T_zero = boosted_p3.E() - boosted_p3.M();
+    Double_t T_all = T_plus + T_minus + T_zero;
+    Double_t X_c = TMath::Sqrt(3.0)*(T_plus - T_minus)/T_all;
+    Double_t Y_c = 3.0*T_zero/T_all - 1.0;
+
     outputThreadTree->outputTree->Fill();
+    histograms->h1_EnergyBeam->Fill(EnBeam, weight);
+    histograms->h1_MandelstamT->Fill(MandelstamT, weight);
     histograms->h1_PiPlusPiMinusGamma1Gamma2InvMass->Fill(m_PiPlusPiMinusGamma1Gamma2, weight);
     histograms->h1_Gamma1Gamma2InvMass->Fill(m_Gamma1Gamma2, weight);
+    histograms->h1_Dalitz_X->Fill(X_c, weight);
+    histograms->h1_Dalitz_Y->Fill(Y_c, weight);
+    histograms->h2_DalitzPlot->Fill(X_c, Y_c, weight);
+
   }
   // outputThreadTree->WriteTree();
   outputThreadTree->outputFile->Write();
@@ -474,7 +584,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, SidebandSubtractionParam
   delete dataChainProcess;
 }
 
-void parallelProcess(TChain* dataChain, Bool_t is_mc, SidebandSubtractionParameters sidebandParameters) {
+void parallelProcess(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, SidebandSubtractionParameters sidebandParameters) {
 
     const Long64_t nEntries = dataChain->GetEntries();
     const unsigned nThreads = 64;
@@ -500,11 +610,11 @@ void parallelProcess(TChain* dataChain, Bool_t is_mc, SidebandSubtractionParamet
     ThreadTree* outputThreadTree[nThreads];
 
     // Foreach requires a function that can be applied to each element of a collection
-    auto processRange = [dataChain, is_mc, sidebandParameters, &histograms, &outputThreadTree, entriesPerThread](const std::pair<Int_t, Int_t>& range) {
+    auto processRange = [dataChain, is_mc, cutConfig, sidebandParameters, &histograms, &outputThreadTree, entriesPerThread](const std::pair<Int_t, Int_t>& range) {
         Long64_t startEntry = range.first;
         Long64_t endEntry = range.second;
         unsigned idx = startEntry/entriesPerThread;
-        processEntryRange(dataChain, is_mc, sidebandParameters, startEntry, endEntry, histograms[idx], outputThreadTree[idx]);
+        processEntryRange(dataChain, is_mc, cutConfig, sidebandParameters, startEntry, endEntry, histograms[idx], outputThreadTree[idx]);
     };
 
     // cout << "Processing " << nEntries << " entries with " << nThreads << " threads" << endl;
@@ -861,10 +971,21 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
 
   TTree *out_tree = new TTree("nt","nt");
 
-  
+
+  CutConfig cutConfig;
+  cutConfig.enablePhotonBeamEnergyCut = enablePhotonBeamEnergyCut;
+  cutConfig.PhotonBeamEnergyRange[0] = PhotonBeamEnergyRange[0];
+  cutConfig.PhotonBeamEnergyRange[1] = PhotonBeamEnergyRange[1];
+  cutConfig.enableKfitCut = enableKfitCut;
+  cutConfig.enablePi0MassCut = enablePi0MassCut;
+  cutConfig.enablePhotonsThetaCut = enablePhotonsThetaCut;
+  cutConfig.enableMandelstamTCut = enableMandelstamTCut;
+  cutConfig.MandelstamTCutRange[0] = MandelstamTCutRange[0];
+  cutConfig.MandelstamTCutRange[1] = MandelstamTCutRange[1];
+
   SidebandSubtractionParameters sidebandParameters;
   sidebandParameters.WeightSidebands = 0.0;
-  parallelProcess(dataChain, is_mc, sidebandParameters);
+  parallelProcess(dataChain, is_mc, cutConfig, sidebandParameters);
   sidebandParameters = GetSidebandParameters();
   cout << "Sideband subtraction parameters: " << endl;
   cout << "Gaussian mean: " << sidebandParameters.GaussianMean << endl;
@@ -874,7 +995,7 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
   cout << "Signal range: " << sidebandParameters.SignalRange[0] << " - " << sidebandParameters.SignalRange[1] << endl;
   cout << "Weight sidebands: " << sidebandParameters.WeightSidebands << endl;
 
-  parallelProcess(dataChain, is_mc, sidebandParameters);
+  parallelProcess(dataChain, is_mc, cutConfig, sidebandParameters);
 
   outfile->cd();
   out_tree->Write();
