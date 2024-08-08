@@ -31,6 +31,8 @@ TString runDir = "/d/grid17/septian/Eta3PiDalitz/run/";
 TString treeThreadDirName = Form("%sEta3PiSelectorParallelTree",runDir.Data());
 TString treeThreadFileName = "Eta3PiSelectorParallelTree";
 
+const unsigned nThreads = 64;
+
 //kfit_cut value represents a cut on the kinematic fit probability!
 Double_t kfit_cut = 0.001;
 Bool_t enableKfitCut = kTRUE;
@@ -44,11 +46,11 @@ const Bool_t enablePhotonsThetaCut = kTRUE;
 
 //user config for energy beam cut
 //used if enablePhotonBeamEnergyCut = kTRUE
-// const Double_t PhotonBeamEnergyBin[6] = {6.5,7.5,8.0,9.0,10.0,11.6};
-const Double_t PhotonBeamEnergyBin[2] = {6.5,11.6};
-// const Double_t kfit_cut_Ebeam[5] = {0.001,0.001,0.001,0.001,0.001};
+const Double_t PhotonBeamEnergyBin[6] = {6.5,7.5,8.0,9.0,10.0,11.6};
+// const Double_t PhotonBeamEnergyBin[2] = {6.5,11.6};
+const Double_t kfit_cut_Ebeam[5] = {0.001,0.001,0.001,0.001,0.001};
 // analysis note kfit_cut = 0.001
-const Double_t kfit_cut_Ebeam[1] = {0.001}; 
+// const Double_t kfit_cut_Ebeam[1] = {0.001}; 
 
 //user config for sideband subtraction
 const Bool_t enableSidebandSub = kTRUE;
@@ -122,9 +124,9 @@ vector<string> getCutConfig(TString cutTag, Bool_t enablePhotonBeamEnergyCut, In
 
   // Photon beam energy cut
   if (enablePhotonBeamEnergyCut) {
-    string photonBeamEnergyCutStr = "Photon beam energy range (GeV): Enabled " + to_string(PhotonBeamEnergyBin[0]) + " - " + to_string(PhotonBeamEnergyBin[1]);
+    string photonBeamEnergyCutStr = "Photon beam energy range (GeV): Enabled " + to_string(PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx]) + " - " + to_string(PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx+1]);
     cutConfigs.push_back(photonBeamEnergyCutStr);
-    cout << left << setw(30) << "Photon beam energy range (GeV):" << setw(15) << "Enabled" << setw(20) << PhotonBeamEnergyBin[0] << " - " << PhotonBeamEnergyBin[1] << endl;
+    cout << left << setw(30) << "Photon beam energy range (GeV):" << setw(15) << "Enabled" << setw(20) << PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx] << " - " << PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx+1] << endl;
   }
 
    // Sideband subtraction
@@ -166,8 +168,8 @@ void addDataToChain(TChain* dataChain, int data_set, bool is_mc) {
 
   const char* mcDataPaths[4] = {
     // Placeholder paths for MC data
-    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_genEtaRegge_flat.root",
-    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2018S_genEtaRegge_flat.root",
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2017_genEtaRegge_flat.root",
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root",
     "",
     "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2018S_genEtaRegge_flat.root"
   };
@@ -340,7 +342,7 @@ struct ThreadTree {
 
 struct CutConfig {
   Bool_t enablePhotonBeamEnergyCut;
-  Int_t PhotonBeamEnergyRange[2];
+  Double_t PhotonBeamEnergyRange[2];
   Bool_t enableKfitCut;
   Double_t kfit_cut;
   Bool_t enablePi0MassCut;
@@ -394,7 +396,7 @@ struct SidebandSubtractionParameters {
 
 void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, SidebandSubtractionParameters sidebandParameters, Long64_t startEntry, Long64_t endEntry, ThreadHistograms*& histograms, ThreadTree*& outputThreadTree) {
   
-  cout << "Processing entries from " << startEntry << " to " << endEntry << endl;
+  // cout << "Processing entries from " << startEntry << " to " << endEntry << endl;
   TChain* dataChainProcess = new TChain("myTree");
   dataChainProcess->Add(dataChain);
   //Define output tree
@@ -493,8 +495,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
       Bool_t isRejectPhotons = isPhoton1InTransitionRegion || isPhoton1InLowThetaAngle || isPhoton2InTransitionRegion || isPhoton2InLowThetaAngle;
       if (isRejectPhotons) continue;
     }
-    
-    // cout << "Processing entry " << entry << endl;
+  
     Double_t MandelstamT = -1.0*(p4_TargetProton - *p_p4_kin).M2();
     if (cutConfig.enableMandelstamTCut) {
       Bool_t isMandelstamTInRange = MandelstamT > cutConfig.MandelstamTCutRange[0] && MandelstamT < cutConfig.MandelstamTCutRange[1];
@@ -587,8 +588,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
 void parallelProcess(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, SidebandSubtractionParameters sidebandParameters) {
 
     const Long64_t nEntries = dataChain->GetEntries();
-    const unsigned nThreads = 64;
-    // const unsigned nThreads = std::thread::hardware_concurrency();\
+    // const unsigned nThreads = std::thread::hardware_concurrency();
     cout << "Number of threads: " << nThreads << endl;
     ROOT::TThreadExecutor executor(nThreads);
 
@@ -638,9 +638,14 @@ void parallelProcess(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sideb
     }
 }
 
-SidebandSubtractionParameters GetSidebandParameters() {
-  TFile *f = TFile::Open(Form("%smerged_%s.root",treeThreadDirName.Data(),treeThreadFileName.Data()),"READ");
-  TTree *t = (TTree*)f->Get("nt");
+SidebandSubtractionParameters GetSidebandParameters(TString pathToFile) {
+  // check if the merged data file exists
+  TFile *f = TFile::Open(pathToFile.Data(),"READ");
+  if (!f) {
+    cout << "Merged data file does not exist." << endl;
+    exit(1);
+  }
+  // TTree *t = (TTree*)f->Get("nt");
   // cout << "nEntries = " << t->GetEntries() << endl;
   TDirectory *dir = f->GetDirectory("Histograms");
   TH1F *h1_PiPlusPiMinusGamma1Gamma2InvMass = (TH1F*)dir->Get("h1_PiPlusPiMinusGamma1Gamma2InvMass");
@@ -817,6 +822,9 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
   treeThreadDirName += cutTag;
   treeThreadDirName += "/";
 
+  treeThreadFileName += "_";
+  treeThreadFileName += outName;
+
   timer.Start();
   const Double_t PhotonBeamEnergyRange[2] = {PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx],PhotonBeamEnergyBin[PhotonBeamEnergyRangeIdx+1]};
 
@@ -848,7 +856,7 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
   TString outNameDataForMC;
 
   addDataToChain(dataChain, data_set, is_mc);
-  if (is_mc) setMcThrownAndOutName(mcThrown, outNameDataForMC, data_set, enablePhotonBeamEnergyCut, cutTag, PhotonBeamEnergyRangeIdx);
+  // if (is_mc) setMcThrownAndOutName(mcThrown, outNameDataForMC, data_set, enablePhotonBeamEnergyCut, cutTag, PhotonBeamEnergyRangeIdx);
 
   // Int_t nEntries = dataChain->GetEntries();
   // cout << "Number of entries: " << nEntries << endl;
@@ -985,21 +993,38 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
 
   SidebandSubtractionParameters sidebandParameters;
   sidebandParameters.WeightSidebands = 0.0;
-  parallelProcess(dataChain, is_mc, cutConfig, sidebandParameters);
-  sidebandParameters = GetSidebandParameters();
-  cout << "Sideband subtraction parameters: " << endl;
-  cout << "Gaussian mean: " << sidebandParameters.GaussianMean << endl;
-  cout << "Gaussian sigma: " << sidebandParameters.GaussianSigma << endl;
-  cout << "Left sideband range: " << sidebandParameters.LeftSidebandRange[0] << " - " << sidebandParameters.LeftSidebandRange[1] << endl;
-  cout << "Right sideband range: " << sidebandParameters.RightSidebandRange[0] << " - " << sidebandParameters.RightSidebandRange[1] << endl;
-  cout << "Signal range: " << sidebandParameters.SignalRange[0] << " - " << sidebandParameters.SignalRange[1] << endl;
-  cout << "Weight sidebands: " << sidebandParameters.WeightSidebands << endl;
+  if (!is_mc) parallelProcess(dataChain, is_mc, cutConfig, sidebandParameters);
+  
+  TString RunPeriodName;
+  if (data_set == 0) RunPeriodName = "2017";
+  else if (data_set == 1) RunPeriodName = "2018S";
+  else if (data_set == 2) RunPeriodName = "2018F";
+  else if (data_set == 3) RunPeriodName = "all";
 
+  TString outFileName = Form("%s%s",treeThreadDirName.Data(),outName.Data());  
+  if (is_mc) {
+    TString outFileNameData = Form("%sdata_%s_%s.root",treeThreadDirName.Data(),RunPeriodName.Data(),cutTag.Data());
+    sidebandParameters = GetSidebandParameters(outFileNameData);
+  }
+  else {
+    TString mergedFileName = Form("%smerged_%s.root",treeThreadDirName.Data(),treeThreadFileName.Data());
+    sidebandParameters = GetSidebandParameters(mergedFileName);
+    TString outFileNameWOSBS = Form("%sWOSBS_%s",treeThreadDirName.Data(),outName.Data());
+    gSystem->Rename(mergedFileName,outFileNameWOSBS);
+  }
+  sidebandParameters.Print();
   parallelProcess(dataChain, is_mc, cutConfig, sidebandParameters);
 
-  outfile->cd();
-  out_tree->Write();
-  outfile->Close();
+  // rename merged file to outName
+  if (enableSidebandSub) {
+    TString mergedFileName = Form("%smerged_%s_SidebandSubtracted.root",treeThreadDirName.Data(),treeThreadFileName.Data());
+    cout << "Renaming " << mergedFileName << " to " << outFileName << endl;
+    gSystem->Rename(mergedFileName,outFileName);
+  }
+
+  // outfile->cd();
+  // out_tree->Write();
+  // outfile->Close();
 
   //vector to save ranges information
   vector<Double_t> ranges;
