@@ -9,9 +9,9 @@ void DSelector_Eta3Pi_Tree_genEtaRegge::Init(TTree *locTree)
 	// Init() will be called many times when running on PROOF (once per file to be processed).
 
 	//USERS: SET OUTPUT FILE NAME //can be overriden by user in PROOF
-	dOutputFileName = "Eta3Pi_Tree_2017_genEtaRegge.root"; //"" for none
-	dOutputTreeFileName = ""; //"" for none
-	dFlatTreeFileName = "Eta3Pi_Tree_2017_genEtaRegge_flat.root"; //output flat tree (one combo per tree entry), "" for none
+	dOutputFileName = "Hist_Eta3Pi_Tree_genEtaRegge.root"; //"" for none
+	dOutputTreeFileName = "Tree_Eta3Pi_Tree_genEtaRegge.root"; //"" for none
+	dFlatTreeFileName = "Tree_Eta3Pi_Tree_genEtaRegge_flat.root"; //output flat tree (one combo per tree entry), "" for none
 	dFlatTreeName = "myTree"; //if blank, default name will be chosen
 	//dSaveDefaultFlatBranches = true; // False: don't save default branches, reduce disk footprint.
 	//dSaveTLorentzVectorsAsFundamentaFlatTree = false; // Default (or false): save particles as TLorentzVector objects. True: save as four doubles instead.
@@ -70,7 +70,7 @@ void DSelector_Eta3Pi_Tree_genEtaRegge::Init(TTree *locTree)
 	//BEAM ENERGY
 	dAnalysisActions.push_back(new DHistogramAction_BeamEnergy(dComboWrapper, false));
 	// dAnalysisActions.push_back(new DCutAction_BeamEnergy(dComboWrapper, false, 8.2, 8.8));  // Coherent peak for runs in the range 30000-59999
-	dAnalysisActions.push_back(new DCutAction_BeamEnergy(dComboWrapper, true, 6.5, 11.6));  // ccdb beam flux 2017
+	// dAnalysisActions.push_back(new DCutAction_BeamEnergy(dComboWrapper, true, 6.5, 12.0));  // ccdb beam flux 2017
 
 	//KINEMATICS
 	dAnalysisActions.push_back(new DHistogramAction_ParticleComboKinematics(dComboWrapper, false));

@@ -9,8 +9,8 @@ void DSelector_Eta3Pi_Thrown_genEtaRegge::Init(TTree *locTree)
 	// Init() will be called many times when running on PROOF (once per file to be processed).
 
 	//USERS: SET OUTPUT FILE NAME //can be overriden by user in PROOF
-	dOutputFileName = "Eta3Pi_Thrown_2017_genEtaRegge.root"; //"" for none
-	dFlatTreeFileName = "Eta3Pi_Thrown_2017_genEtaRegge_flat.root"; //output flat tree (one combo per tree entry), "" for none
+	dOutputFileName = "Tree_Eta3Pi_Thrown_genEtaRegge.root"; //"" for none
+	dFlatTreeFileName = "Tree_Eta3Pi_Thrown_genEtaRegge_flat.root"; //output flat tree (one combo per tree entry), "" for none
 	dFlatTreeName = "nt"; //if blank, default name will be chosen
 	//USERS: SET OUTPUT TREE FILES/NAMES //e.g. binning into separate files for AmpTools
 	// dOutputTreeFileNameMap["Bin1"] = "mcgen_bin1.root"; //key is user-defined, value is output file name
