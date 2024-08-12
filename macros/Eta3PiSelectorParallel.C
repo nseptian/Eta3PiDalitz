@@ -48,7 +48,6 @@ const Bool_t enablePhotonsThetaCut = kTRUE;
 //used if enablePhotonBeamEnergyCut = kTRUE
 const Double_t PhotonBeamEnergyBin[6] = {6.5,7.5,8.0,9.0,10.0,11.6};
 // const Double_t PhotonBeamEnergyBin[2] = {6.5,11.6};
-const Double_t kfit_cut_Ebeam[5] = {0.001,0.001,0.001,0.001,0.001};
 // analysis note kfit_cut = 0.001
 // const Double_t kfit_cut_Ebeam[1] = {0.001}; 
 
@@ -239,6 +238,7 @@ void setMcThrownAndOutName(TFile*& mcThrown, TString& outNameDataForMC, int data
 }
 
 struct ThreadHistograms {
+  
   TH1F* h1_EnergyBeam;
   TH1F* h1_MandelstamT;
   TH1F* h1_PiPlusPiMinusGamma1Gamma2InvMass;
@@ -246,6 +246,10 @@ struct ThreadHistograms {
   TH1F* h1_Dalitz_X;
   TH1F* h1_Dalitz_Y;
   TH2F* h2_DalitzPlot;
+  TH1F* h1_PhotonTheta1;
+  TH1F* h1_PhotonTheta2;
+  TH1F* h1_zVertex;
+  TH1F* h1_KinFitProb;
 
   ThreadHistograms(){
 
@@ -277,6 +281,21 @@ struct ThreadHistograms {
     TString title7 = "Dalitz Plot";
     h2_DalitzPlot = new TH2F(name7, title7, 101, -1.0, 1.0, 101, -1.0, 1.0);
 
+    TString name8 = "h1_PhotonTheta1";
+    TString title8 = "#theta_{#gamma_{1}}";
+    h1_PhotonTheta1 = new TH1F(name8, title8, 100, 0.0, 180.0);
+
+    TString name9 = "h1_PhotonTheta2";
+    TString title9 = "#theta_{#gamma_{2}}";
+    h1_PhotonTheta2 = new TH1F(name9, title9, 100, 0.0, 180.0);
+
+    TString name10 = "h1_zVertex";
+    TString title10 = "z Vertex";
+    h1_zVertex = new TH1F(name10, title10, 100, -10.0, 10.0);
+
+    TString name11 = "h1_KinFit_Prob";
+    TString title11 = "Kinematic Fit Probability";
+    h1_KinFitProb = new TH1F(name11, title11, 100, 0.0, 1.0);
   }
 
   ~ThreadHistograms() {
@@ -489,9 +508,9 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
 
     if (cutConfig.enablePhotonsThetaCut) {
       Bool_t isPhoton1InTransitionRegion = g1_p4_kin->Theta()*TMath::RadToDeg() > 10.3 && g1_p4_kin->Theta()*TMath::RadToDeg() < 11.9;
-      Bool_t isPhoton1InLowThetaAngle = g1_p4_kin->Theta()*TMath::RadToDeg() < 2.5;
+      Bool_t isPhoton1InLowThetaAngle = g1_p4_kin->Theta()*TMath::RadToDeg() < 2.0;
       Bool_t isPhoton2InTransitionRegion = g2_p4_kin->Theta()*TMath::RadToDeg() > 10.3 && g2_p4_kin->Theta()*TMath::RadToDeg() < 11.9;
-      Bool_t isPhoton2InLowThetaAngle = g2_p4_kin->Theta()*TMath::RadToDeg() < 2.5;
+      Bool_t isPhoton2InLowThetaAngle = g2_p4_kin->Theta()*TMath::RadToDeg() < 2.0;
       Bool_t isRejectPhotons = isPhoton1InTransitionRegion || isPhoton1InLowThetaAngle || isPhoton2InTransitionRegion || isPhoton2InLowThetaAngle;
       if (isRejectPhotons) continue;
     }
@@ -576,6 +595,10 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     histograms->h1_Dalitz_X->Fill(X_c, weight);
     histograms->h1_Dalitz_Y->Fill(Y_c, weight);
     histograms->h2_DalitzPlot->Fill(X_c, Y_c, weight);
+    histograms->h1_PhotonTheta1->Fill(g1_p4_kin->Theta()*TMath::RadToDeg(), weight);
+    histograms->h1_PhotonTheta2->Fill(g2_p4_kin->Theta()*TMath::RadToDeg(), weight);
+    histograms->h1_zVertex->Fill(zVertex, weight);
+    histograms->h1_KinFitProb->Fill(kfit_prob, weight);
 
   }
   // outputThreadTree->WriteTree();
@@ -651,7 +674,7 @@ SidebandSubtractionParameters GetSidebandParameters(TString pathToFile) {
   TH1F *h1_PiPlusPiMinusGamma1Gamma2InvMass = (TH1F*)dir->Get("h1_PiPlusPiMinusGamma1Gamma2InvMass");
 
   // Fit the histogram with a Gaussian and polynomial
-  RooRealVar x("h1_PiPlusPiMinusGamma1Gamma2InvMass_RooFit","Eta->3Pi invariant mass (GeV)",0.46,0.64);
+  RooRealVar x("h1_PiPlusPiMinusGamma1Gamma2InvMass_RooFit","Eta->3Pi invariant mass (GeV)",0.45,0.65);
   RooDataHist data("data","data",RooArgList(x),h1_PiPlusPiMinusGamma1Gamma2InvMass);
    
   TCanvas *canvas = new TCanvas("c","c",800,500);
