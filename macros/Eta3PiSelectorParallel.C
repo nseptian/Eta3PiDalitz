@@ -48,6 +48,8 @@ const Bool_t enablePhotonsThetaCut = kTRUE;
 //used if enablePhotonBeamEnergyCut = kTRUE
 const Double_t PhotonBeamEnergyBin[6] = {6.5,7.5,8.0,9.0,10.0,11.6};
 // const Double_t PhotonBeamEnergyBin[2] = {6.5,11.6};
+
+// const Double_t PhotonBeamEnergyBin[2] = {3.0,11.6};
 // analysis note kfit_cut = 0.001
 // const Double_t kfit_cut_Ebeam[1] = {0.001}; 
 
@@ -165,13 +167,32 @@ void addDataToChain(TChain* dataChain, int data_set, bool is_mc) {
     "/d/grid17/dlersch/AmpTool_Data/data2017/PiPiGG_Tree_2017_data_sideband.root;/d/grid17/dlersch/AmpTool_Data/data2018S/PiPiGG_Tree_2018S_data_sideband.root"
   };
 
+  // ccdbFlux MC
   const char* mcDataPaths[4] = {
     // Placeholder paths for MC data
-    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2017_genEtaRegge_flat.root",
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_ccdbFlux_genEtaRegge_flat.root",
     "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root",
     "",
-    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2018S_genEtaRegge_flat.root"
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_ccdbFlux_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2018S_genEtaRegge_flat.root"
   };
+
+  // cobremsFlux MC
+  // const char* mcDataPaths[4] = {
+  //   // Placeholder paths for MC data
+  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobremsFlux_genEtaRegge_flat.root",
+  //   "",
+  //   "",
+  //   ""
+  // };
+
+  // cobrems + scaled Flux MC
+  // const char* mcDataPaths[4] = {
+  //   // Placeholder paths for MC data
+  //   "/d/home/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobrems_ccdbFlux_genEtaRegge_flat.root",
+  //   "",
+  //   "",
+  //   ""
+  // };
 
   // Select the appropriate path array based on is_mc
   const char* selectedPaths[4];
@@ -267,7 +288,7 @@ struct ThreadHistograms {
 
     TString name4 = "h1_MandelstamT";
     TString title4 = "Mandelstam t";
-    h1_MandelstamT = new TH1F(name4, title4, 100, 0.0, 1.0);
+    h1_MandelstamT = new TH1F(name4, title4, 101, MandelstamTCutRange[0], MandelstamTCutRange[1]);
 
     TString name5 = "h1_Dalitz_X";
     TString title5 = "Dalitz X";
@@ -291,11 +312,11 @@ struct ThreadHistograms {
 
     TString name10 = "h1_zVertex";
     TString title10 = "z Vertex";
-    h1_zVertex = new TH1F(name10, title10, 100, -10.0, 10.0);
+    h1_zVertex = new TH1F(name10, title10, 100, -500.0, -100.0);
 
     TString name11 = "h1_KinFit_Prob";
     TString title11 = "Kinematic Fit Probability";
-    h1_KinFitProb = new TH1F(name11, title11, 100, 0.0, 1.0);
+    h1_KinFitProb = new TH1F(name11, title11, 1000, 0.0, 1.0);
   }
 
   ~ThreadHistograms() {
@@ -421,6 +442,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
   //Define output tree
   gSystem->mkdir(treeThreadDirName,kTRUE);
   Double_t EnBeam,PxBeam,PyBeam,PzBeam;
+  Double_t EnProton,PxProton,PyProton,PzProton;
   Double_t EnP1,PxP1,PyP1,PzP1;
   Double_t EnP2,PxP2,PyP2,PzP2;
   Double_t EnP3,PxP3,PyP3,PzP3;
@@ -438,6 +460,12 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
   outputThreadTree->outputTree->Branch("PxBeam",&PxBeam,"PxBeam/D");
   outputThreadTree->outputTree->Branch("PyBeam",&PyBeam,"PyBeam/D");
   outputThreadTree->outputTree->Branch("PzBeam",&PzBeam,"PzBeam/D");
+
+  // Recoil proton
+  outputThreadTree->outputTree->Branch("EnProton",&EnProton,"EnProton/D");
+  outputThreadTree->outputTree->Branch("PxProton",&PxProton,"PxProton/D");
+  outputThreadTree->outputTree->Branch("PyProton",&PyProton,"PyProton/D");
+  outputThreadTree->outputTree->Branch("PzProton",&PzProton,"PzProton/D");
 
   //Pi+
   outputThreadTree->outputTree->Branch("EnP1",&EnP1,"EnP1/D");
@@ -545,6 +573,11 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     PyBeam = beam_p4_kin->Py();
     PzBeam = beam_p4_kin->Pz();
 
+    EnProton = p_p4_kin->E();
+    PxProton = p_p4_kin->Px();
+    PyProton = p_p4_kin->Py();
+    PzProton = p_p4_kin->Pz();
+
     EnP1 = pip_p4_kin->E();
     PxP1 = pip_p4_kin->Px();
     PyP1 = pip_p4_kin->Py();
@@ -555,10 +588,11 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     PyP2 = pim_p4_kin->Py();
     PzP2 = pim_p4_kin->Pz();
 
-    EnP3 = p_p4_kin->E();
-    PxP3 = p_p4_kin->Px();
-    PyP3 = p_p4_kin->Py();
-    PzP3 = p_p4_kin->Pz();
+    TLorentzVector pi0_p4_kin = *g1_p4_kin + *g2_p4_kin;
+    EnP3 = pi0_p4_kin.E();
+    PxP3 = pi0_p4_kin.Px();
+    PyP3 = pi0_p4_kin.Py();
+    PzP3 = pi0_p4_kin.Pz();
 
     if (sidebandParameters.WeightSidebands < 0.0) {
       Bool_t isInSidebandRange = (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.LeftSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.LeftSidebandRange[1]) || (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.RightSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.RightSidebandRange[1]);
@@ -601,7 +635,8 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     histograms->h1_KinFitProb->Fill(kfit_prob, weight);
 
   }
-  // outputThreadTree->WriteTree();
+  outputThreadTree->outputFile->cd();
+  outputThreadTree->outputTree->Write();
   outputThreadTree->outputFile->Write();
 
   // delete outputThreadTree;
@@ -1026,7 +1061,7 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
 
   TString outFileName = Form("%s%s",treeThreadDirName.Data(),outName.Data());  
   if (is_mc) {
-    TString outFileNameData = Form("%sdata_%s_%s.root",treeThreadDirName.Data(),RunPeriodName.Data(),cutTag.Data());
+    TString outFileNameData = Form("%sWOSBS_data_%s_%s_%d.root",treeThreadDirName.Data(),RunPeriodName.Data(),cutTag.Data(),PhotonBeamEnergyRangeIdx);
     sidebandParameters = GetSidebandParameters(outFileNameData);
   }
   else {
