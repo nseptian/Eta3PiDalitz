@@ -5,5 +5,5 @@ TAG=$1
 ITER=$2
 
 cd $DALITZ/run/
-$DALITZ/DalitzExe/fitAmplitudesBootstrap.exe /d/home/septian/Eta3PiDalitz/run/cfgBootstrapEnergyDep/ana_2017_reweightedMC_${TAG}_4 $ITER $ITER
-# mv -f dalitz_2017_data_${TAG}_${ITER}.fit fitBootstrap/
+$DALITZ/DalitzExe/fitAmplitudesBootstrap.exe /d/home/septian/Eta3PiDalitz/run/cfgBootstrap/ana_2017_${TAG} $ITER $ITER
+# mv -f dalitz_2017_data_reweightedMC_${TAG}_0_${ITER}.fit fitBootstrap/

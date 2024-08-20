@@ -1,12 +1,12 @@
 Universe   = vanilla
-Executable = /d/home/septian/Eta3PiDalitz/batch_run/bootstrap/run.sh
-Arguments  = 10092022 $(Process)
+Executable = /d/grid17/septian/Eta3PiDalitz/batch_run/bootstrap/run.sh
+Arguments  = t01506_ccdbcobremsFlux_genEtaRegge_reweightedMC $(Process)
 
-Log        = /d/home/septian/Eta3PiDalitz/batch_run/bootstrap/log/log_$(Process).log
-Output     = /d/home/septian/Eta3PiDalitz/batch_run/bootstrap/log/out_$(Process).log
-Error      = /d/home/septian/Eta3PiDalitz/batch_run/bootstrap/log/err_$(Process).log
+Log        = /d/grid17/septian/Eta3PiDalitz/batch_run/bootstrap/log/log_$(Process).log
+Output     = /d/grid17/septian/Eta3PiDalitz/batch_run/bootstrap/log/out_$(Process).log
+Error      = /d/grid17/septian/Eta3PiDalitz/batch_run/bootstrap/log/err_$(Process).log
 
-transfer_input_files = /d/home/septian/Eta3PiDalitz/batch_run/bootstrap/run.sh,/d/home/septian/Eta3PiDalitz/batch_run/bootstrap/run_fit.sh
+transfer_input_files = /d/grid17/septian/Eta3PiDalitz/batch_run/bootstrap/run.sh,/d/grid17/septian/Eta3PiDalitz/batch_run/bootstrap/run_fit.sh
 transfer_output_files = out_$(Process) 
 
 queue Process from seq 0 999 |
