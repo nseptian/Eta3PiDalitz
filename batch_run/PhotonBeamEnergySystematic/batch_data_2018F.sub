@@ -1,0 +1,13 @@
+Universe   = vanilla
+Executable = /d/grid17/septian/Eta3PiDalitz/batch_run/PhotonBeamEnergySystematic/run.sh
+Arguments  = 2 data_2018F 0 t01506_ExpPolyBkg PhotonBeamEnergy $(Process) 4
+
+Log        = /d/grid17/septian/Eta3PiDalitz/batch_run/PhotonBeamEnergySystematic/log_data_2018F_t01506_ExpPolyBkg_PhotonBeamEnergy/log_$(Process).log
+Output     = /d/grid17/septian/Eta3PiDalitz/batch_run/PhotonBeamEnergySystematic/log_data_2018F_t01506_ExpPolyBkg_PhotonBeamEnergy/out_$(Process).log
+Error      = /d/grid17/septian/Eta3PiDalitz/batch_run/PhotonBeamEnergySystematic/log_data_2018F_t01506_ExpPolyBkg_PhotonBeamEnergy/err_$(Process).log
+
+transfer_input_files = /d/grid17/septian/Eta3PiDalitz/batch_run/PhotonBeamEnergySystematic/run.sh,/d/grid17/septian/Eta3PiDalitz/macros/runEta3PiSelectorParallelNew.sh
+request_cpus = 4
+request_memory = 8GB
+
+queue Process from seq 0 4 |
