@@ -37,7 +37,7 @@ Bool_t enableKfitCut = kTRUE;
 
 //user config for pi_0 invariant mass range cut
 const Bool_t enablePi0MassCut = kTRUE;
-const Double_t Pi0MassRange[2] = {0.115,0.155}; //GeV
+Double_t Pi0MassRange[2] = {0.115,0.155}; //GeV
 
 //user config for theta photons cut
 const Bool_t enablePhotonsThetaCut = kTRUE;
@@ -49,10 +49,12 @@ Double_t PhotonBeamEnergyRange[2] = {6.5,11.6};
 const Bool_t enableSidebandSub = kTRUE;
 const Bool_t fitOnly = kFALSE;
 const Bool_t signalOnlyTree = kFALSE;
-const Double_t width = 0.025;
+const Double_t width = 0.02;
 // const Double_t signalRange[2] = {0.53,0.565}; //commented -> determine using sigma value from the fit
-const Double_t leftSidebandRange[2] = {0.48-width,0.48};
-const Double_t rightSidebandRange[2] = {0.61,0.61+width};
+Double_t leftSidebandRange[2] = {0.48,0.5};
+Double_t rightSidebandRange[2] = {0.60,0.62};
+
+Double_t MissingZVertexRange[2] = {-320,-200};
 
 //user config for MC
 //set this two for every MC
@@ -197,8 +199,8 @@ void addDataToChain(TChain* dataChain, int data_set, bool is_mc) {
     // Placeholder paths for MC data
     "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobrems_ccdbFlux_genEtaRegge_flat.root",
     "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root",
-    "",
-    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobrems_ccdbFlux_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root"
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018F_ccdbFlux_genEtaRegge_flat.root",
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobrems_ccdbFlux_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018F_ccdbFlux_genEtaRegge_flat.root"
   };
 
   // Select the appropriate path array based on is_mc
@@ -397,6 +399,7 @@ struct CutConfig {
   Bool_t enablePhotonsThetaCut;
   Bool_t enableMandelstamTCut;
   Double_t MandelstamTCutRange[2];
+  Double_t MissingZVertexRange[2];
 
   CutConfig() {
     enablePhotonBeamEnergyCut = kFALSE;
@@ -405,12 +408,14 @@ struct CutConfig {
     enableKfitCut = kFALSE;
     kfit_cut = 0.001;
     enablePi0MassCut = kFALSE;
-    Pi0MassRange[0] = 0.115;
-    Pi0MassRange[1] = 0.155;
+    Pi0MassRange[0] = 0.0;
+    Pi0MassRange[1] = 0.2;
     enablePhotonsThetaCut = kFALSE;
     enableMandelstamTCut = kFALSE;
     MandelstamTCutRange[0] = 0.0;
     MandelstamTCutRange[1] = 1.0;
+    MissingZVertexRange[0] = -320;
+    MissingZVertexRange[1] = -200;
   }
 
   void Print() {
@@ -540,6 +545,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     dataChainProcess->GetEntry(entry);
 
     if (cutConfig.enableKfitCut && kfit_prob < cutConfig.kfit_cut) continue;
+    if (zVertex < cutConfig.MissingZVertexRange[0] || zVertex > cutConfig.MissingZVertexRange[1]) continue;
 
     if (cutConfig.enablePhotonsThetaCut) {
       Bool_t isPhoton1InTransitionRegion = g1_p4_kin->Theta()*TMath::RadToDeg() > 10.3 && g1_p4_kin->Theta()*TMath::RadToDeg() < 11.9;
@@ -725,6 +731,37 @@ class SystematicVariation {
       else if (SystematicVariation == "BkgModel") {
         bkgModelValue = bkgModel[SystematicVariationIdx];
       }
+      else if (SystematicVariation == "Pi0Mass") {
+        if (SystematicVariationIdx) {
+          Pi0MassRange[0] += 0.01;
+          Pi0MassRange[1] -= 0.01;
+        }
+        else {
+          Pi0MassRange[0] -= 0.01;
+          Pi0MassRange[1] += 0.01;
+        }
+      }
+      else if (SystematicVariation == "ConfidenceLevel") {
+        values[0] = ConfidenceLevelCut[SystematicVariationIdx];
+      }
+      else if (SystematicVariation == "SidebandPosition") {
+        values[0] = 0.0;
+        values[1] = 0.0;
+        leftSidebandRange[0] -= 0.01*SystematicVariationIdx;
+        leftSidebandRange[1] -= 0.01*SystematicVariationIdx;
+        rightSidebandRange[0] += 0.01*SystematicVariationIdx;
+        rightSidebandRange[1] += 0.01*SystematicVariationIdx;
+      }
+      else if (SystematicVariation == "SidebandWidth") {
+        values[0] = 0.0;
+        values[1] = 0.0;
+        leftSidebandRange[0] -= 0.01*SystematicVariationIdx;
+        rightSidebandRange[1] += 0.01*SystematicVariationIdx;
+      }
+      else if (SystematicVariation == "ZVertex") {
+        MissingZVertexRange[0] += zVertexShift[SystematicVariationIdx];
+        MissingZVertexRange[1] -= zVertexShift[SystematicVariationIdx];
+      }
     }
 
     Double_t GetSystematicVariationValue(Int_t idx=0) {
@@ -738,10 +775,13 @@ class SystematicVariation {
   private:
     Double_t values[2];
     BkgModel bkgModelValue;
-    const Double_t PhotonBeamEnergyRange[9] = {3.0,4.0,5.0,6.5,7.5,8.0,9.0,10.0,11.6};
+    // const Double_t PhotonBeamEnergyRange[9] = {3.0,4.0,5.0,6.5,7.5,8.0,9.0,10.0,11.6};
+    const Double_t PhotonBeamEnergyRange[6] = {3.0,4.5,6.5,8.5,9.5,11.6};
     // add more systematic variations here
     const Double_t MandelstamTCutRange[2] = {0.15,0.6};
     const BkgModel bkgModel[3] = {ARGUS,CHEBYCHEV,EXPPOLY};
+    const Double_t ConfidenceLevelCut[4] = {0.0001,0.0005,0.005,0.01};
+    const Double_t zVertexShift[2] = {8,20};
 };
 
 SidebandSubtractionParameters GetSidebandParameters(TString pathToFile, TString fitFileNameTag, BkgModel bkgModel) {
@@ -989,6 +1029,11 @@ SidebandSubtractionParameters GetSidebandParameters(TString pathToFile, TString 
 void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cutTag, TString SystematicVariationStr, Int_t SystematicVariationIdx, Int_t nThreads) {
   Initialize();
   TStopwatch timer;
+  timer.Start();
+  if (data_set != 0 && SystematicVariationStr == "PhotonBeamEnergy") {
+    SystematicVariationIdx += 2; // start from 6.5 GeV
+  }
+
   treeThreadDirName += "_";
   treeThreadDirName += cutTag;
   treeThreadDirName += "/";
@@ -1004,13 +1049,15 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
     treeThreadFileName += SystematicVariationIdx;
   }
 
-  timer.Start();
-  if (data_set != 0 && SystematicVariationStr == "PhotonBeamEnergy") {
-    SystematicVariationIdx += 3; // start from 6.5 GeV
-  }
   SystematicVariation systematicVariation(SystematicVariationStr, SystematicVariationIdx);
 
   Double_t PhotonBeamEnergyRange[2] = {6.5,11.6}; // default range for CCDB flux
+  if ((SystematicVariationStr!="PhotonBeamEnergy") && (data_set==0)) {
+    // default range for 2017 data
+    PhotonBeamEnergyRange[0] = 3.0;
+    PhotonBeamEnergyRange[1] = 11.6;
+  }
+
   if (SystematicVariationStr == "PhotonBeamEnergy") {
     PhotonBeamEnergyRange[0] = systematicVariation.GetSystematicVariationValue(0);
     PhotonBeamEnergyRange[1] = systematicVariation.GetSystematicVariationValue(1);
@@ -1021,6 +1068,9 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
   }
   if (SystematicVariationStr == "BkgModel") {
     bkgModel = systematicVariation.GetSystematicBkgVariation();
+  }
+  if (SystematicVariationStr == "ConfidenceLevel") {
+    kfit_cut = systematicVariation.GetSystematicVariationValue(0);
   }
 
   //vector to save cut configuration
@@ -1075,11 +1125,16 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
   cutConfig.PhotonBeamEnergyRange[0] = PhotonBeamEnergyRange[0];
   cutConfig.PhotonBeamEnergyRange[1] = PhotonBeamEnergyRange[1];
   cutConfig.enableKfitCut = enableKfitCut;
+  cutConfig.kfit_cut = kfit_cut;
   cutConfig.enablePi0MassCut = enablePi0MassCut;
+  cutConfig.Pi0MassRange[0] = Pi0MassRange[0];
+  cutConfig.Pi0MassRange[1] = Pi0MassRange[1];
   cutConfig.enablePhotonsThetaCut = enablePhotonsThetaCut;
   cutConfig.enableMandelstamTCut = kTRUE;
   cutConfig.MandelstamTCutRange[0] = MandelstamTCutRange[0];
   cutConfig.MandelstamTCutRange[1] = MandelstamTCutRange[1];
+  cutConfig.MissingZVertexRange[0] = MissingZVertexRange[0];
+  cutConfig.MissingZVertexRange[1] = MissingZVertexRange[1];
 
   SidebandSubtractionParameters sidebandParameters;
   sidebandParameters.WeightSidebands = 0.0; // default value
@@ -1100,7 +1155,7 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
   outName += ".root";
 
   TString outFileName = Form("%s%s",treeThreadDirName.Data(),outName.Data());
-  TString fitFileNameTag = Form("%s_%s_%d",RunPeriodName.Data(),cutTag.Data(),SystematicVariationIdx);
+  TString fitFileNameTag = Form("%s_%s_%s_%d",RunPeriodName.Data(),cutTag.Data(),SystematicVariationStr.Data(),SystematicVariationIdx);
   if (is_mc) {
     TString outFileNameData = Form("%sWOSBS_data_%s_%s_%s_%d.root",treeThreadDirName.Data(),RunPeriodName.Data(),cutTag.Data(),SystematicVariationStr.Data(),SystematicVariationIdx);
     sidebandParameters = GetSidebandParameters(outFileNameData,fitFileNameTag,bkgModel);
