@@ -10,22 +10,25 @@ int main(int argc, char* argv[]){
 
   if (argc < 3){
     cout << "Usage:" << endl << endl;
-    cout << "\textractFitPars <fit results base name> <base output file name>" << endl << endl;
+    cout << "\textractFitPars <fit results base name> <base output file name> <lower_idx>-<upper_idx>" << endl << endl;
     cout << "Example:" << endl << endl;
-    cout << "\textractFitPars dalitz_2017_data_02202023_kfit001 fitPars_2017_data_02202023_kfit001.txt" << endl << endl;
+    cout << "\textractFitPars dalitz_2017_data_02202023_kfit001 fitPars_2017_data_02202023_kfit001.txt 0-4" << endl << endl;
     return 0;
   }
 
   string resultsname(argv[1]);
   string outtxtname(argv[2]);
+  string idx(argv[3]);
+  int lower_idx = stoi(idx.substr(0, idx.find("-")));
+  int upper_idx = stoi(idx.substr(idx.find("-")+1, idx.size()));
   cout << "Output txt file name  = " << outtxtname << endl << endl;
 
   ofstream ofs(outtxtname, ofstream::out);
   ofs << "// Parameter Values *** " << resultsname << endl;
   ofs << "{" << endl;
-  for (size_t i = 0; i < 5; i++)
+  for (size_t i = lower_idx; i <= upper_idx; i++)
   {
-    cout << "Extracting parameter values for energy bin-" << i+1 << "..." << endl;
+    cout << "Extracting parameter values for energy bin-" << i << "..." << endl;
     string iResultsName = resultsname + "_" + to_string(i) + ".fit";
     cout << "Fit result file name = " << iResultsName << endl << endl;
     FitResults results(iResultsName);
@@ -45,7 +48,7 @@ int main(int argc, char* argv[]){
         ofs << parameterValues[k];
         if (k<parameterValues.size()-1) ofs << ",";
     }
-    if (i==4) {
+    if (i==upper_idx) {
         ofs << "}" << endl;
     } else {
         ofs << "}," << endl;
@@ -55,9 +58,9 @@ int main(int argc, char* argv[]){
 
   ofs << "// Error Values *** " << resultsname << endl;
   ofs << "{" << endl;
-  for (size_t i = 0; i < 5; i++)
+  for (size_t i = lower_idx; i <= upper_idx; i++)
   {
-    cout << "Extracting error values for energy bin-" << i+1 << endl;
+    cout << "Extracting error values for energy bin-" << i << endl;
     string iResultsName = resultsname + "_" + to_string(i) + ".fit";
     cout << "\tFit results file name = " << iResultsName << endl << endl;
     FitResults results(iResultsName);
@@ -68,7 +71,7 @@ int main(int argc, char* argv[]){
         ofs << errorMatrix[k][k];
         if (k<parameterValues.size()-1) ofs << ",";
     }
-    if (i==4) {
+    if (i==upper_idx) {
         ofs << "}" << endl;
     } else {
         ofs << "}," << endl;
