@@ -52,9 +52,9 @@ void DSelector_Eta3Pi_Tree_genEtaRegge::Init(TTree *locTree)
 	//dAnalysisActions.push_back(new DCutAction_EachPIDFOM(dComboWrapper, 0.1));
 
 	//MASSES
-	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, PiPlus, 100, 0.1, 0.15, "PiPlus"));
-	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, PiMinus, 100, 0.1, 0.15, "PiMinus"));
-	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, Pi0, 100, 0.1, 0.15, "Pi0"));
+	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, PiPlus, 100, 0.1, 0.18, "PiPlus"));
+	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, PiMinus, 100, 0.1, 0.18, "PiMinus"));
+	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, Pi0, 100, 0.1, 0.18, "Pi0"));
 	dAnalysisActions.push_back(new DHistogramAction_InvariantMass(dComboWrapper, true, 1, MyEta, 100, 0.0, 1.0, "Eta"));
 	//dAnalysisActions.push_back(new DHistogramAction_MissingMassSquared(dComboWrapper, false, 1000, -0.1, 0.1));
 
