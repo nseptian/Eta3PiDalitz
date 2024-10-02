@@ -8,9 +8,9 @@
 #include "IUAmpTools/ConfigFileParser.h"
 #include "IUAmpTools/ConfigurationInfo.h"
 #include "IUAmpTools/AmpToolsInterface.h"
+#include "DalitzDataIO/DalitzDataReader.h"
 #include "DalitzDataIO/DalitzDataReaderBootstrap.h"
 #include "DalitzAmp/DecayAmp.h"
-
 
 using std::complex;
 using namespace std;
@@ -50,6 +50,7 @@ int main( int argc, char* argv[] ){
     // ************************
 
   AmpToolsInterface::registerAmplitude(DecayAmp());
+  AmpToolsInterface::registerDataReader(DalitzDataReader());
   AmpToolsInterface::registerDataReader(DalitzDataReaderBootstrap());
 
   AmpToolsInterface *ATI[20];
