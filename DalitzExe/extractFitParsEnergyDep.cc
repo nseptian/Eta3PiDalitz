@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "IUAmpTools/FitResults.h"
+#include "math.h"
 
 using namespace std;
 
@@ -68,7 +69,7 @@ int main(int argc, char* argv[]){
     vector<vector<double>> errorMatrix = results.errorMatrix();
     ofs << "{";
     for (int k=3;k<parameterValues.size();k++){
-        ofs << errorMatrix[k][k];
+        ofs << sqrt(errorMatrix[k][k]);
         if (k<parameterValues.size()-1) ofs << ",";
     }
     if (i==upper_idx) {

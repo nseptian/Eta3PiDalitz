@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <math.h>
 #include "IUAmpTools/FitResults.h"
 
 using namespace std;
@@ -42,7 +43,7 @@ int main(int argc, char* argv[]){
   ofs << " *** Error Values *** " << endl;
   ofs << "{";
   for (int i=3;i<parameterName.size();i++){
-      ofs << errorMatrix[i][i];
+      ofs << sqrt(errorMatrix[i][i]);
       if (i<parameterName.size()-1) ofs << ",";
   }
   ofs << "};" << endl;
