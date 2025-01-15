@@ -1,9 +1,9 @@
 #!/bin/sh
 
 RUNFOLDER=/d/home/septian/Eta3PiDalitz/run
-FITFOLDER=$RUNFOLDER/fitEnergyDep
-base_name=dalitz_2017_data_reweightedMC
-tag=ccdbFlux_EgBin_genEtaRegge
+FITFOLDER=$RUNFOLDER/Eta3PiSelectorParallelTree_t01506_ccdbFlux_genEtaRegge
+base_name=dalitz_2018S
+tag=ccdbFlux_genEtaRegge
 
 echo 'Base name is -> '$base_name
 echo 'Tag is -> '$tag

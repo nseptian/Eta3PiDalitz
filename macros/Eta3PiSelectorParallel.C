@@ -167,19 +167,28 @@ void addDataToChain(TChain* dataChain, int data_set, bool is_mc) {
     "/d/grid17/dlersch/AmpTool_Data/data2017/PiPiGG_Tree_2017_data_sideband.root;/d/grid17/dlersch/AmpTool_Data/data2018S/PiPiGG_Tree_2018S_data_sideband.root"
   };
 
-  // ccdbFlux MC
-  // const char* mcDataPaths[4] = {
-  //   // Placeholder paths for MC data
-  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_ccdbFlux_genEtaRegge_flat.root",
-  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root",
+  // Dalitz plot weighted MC for input-output test
+  // Define paths for real data and MC data
+  // const char* realDataPaths[4] = {
+  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2017_DPWeighted_genEtaRegge_flat.root",
   //   "",
-  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_ccdbFlux_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2018S_genEtaRegge_flat.root"
+  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018F_DPWeighted_genEtaRegge_flat.root",
+  //   ""
   // };
+
+  // ccdbFlux MC
+  const char* mcDataPaths[4] = {
+    // Placeholder paths for MC data
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2017_ccdbFlux_30M_genEtaRegge_flat.root",
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root",
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018F_ccdbFlux_genEtaRegge_flat.root",
+    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_ccdbFlux_30M_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2018S_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2018F_genEtaRegge_flat.root"
+  };
 
   // cobremsFlux MC
   // const char* mcDataPaths[4] = {
   //   // Placeholder paths for MC data
-  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobremsFlux_genEtaRegge_flat.root",
+  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2017_cobremsFlux_30M_genEtaRegge_flat.root",
   //   "",
   //   "",
   //   ""
@@ -195,13 +204,13 @@ void addDataToChain(TChain* dataChain, int data_set, bool is_mc) {
   // };
 
   // Combined based on datasets
-  const char* mcDataPaths[4] = {
-    // Placeholder paths for MC data
-    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobrems_ccdbFlux_genEtaRegge_flat.root",
-    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root",
-    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018F_ccdbFlux_genEtaRegge_flat.root",
-    "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobrems_ccdbFlux_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018F_ccdbFlux_genEtaRegge_flat.root"
-  };
+  // const char* mcDataPaths[4] = {
+  //   // Placeholder paths for MC data
+  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobrems_ccdbFlux_genEtaRegge_flat.root",
+  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root",
+  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018F_ccdbFlux_genEtaRegge_flat.root",
+  //   "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobrems_ccdbFlux_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018S_ccdbFlux_genEtaRegge_flat.root;/d/grid17/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2018F_ccdbFlux_genEtaRegge_flat.root"
+  // };
 
   // Select the appropriate path array based on is_mc
   const char* selectedPaths[4];
@@ -280,6 +289,10 @@ struct ThreadHistograms {
   TH1F* h1_PhotonTheta2;
   TH1F* h1_zVertex;
   TH1F* h1_KinFitProb;
+  TH1F* h1_dBRT;
+  TH1F* h1_dBRT_true_combo;
+  TH2F* h2_DalitzPlot_Signal;
+  TH2F* h2_DalitzPlot_Sideband;
 
   ThreadHistograms(){
 
@@ -326,6 +339,23 @@ struct ThreadHistograms {
     TString name11 = "h1_KinFit_Prob";
     TString title11 = "Kinematic Fit Probability";
     h1_KinFitProb = new TH1F(name11, title11, 1000, 0.0, 1.0);
+
+    TString name12 = "h1_dBRT";
+    TString title12 = "dBRT";
+    h1_dBRT = new TH1F(name12, title12, 100, -20.0, 20.0);
+
+    TString name13 = "h1_dBRT_true_combo";
+    TString title13 = "dBRT_true_combo";
+    h1_dBRT_true_combo = new TH1F(name13, title13, 100, -20.0, 20.0);
+
+    TString name14 = "h2_DalitzPlot_Signal";
+    TString title14 = "Dalitz Plot Signal";
+    h2_DalitzPlot_Signal = new TH2F(name14, title14, 101, -1.0, 1.0, 101, -1.0, 1.0);
+
+    TString name15 = "h2_DalitzPlot_Sideband";
+    TString title15 = "Dalitz Plot Sideband";
+    h2_DalitzPlot_Sideband = new TH2F(name15, title15, 101, -1.0, 1.0, 101, -1.0, 1.0);
+
   }
 
   ~ThreadHistograms() {
@@ -336,6 +366,12 @@ struct ThreadHistograms {
     delete h1_Dalitz_X;
     delete h1_Dalitz_Y;
     delete h2_DalitzPlot;
+    delete h1_PhotonTheta1;
+    delete h1_PhotonTheta2;
+    delete h1_zVertex;
+    delete h1_KinFitProb;
+    delete h1_dBRT;
+    delete h1_dBRT_true_combo;
   }
 };
 
@@ -451,6 +487,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
   // cout << "Processing entries from " << startEntry << " to " << endEntry << endl;
   TChain* dataChainProcess = new TChain("myTree");
   dataChainProcess->Add(dataChain);
+
   //Define output tree
   gSystem->mkdir(treeThreadDirName,kTRUE);
   Double_t EnBeam,PxBeam,PyBeam,PzBeam;
@@ -458,7 +495,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
   Double_t EnP1,PxP1,PyP1,PzP1;
   Double_t EnP2,PxP2,PyP2,PzP2;
   Double_t EnP3,PxP3,PyP3,PzP3;
-  Double_t X,Y,weight=1.0;
+  Double_t weight=1.0;
 
   // sidebandParameters.Print();
 
@@ -527,6 +564,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
   dataChainProcess->SetBranchAddress("p_p4_kin", &p_p4_kin);
 
   TLorentzVector p4_TargetProton(0.0,0.0,0.0,0.938272);
+  Bool_t is_true_combo = kFALSE;
 
   if (is_mc) {
     dataChainProcess->SetBranchAddress("pip_p4_true", &pip_p4_true);
@@ -534,6 +572,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     dataChainProcess->SetBranchAddress("g1_p4_true", &g1_p4_true);
     dataChainProcess->SetBranchAddress("g2_p4_true", &g2_p4_true);
     dataChainProcess->SetBranchAddress("beam_p4_true", &beam_p4_true);
+    dataChainProcess->SetBranchAddress("is_trueCombo", &is_true_combo);
   }
 
   // Initialize histograms
@@ -542,7 +581,12 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
   histograms = new ThreadHistograms();
 
   for (Long64_t entry = startEntry; entry < endEntry; ++entry) {
+    // reduce entries using accept/reject method
+    // if (gRandom->Uniform() > 0.04) continue;
+
     dataChainProcess->GetEntry(entry);
+
+    if (is_mc && !is_true_combo) continue;
 
     if (cutConfig.enableKfitCut && kfit_prob < cutConfig.kfit_cut) continue;
     if (zVertex < cutConfig.MissingZVertexRange[0] || zVertex > cutConfig.MissingZVertexRange[1]) continue;
@@ -580,7 +624,9 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     if(dBRT >= -2.0 && dBRT <= 2.0){
       weight = 1.0;
     }
-    else weight = -1.0/8.0;
+    else if (!is_mc) {
+      weight = -1.0/8.0;
+    } else continue;
 
     PxBeam = beam_p4_kin->Px();
     PyBeam = beam_p4_kin->Py();
@@ -606,18 +652,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     PxP3 = pi0_p4_kin.Px();
     PyP3 = pi0_p4_kin.Py();
     PzP3 = pi0_p4_kin.Pz();
-
-    if (sidebandParameters.WeightSidebands < 0.0) {
-      Bool_t isInSidebandRange = (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.LeftSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.LeftSidebandRange[1]) || (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.RightSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.RightSidebandRange[1]);
-      Bool_t isInSignalRange = (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.SignalRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.SignalRange[1]);
-      if (isInSidebandRange) {
-        weight *= sidebandParameters.WeightSidebands;
-      }
-      else if (!isInSignalRange) {
-        continue;
-      }
-    }
-
+    
     // Calculate X and Y
     TLorentzVector eta = (*pip_p4_kin + *pim_p4_kin + *g1_p4_kin + *g2_p4_kin);
     TVector3 eta_boost = eta.BoostVector();
@@ -634,6 +669,18 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     Double_t X_c = TMath::Sqrt(3.0)*(T_plus - T_minus)/T_all;
     Double_t Y_c = 3.0*T_zero/T_all - 1.0;
 
+    if (sidebandParameters.WeightSidebands < 0.0) {
+      Bool_t isInSidebandRange = (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.LeftSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.LeftSidebandRange[1]) || (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.RightSidebandRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.RightSidebandRange[1]);
+      Bool_t isInSignalRange = (m_PiPlusPiMinusGamma1Gamma2 >= sidebandParameters.SignalRange[0] && m_PiPlusPiMinusGamma1Gamma2 <= sidebandParameters.SignalRange[1]);
+      if (isInSidebandRange && !is_mc) {
+        histograms->h2_DalitzPlot_Sideband->Fill(X_c, Y_c, weight);
+        weight *= sidebandParameters.WeightSidebands;
+      }
+      else if (isInSignalRange) {
+        histograms->h2_DalitzPlot_Signal->Fill(X_c, Y_c, weight);
+      } else continue;
+    }
+
     outputThreadTree->outputTree->Fill();
     histograms->h1_EnergyBeam->Fill(EnBeam, weight);
     histograms->h1_MandelstamT->Fill(MandelstamT, weight);
@@ -646,6 +693,7 @@ void processEntryRange(TChain* dataChain, Bool_t is_mc, CutConfig cutConfig, Sid
     histograms->h1_PhotonTheta2->Fill(g2_p4_kin->Theta()*TMath::RadToDeg(), weight);
     histograms->h1_zVertex->Fill(zVertex, weight);
     histograms->h1_KinFitProb->Fill(kfit_prob, weight);
+    histograms->h1_dBRT_true_combo->Fill(dBRT, weight);
 
   }
   outputThreadTree->outputFile->cd();
@@ -800,7 +848,9 @@ SidebandSubtractionParameters GetSidebandParameters(TString pathToFile, TString 
   RooRealVar x("h1_PiPlusPiMinusGamma1Gamma2InvMass_RooFit","Eta->3Pi invariant mass (GeV)",0.45,0.65);
   RooDataHist data("data","data",RooArgList(x),h1_PiPlusPiMinusGamma1Gamma2InvMass);
    
-  TCanvas *canvas = new TCanvas("c","c",800,500);
+  TCanvas *canvas = new TCanvas("c","c",2500,800);
+  canvas->Divide(2,1);
+  canvas->cd(1);
   RooPlot *plotMass = x.frame();
   plotMass->SetTitle(h1_PiPlusPiMinusGamma1Gamma2InvMass->GetTitle());
   plotMass->SetXTitle(h1_PiPlusPiMinusGamma1Gamma2InvMass->GetXaxis()->GetTitle());
@@ -901,10 +951,25 @@ SidebandSubtractionParameters GetSidebandParameters(TString pathToFile, TString 
       break;
     }
   }
-  fitFunction->paramOn(plotMass,Layout(0.1,0.4,0.9),Format("NU",AutoPrecision(0)));
+  canvas->cd(2);
+  plotMass->GetXaxis()->SetTitle("m_{3#pi} (GeV)");
+  plotMass->SetTitle("");
+  plotMass->DrawClone();
+  fitFunction->paramOn(plotMass,Layout(0.15,0.4,0.85),Format("NU",AutoPrecision(1)));
   // plotMass->GetYaxis()->SetRangeUser(0,180000);
+  plotMass->GetXaxis()->SetTitle("m_{3#pi} (GeV)");
+  canvas->cd(1);
   plotMass->Draw();
-  canvas->SaveAs(Form("%sfit_M3Pi_%s.pdf",outDir.Data(),fitFileNameTag.Data()));
+
+  TLegend *legend = new TLegend(0.6,0.6,0.85,0.85);
+  legend->AddEntry(plotMass->getObject(0),"Data","lep");
+  legend->AddEntry(plotMass->getObject(1),"Fit","l");
+  legend->AddEntry(plotMass->getObject(2),"Signal 1","l");
+  legend->AddEntry(plotMass->getObject(3),"Signal 2","l");
+  legend->AddEntry(plotMass->getObject(4),"Background","l");
+  legend->Draw();
+
+
   /*
     if (!fitOnly) plotMass->Write();
 
@@ -1003,6 +1068,24 @@ SidebandSubtractionParameters GetSidebandParameters(TString pathToFile, TString 
       // fitInformation.push_back(RSBArea);
       // fitInformationLabel.push_back("RSBArea");
 
+      canvas->cd(2);
+
+      // Draw green bands in signal range
+      TBox *boxSignal = new TBox(signalRange[0],0,signalRange[1],h1_PiPlusPiMinusGamma1Gamma2InvMass->GetMaximum());
+      // boxSignal->SetFillColor(kGreen);
+      // boxSignal->SetFillStyle(3001);
+      boxSignal->SetFillColorAlpha(kGreen,0.1);
+      boxSignal->Draw();
+      // Draw red bands in sideband range
+      TBox *boxLSB = new TBox(leftSidebandRange[0],0,leftSidebandRange[1],h1_PiPlusPiMinusGamma1Gamma2InvMass->GetMaximum());
+      boxLSB->SetFillColorAlpha(kRed,0.1);
+      boxLSB->Draw();
+      TBox *boxRSB = new TBox(rightSidebandRange[0],0,rightSidebandRange[1],h1_PiPlusPiMinusGamma1Gamma2InvMass->GetMaximum());
+      boxRSB->SetFillColorAlpha(kRed,0.1);
+      boxRSB->Draw();
+
+      canvas->SaveAs(Form("%sfit_M3Pi_%s.pdf",outDir.Data(),fitFileNameTag.Data()));
+
       Double_t weightSideband = -1.0*bkgSignalRangeArea/(LSBArea+RSBArea); 
 
   cout << "weightSideband = " << weightSideband << endl;
@@ -1051,10 +1134,14 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
 
   SystematicVariation systematicVariation(SystematicVariationStr, SystematicVariationIdx);
 
-  Double_t PhotonBeamEnergyRange[2] = {6.5,11.6}; // default range for CCDB flux
-  if ((SystematicVariationStr!="PhotonBeamEnergy") && (data_set==0)) {
-    // default range for 2017 data
+  if ((SystematicVariationStr == "cobremsFlux") && (data_set==0)) {
+     // default range for cobrems flux
     PhotonBeamEnergyRange[0] = 3.0;
+    PhotonBeamEnergyRange[1] = 6.5;
+  }
+  else {
+    // default range for CCDB flux
+    PhotonBeamEnergyRange[0] = 6.5;
     PhotonBeamEnergyRange[1] = 11.6;
   }
 
@@ -1162,11 +1249,12 @@ void Eta3PiSelectorParallel(int data_set,TString outName,bool is_mc, TString cut
   }
   else {
     TString mergedFileName = Form("%smerged_%s.root",treeThreadDirName.Data(),treeThreadFileName.Data());
-    sidebandParameters = GetSidebandParameters(mergedFileName,fitFileNameTag,bkgModel);
     TString outFileNameWOSBS = Form("%sWOSBS_%s",treeThreadDirName.Data(),outName.Data());
     gSystem->Rename(mergedFileName,outFileNameWOSBS);
+    sidebandParameters = GetSidebandParameters(outFileNameWOSBS,fitFileNameTag,bkgModel);
   }
   sidebandParameters.Print();
+  
   parallelProcess(dataChain, is_mc, cutConfig, sidebandParameters, nThreads);
 
   // rename merged file to outName

@@ -2,7 +2,11 @@
 // const Double_t PhotonBeamEnergyBin[2] = {6.5,11.6};
 const Double_t MandelstamtTRange[2] = {0.15,0.6};
 // const Int_t NEnergyBin=3;
-const Double_t PhotonBeamEnergyBin[4] = {3.0,4.0,5.0,6.5};
+// const Double_t PhotonBeamEnergyBin[4] = {3.0,4.0,5.0,6.5};
+const Int_t NEnergyBin=5;
+// const Double_t PhotonBeamEnergyBin[NEnergyBin+1] = {3.0,4.0,5.0,6.5,7.5,8.0,9.0,10.0,11.6};
+const Double_t PhotonBeamEnergyBin[NEnergyBin+1] = {3.0,4.5,6.5,8.5,9.5,11.6};
+// const Double_t PhotonBeamEnergyBin[NEnergyBin+1] = {6.5,8.5,9.5,11.6};
 // const Double_t MandelstamtTRange[2] = {0.1,0.6};
 // TString fileInputName = "/d/home/septian/Eta3PiDalitz/run/root4Amptools/Eta3Pi_Thrown_2017_genEtaRegge_flat.root";
 // TString fileInputName = "/d/grid17/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Thrown_2017_genEtaRegge_flat.root";
@@ -11,18 +15,31 @@ const Double_t PhotonBeamEnergyBin[4] = {3.0,4.0,5.0,6.5};
 // const Double_t PhotonBeamEnergyBin[NEnergyBin+1] = {3.0,11.6};
 TString outDir = "/d/home/septian/Eta3PiDalitzPlots/";
 
-void selectMCThrown(Int_t data_set, TString tag, Int_t PhotonBeamEnergyIdx){ 
+void selectMCThrown(Int_t data_set, TString tag, TString SystematicVariationStr, Int_t PhotonBeamEnergyIdx){ 
     gStyle->SetOptStat(0);
     TString runPeriod[3] = {"2017","2018S","2018F"};
-    TString workingDir = Form("/d/home/septian/Eta3PiDalitz/run/Eta3PiSelectorParallelTree_t01506_ccdbFlux_genEtaRegge/");
+    // TString workingDir = Form("/d/home/septian/Eta3PiDalitz/run/Eta3PiSelectorParallelTree_t01506_ccdbFlux_genEtaRegge/");
     TString DSelectorDir = "/d/home/septian/Eta3PiDalitz/DSelectors/";
-    // TString fileInputName[3] = {Form("%sEta3Pi_Thrown_2017_ccdbFlux_genEtaRegge_flat.root",DSelectorDir.Data()),
-    //                             Form("%sTree_Eta3Pi_Thrown_2018S_ccdbFlux_genEtaRegge_flat.root",DSelectorDir.Data()),
+    TString fileInputName[3] = {Form("%sTree_Eta3Pi_Thrown_2017_ccdbFlux_30M_genEtaRegge_flat.root",DSelectorDir.Data()),
+                                Form("%sTree_Eta3Pi_Thrown_2018S_ccdbFlux_genEtaRegge_flat.root",DSelectorDir.Data()),
+                                Form("%sTree_Eta3Pi_Thrown_2018F_ccdbFlux_genEtaRegge_flat.root",DSelectorDir.Data())};
+    if (SystematicVariationStr == "cobremsFlux") {fileInputName[0] = Form("%sTree_Eta3Pi_Thrown_2017_cobremsFlux_30M_genEtaRegge_flat.root",DSelectorDir.Data());} 
+    // TString fileInputName[3] = {Form("%sEta3Pi_Thrown_2017_cobremsFlux_genEtaRegge_flat.root",DSelectorDir.Data()),
+    //                             "",
+    //                             ""};
+    // TString fileInputName[3] = {Form("%sEta3Pi_Thrown_2017_cobrems_ccdbFlux_genEtaRegge_flat.root",DSelectorDir.Data()),
+    //                             "",
     //                             ""}; 
-    TString fileInputName[3] = {Form("%sEta3Pi_Thrown_2017_cobremsFlux_genEtaRegge_flat.root",DSelectorDir.Data()),
-                                "",
-                                ""}; 
-    TString fileOutputBaseName = Form("Eta3PiSelectorParallelTree_%s/mc_thrown_%s_%s_%d",tag.Data(),runPeriod[data_set].Data(),tag.Data(),PhotonBeamEnergyIdx);
+    // TString fileInputName[3] = {Form("%sTree_Eta3Pi_Thrown_2017_ccdbFlux_30M_genEtaRegge_flat.root",DSelectorDir.Data()),
+    //                             "",
+    //                             ""};
+    // TString fileInputName[3] = {Form("%sTree_Eta3Pi_Thrown_2017_cobremsFlux_30M_genEtaRegge_flat.root",DSelectorDir.Data()),
+    //                             "",
+    //                             ""};
+    // TString fileInputName[3] = {Form("%sTree_Eta3Pi_Thrown_2017_30730_DPWeighted_genEtaRegge_flat.root",DSelectorDir.Data()),
+    //                             "",
+    //                             ""};
+    TString fileOutputBaseName = Form("Eta3PiSelectorParallelTree_%s/mc_thrown_%s_%s_%s_%d",tag.Data(),runPeriod[data_set].Data(),tag.Data(),SystematicVariationStr.Data(),PhotonBeamEnergyIdx);
     
     TChain *dataChain = new TChain("nt");
     dataChain->Add(fileInputName[data_set].Data());
@@ -62,8 +79,20 @@ void selectMCThrown(Int_t data_set, TString tag, Int_t PhotonBeamEnergyIdx){
     TH1F *h1_pippimg1g2mass = new TH1F("h1_pippimg1g2mass","h1_pippimg1g2mass",100,0.45,0.65);
     TH2F *h2_DalitzPlot = new TH2F("h2_DalitzPlotEta3Pi_thrown","h2_DalitzPlotEta3Pi_thrown",101,-1.0,1.0,101,-1.0,1.0);
     
-    Double_t EnBeamMin = PhotonBeamEnergyBin[PhotonBeamEnergyIdx];
-    Double_t EnBeamMax = PhotonBeamEnergyBin[PhotonBeamEnergyIdx+1];
+    Double_t EnBeamMin = 6.5;
+    Double_t EnBeamMax = 11.6;
+
+    if (SystematicVariationStr == "cobremsFlux") {
+        EnBeamMin = 3.0;
+        EnBeamMax = 6.5;
+    }
+    
+    if (SystematicVariationStr == "PhotonBeamEnergy") {
+        EnBeamMin = PhotonBeamEnergyBin[PhotonBeamEnergyIdx];
+        EnBeamMax = PhotonBeamEnergyBin[PhotonBeamEnergyIdx+1];
+    }
+    // else if (SystematicVariationStr == "None" && data_set == 0) EnBeamMin = 6.5;
+
     cout << "EnBeamMin: " << EnBeamMin << endl;
     cout << "EnBeamMax: " << EnBeamMax << endl;
 

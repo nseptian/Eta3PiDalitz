@@ -1,19 +1,21 @@
 const TString outDirPlots = "/d/home/septian/Eta3PiDalitzPlots/";
 
-const TString inFileNameCobrems = "/d/home/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Thrown_2017_cobremsFlux_genEtaRegge_flat.root";
-const TString inFileNameCCDB = "/d/home/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Thrown_2017_ccdbFlux_genEtaRegge_flat.root";
+const TString inFileNameCobrems = "/d/home/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Thrown_2017_cobremsFlux_30M_genEtaRegge_flat.root";
+const TString inFileNameCCDB = "/d/home/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Thrown_2017_ccdbFlux_30M_genEtaRegge_flat.root";
 const TString outFileNameCCDBNorm = "/d/home/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Thrown_2017_ccdbFlux_genEtaRegge_flat_norm.root";
 const TString outFileName = "/d/home/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Thrown_2017_cobrems_ccdbFlux_genEtaRegge_flat.root";
 
-const TString inFileNameReconCobrems = "/d/home/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobremsFlux_genEtaRegge_flat.root";
-const TString inFileNameReconCCDB = "/d/home/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_ccdbFlux_genEtaRegge_flat.root";
+const TString inFileNameReconCobrems = "/d/home/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2017_cobremsFlux_30M_genEtaRegge_flat.root";
+const TString inFileNameReconCCDB = "/d/home/septian/Eta3PiDalitz/DSelectors/Tree_Eta3Pi_Tree_2017_ccdbFlux_30M_genEtaRegge_flat.root";
 const TString outFileNameReconCCDBNorm = "/d/home/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_ccdbFlux_genEtaRegge_flat_norm.root";
 const TString outFileNameRecon = "/d/home/septian/Eta3PiDalitz/DSelectors/Eta3Pi_Tree_2017_cobrems_ccdbFlux_genEtaRegge_flat.root";
 
 const Double_t EnBeamBinSize = 0.5; 
 
 Double_t merge_thrown_cobrems_ccdb(){
-    gStyle->SetOptStat(0);
+    
+    ROOT::EnableImplicitMT(64);
+
     TFile *inFileCobrems = TFile::Open(inFileNameCobrems, "READ");
     TFile *inFileCCDB = TFile::Open(inFileNameCCDB, "READ");
     // TFile *outFile = new TFile(outFileName, "RECREATE");
@@ -31,6 +33,8 @@ Double_t merge_thrown_cobrems_ccdb(){
 
     treeCobrems->SetBranchAddress("EnBeam", &EnBeam);
 
+    cout << " Entries Cobrems tree: " << treeCobrems->GetEntries() << endl;
+
     for (int i = 0; i < treeCobrems->GetEntries(); i++){
         treeCobrems->GetEntry(i);
         if (EnBeam < 3.0 || EnBeam > 6.5) continue;
@@ -39,6 +43,7 @@ Double_t merge_thrown_cobrems_ccdb(){
         // treeCobremsCCDB->Fill();
     }
 
+    cout << " Entries CCDB tree: " << treeCCDB->GetEntries() << endl;
     treeCCDB->SetBranchAddress("EnBeam", &EnBeam);
     for (int i = 0; i < treeCCDB->GetEntries(); i++){
         treeCCDB->GetEntry(i);
@@ -96,6 +101,7 @@ Double_t merge_thrown_cobrems_ccdb(){
     }
 
     treeCCDBNorm->Write();
+    cout << " Entries normalized CCDB tree: " << treeCCDBNorm->GetEntries() << endl;
     outFileCCDBNorm->Close();
 
     TCanvas *cNorm = new TCanvas("cNorm", "cNorm", 800, 600);
@@ -132,6 +138,7 @@ Double_t merge_thrown_cobrems_ccdb(){
     TH1F *hEnBeam = new TH1F("hEnBeam", "hEnBeam", nBins, 0, 12);
 
     tree->SetBranchAddress("EnBeam", &EnBeam);
+    cout << " Entries merged tree: " << tree->GetEntries() << endl;
     for (int i = 0; i < tree->GetEntries(); i++){
         tree->GetEntry(i);
         hEnBeam->Fill(EnBeam);
@@ -211,9 +218,66 @@ void merge_recon_cobrems_ccdb(Double_t normFactor){
     inFileReconCCDB->Close();
 }
 
+void draw_merged_thrown_recon(){
+    TFile *inFileThrown = TFile::Open(outFileName, "READ");
+    TFile *inFileRecon = TFile::Open(outFileNameRecon, "READ");
+
+    TTree *treeThrown = (TTree*)inFileThrown->Get("nt");
+    TTree *treeRecon = (TTree*)inFileRecon->Get("myTree");
+
+    Int_t nBins = 120;
+    TH1F *hEnBeamThrown = new TH1F("hEnBeamThrown", "hEnBeamThrown", nBins, 0, 12);
+    TH1F *hEnBeamRecon = new TH1F("hEnBeamRecon", "hEnBeamRecon", nBins, 0, 12);
+    Double_t EnBeam;
+
+    cout << " Entries thrown tree: " << treeThrown->GetEntries() << endl;
+    cout << " Drawing thrown tree beam energy histogram..." << endl;
+
+    treeThrown->SetBranchAddress("EnBeam", &EnBeam);
+    for (int i = 0; i < treeThrown->GetEntries(); i++){
+        treeThrown->GetEntry(i);
+        hEnBeamThrown->Fill(EnBeam);
+    }
+
+    cout << " Entries recon tree: " << treeRecon->GetEntries() << endl;
+    cout << " Drawing recon tree beam energy histogram..." << endl;
+
+    TLorentzVector *P4_PhotonBeam = 0;
+    treeRecon->SetBranchAddress("beam_p4_kin", &P4_PhotonBeam);
+    for (int i = 0; i < treeRecon->GetEntries(); i++){
+        treeRecon->GetEntry(i);
+        EnBeam = P4_PhotonBeam->E();
+        hEnBeamRecon->Fill(EnBeam);
+    }
+
+    TCanvas *c = new TCanvas("c", "c", 800, 600);
+    hEnBeamRecon->GetXaxis()->SetTitle("E_{#gamma} (GeV)");
+    hEnBeamRecon->GetYaxis()->SetTitle("Counts / 0.1 GeV");
+    hEnBeamRecon->SetTitle("E_{#gamma} distribution");
+    hEnBeamRecon->SetLineColor(kBlue);
+    hEnBeamRecon->SetFillColor(kBlue);
+    hEnBeamRecon->SetFillStyle(3001);
+    hEnBeamRecon->Draw();
+    hEnBeamThrown->SetLineColor(kRed);
+    hEnBeamThrown->SetFillColor(kRed);
+    hEnBeamThrown->SetFillStyle(3001);
+    hEnBeamThrown->Draw("same");
+
+    TLegend *leg = new TLegend(0.75, 0.75, 0.9, 0.9);
+    leg->AddEntry(hEnBeamThrown, "Thrown", "f");
+    leg->AddEntry(hEnBeamRecon, "Reconstructed", "f");
+    leg->Draw();
+    c->SaveAs(outDirPlots + "hEnBeam_thrown_recon.pdf");
+
+    inFileThrown->Close();
+    inFileRecon->Close();
+}
+
 void merge_cobrems_ccdb(){
-    // Double_t normFactor = merge_thrown_cobrems_ccdb();
-    Double_t normFactor = 0.179107;
+    gStyle->SetOptStat(0);
+    Double_t normFactor = merge_thrown_cobrems_ccdb();
+    // Double_t normFactor = 0.179107;
     cout << "Normalization factor: " << normFactor << endl;
     merge_recon_cobrems_ccdb(normFactor);
+    draw_merged_thrown_recon();
 }

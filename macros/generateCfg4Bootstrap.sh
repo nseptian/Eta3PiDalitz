@@ -2,8 +2,8 @@
 
 export RUNFOLDER=/d/home/septian/Eta3PiDalitz/run
 
-tag=10092022
-
+tag=nominal
+TREEDIR=/d/home/septian/Eta3PiDalitz/run/Eta3PiSelectorParallelTree_${tag}/
 # echo "Enter first bootstrap tag (integer):"
 # read fbtag
 
@@ -13,56 +13,212 @@ tag=10092022
 echo 'Cut tag is -> '$tag
 # echo 'Generating bootstrap tag ('$fbtag'..'$lbtag')'
 
-cd $RUNFOLDER
 
-# root -x -q 'EtaTo3PiReconstructionInd.C(0,"root4Amptools/eta_2017_data_'$tag'",0)'
-# root -x -q 'EtaTo3PiReconstructionInd.C(1,"root4Amptools/eta_2018S_data_'$tag'",0)'
-# root -x -q 'EtaTo3PiReconstructionInd.C(2,"root4Amptools/eta_2018F_data_'$tag'",0)'
-# root -x -q 'EtaTo3PiReconstructionAll.C(3,"root4Amptools/eta_all_data_'$tag'",0)'
+mkdir -p $TREEDIR/bootstrap
 
-# root -x -q 'EtaTo3PiReconstructionInd.C(0,"root4Amptools/mc_rec_2017_data_'$tag'",1)'
-# root -x -q 'EtaTo3PiReconstructionInd.C(1,"root4Amptools/mc_rec_2018S_data_'$tag'",1)'
-# root -x -q 'EtaTo3PiReconstructionInd.C(2,"root4Amptools/mc_rec_2018F_data_'$tag'",1)'
-# root -x -q 'EtaTo3PiReconstructionAll.C(3,"root4Amptools/mc_rec_all_data_'$tag'",1)'
-
-export CFGFOLDER=/d/home/septian/Eta3PiDalitz/run/cfg
-export CFGBOOTSTRAPFOLDER=/d/home/septian/Eta3PiDalitz/run/cfgBootstrap
-export ROOT4AMPTOOLSFOLDER=/d/home/septian/Eta3PiDalitz/run/root4Amptools/
-
-# cd $CFGFOLDER
-
-# cp ana_2017_template.cfg ana_2017_$tag.cfg
-# sed -i 's/dalitz_2017_data/dalitz_2017_data_'$tag'/g' ana_2017_$tag.cfg
-# sed -i 's/mc_rec_2017_data/mc_rec_2017_data_'$tag'/g' ana_2017_$tag.cfg
-# sed -i 's/eta_2017_data/eta_2017_data_'$tag'/g' ana_2017_$tag.cfg
-
-# cp ana_2018S_template.cfg ana_2018S_$tag.cfg
-# sed -i 's/dalitz_2018S_data/dalitz_2018S_data_'$tag'/g' ana_2018S_$tag.cfg
-# sed -i 's/mc_rec_2018S_data/mc_rec_2018S_data_'$tag'/g' ana_2018S_$tag.cfg
-# sed -i 's/eta_2018S_data/eta_2018S_data_'$tag'/g' ana_2018S_$tag.cfg
-
-# cp ana_2018F_template.cfg ana_2018F_$tag.cfg
-# sed -i 's/dalitz_2018F_data/dalitz_2018F_data_'$tag'/g' ana_2018F_$tag.cfg
-# sed -i 's/mc_rec_2018F_data/mc_rec_2018F_data_'$tag'/g' ana_2018F_$tag.cfg
-# sed -i 's/eta_2018F_data/eta_2018F_data_'$tag'/g' ana_2018F_$tag.cfg
+# echo 'Generating bootstrap cfg files for 2017-01 (cobremsFlux)'
 
 # for iter in {0..999}
 # do
 #     echo $iter
-#     cp -f $CFGFOLDER/ana_2017_sbs_$tag.cfg $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
-#     sed -i 's/DalitzDataReader/DalitzDataReaderBootstrap/g' $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
-#     sed -i 's/mc_thrown_2017_data.root/mc_thrown_2017_data.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
-#     sed -i 's/mc_rec_2017_data_sbs_'$tag'.root/mc_rec_2017_data_sbs_'$tag'.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
-#     sed -i 's/eta_2017_data_sbs_'$tag'.root/eta_2017_data_sbs_'$tag'.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2017_sbs_${tag}_${iter}.cfg
+#     cp -f $TREEDIR/ana_2017_${tag}_cobremsFlux_0.cfg $TREEDIR/bootstrap/ana_2017_${tag}_cobremsFlux_0_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2017_${tag}_cobremsFlux_0_${iter}.cfg
+#     sed -i 's/data_2017_'$tag'_cobremsFlux_0.root/data_2017_'$tag'_cobremsFlux_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2017_${tag}_cobremsFlux_0_${iter}.cfg
 # done
+
+# echo 'Generating bootstrap cfg files for 2017-01 (ccdbFlux)'
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_2017_${tag}_ccdbFlux_0.cfg $TREEDIR/bootstrap/ana_2017_${tag}_ccdbFlux_0_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2017_${tag}_ccdbFlux_0_${iter}.cfg
+#     sed -i 's/data_2017_'$tag'_ccdbFlux_0.root/data_2017_'$tag'_ccdbFlux_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2017_${tag}_ccdbFlux_0_${iter}.cfg
+# done
+
+# echo 'Generating bootstrap cfg files for 2018-01'
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_2018S_${tag}_None_0.cfg $TREEDIR/bootstrap/ana_2018S_${tag}_None_0_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2018S_${tag}_None_0_${iter}.cfg
+#     sed -i 's/data_2018S_'$tag'_None_0.root/data_2018S_'$tag'_None_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2018S_${tag}_None_0_${iter}.cfg
+# done
+
+# echo 'Generating bootstrap cfg files for 2018-08'
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_2018F_${tag}_None_0.cfg $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+#     sed -i 's/data_2018F_'$tag'_None_0.root/data_2018F_'$tag'_None_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+# done
+
+# c,e not fixed to zero
+
+# echo 'Generating bootstrap cfg files for 2017-01 (cobremsFlux)'
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_2017_${tag}_cobremsFlux_1.cfg $TREEDIR/bootstrap/ana_2017_${tag}_cobremsFlux_1_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2017_${tag}_cobremsFlux_1_${iter}.cfg
+#     sed -i 's/data_2017_'$tag'_cobremsFlux_0.root/data_2017_'$tag'_cobremsFlux_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2017_${tag}_cobremsFlux_1_${iter}.cfg
+# done
+
+# echo 'Generating bootstrap cfg files for 2017-01 (ccdbFlux)'
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_2017_${tag}_ccdbFlux_1.cfg $TREEDIR/bootstrap/ana_2017_${tag}_ccdbFlux_1_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2017_${tag}_ccdbFlux_1_${iter}.cfg
+#     sed -i 's/data_2017_'$tag'_ccdbFlux_0.root/data_2017_'$tag'_ccdbFlux_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2017_${tag}_ccdbFlux_1_${iter}.cfg
+# done
+
+# echo 'Generating bootstrap cfg files for 2018-01'
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_2018S_${tag}_None_1.cfg $TREEDIR/bootstrap/ana_2018S_${tag}_None_1_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2018S_${tag}_None_1_${iter}.cfg
+#     sed -i 's/data_2018S_'$tag'_None_0.root/data_2018S_'$tag'_None_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2018S_${tag}_None_1_${iter}.cfg
+# done
+
+# echo 'Generating bootstrap cfg files for 2018-08'
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_2018F_${tag}_None_1.cfg $TREEDIR/bootstrap/ana_2018F_${tag}_None_1_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_1_${iter}.cfg
+#     sed -i 's/data_2018F_'$tag'_None_0.root/data_2018F_'$tag'_None_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_1_${iter}.cfg
+# done
+
+# variation 2 c,e,g not fixed to zero
+# variation 3 c,e,g,h,l not fixed to zero
+# variation 4 c,e,h,l not fixed to zero, but g fixed to zero
+
+# echo 'Generating bootstrap cfg files for 2017-01 (cobremsFlux)'
+
+variation=4
 
 for iter in {0..999}
 do
     echo $iter
-    cp -f $CFGFOLDER/ana_all_$tag.cfg $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
-    sed -i 's/DalitzDataReader/DalitzDataReaderBootstrap/g' $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
-    sed -i 's/mc_thrown_2017_2018S_data.root/mc_thrown_2017_2018S_data.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
-    sed -i 's/mc_rec_all_data_sbs_'$tag'.root/mc_rec_all_data_sbs_'$tag'.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
-    sed -i 's/eta_all_data_sbs_'$tag'.root/eta_all_data_sbs_'$tag'.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_all_${tag}_${iter}.cfg
+    cp -f $TREEDIR/ana_2017_${tag}_cobremsFlux_${variation}.cfg $TREEDIR/bootstrap/ana_2017_${tag}_cobremsFlux_${variation}_${iter}.cfg
+    sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2017_${tag}_cobremsFlux_${variation}_${iter}.cfg
+    sed -i 's/data_2017_'$tag'_cobremsFlux_0.root/data_2017_'$tag'_cobremsFlux_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2017_${tag}_cobremsFlux_${variation}_${iter}.cfg
 done
-cd $RUNFOLDER
+
+echo 'Generating bootstrap cfg files for 2017-01 (ccdbFlux)'
+
+for iter in {0..999}
+do
+    echo $iter
+    cp -f $TREEDIR/ana_2017_${tag}_ccdbFlux_${variation}.cfg $TREEDIR/bootstrap/ana_2017_${tag}_ccdbFlux_${variation}_${iter}.cfg
+    sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2017_${tag}_ccdbFlux_${variation}_${iter}.cfg
+    sed -i 's/data_2017_'$tag'_ccdbFlux_0.root/data_2017_'$tag'_ccdbFlux_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2017_${tag}_ccdbFlux_${variation}_${iter}.cfg
+done
+
+echo 'Generating bootstrap cfg files for 2018-01'
+
+for iter in {0..999}
+do
+    echo $iter
+    cp -f $TREEDIR/ana_2018S_${tag}_None_${variation}.cfg $TREEDIR/bootstrap/ana_2018S_${tag}_None_${variation}_${iter}.cfg
+    sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2018S_${tag}_None_${variation}_${iter}.cfg
+    sed -i 's/data_2018S_'$tag'_None_0.root/data_2018S_'$tag'_None_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2018S_${tag}_None_${variation}_${iter}.cfg
+done
+
+echo 'Generating bootstrap cfg files for 2018-08'
+
+for iter in {0..999}
+do
+    echo $iter
+    cp -f $TREEDIR/ana_2018F_${tag}_None_${variation}.cfg $TREEDIR/bootstrap/ana_2018F_${tag}_None_${variation}_${iter}.cfg
+    sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_${variation}_${iter}.cfg
+    sed -i 's/data_2018F_'$tag'_None_0.root/data_2018F_'$tag'_None_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_${variation}_${iter}.cfg
+done
+
+# variation=0
+# echo 'Generating bootstrap cfg files for GlueX-I variation 0'
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_GlueX-I_${tag}_${variation}.cfg $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+#     sed -i 's/data_GlueX-I_'$tag'_0.root/data_GlueX-I_'$tag'_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+# done
+
+# variation=1
+# echo 'Generating bootstrap cfg files for GlueX-I variation '$variation
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_GlueX-I_${tag}_${variation}.cfg $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+#     sed -i 's/data_GlueX-I_'$tag'_0.root/data_GlueX-I_'$tag'_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+# done
+
+# variation=2
+# echo 'Generating bootstrap cfg files for GlueX-I variation '$variation
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_GlueX-I_${tag}_${variation}.cfg $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+#     sed -i 's/data_GlueX-I_'$tag'_0.root/data_GlueX-I_'$tag'_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+# done
+
+# variation=3
+# echo 'Generating bootstrap cfg files for GlueX-I variation '$variation
+# for iter in {0..999}
+# do
+#     echo $iter
+#     cp -f $TREEDIR/ana_GlueX-I_${tag}_${variation}.cfg $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+#     sed -i 's/data_GlueX-I_'$tag'_0.root/data_GlueX-I_'$tag'_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_GlueX-I_${tag}_${variation}_${iter}.cfg
+# done
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     mkdir -p $TREEDIR/bootstrap
+#     cp -f $TREEDIR/ana_2018F_${tag}_None_0.cfg $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+#     sed -i 's/DalitzDataReader data/DalitzDataReaderBootstrap data/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+#     # sed -i 's/0.root/0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+#     # sed -i 's/mc_thrown_2018F_'$tag'_0.root/mc_thrown_2018F_'$tag'_0.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2018F_${tag}_reweightedMC_${iter}.cfg
+#     # sed -i 's/mc_rec_2018F_'$tag'_0.root/mc_rec_2018F_'$tag'_0.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2018F_${tag}_reweightedMC_${iter}.cfg
+#     sed -i 's/data_2018F_'$tag'_None_0.root/data_2018F_'$tag'_None_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+# done
+
+# for iter in {0..999}
+# do
+#     echo $iter
+#     mkdir -p $TREEDIR/bootstrap
+#     cp -f $TREEDIR/ana_2018F_${tag}_None_0.cfg $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+#     sed -i 's/DalitzDataReader DP/DalitzDataReaderBootstrap DP/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+#     sed -i 's/DP_mc_rec_2018F_'$tag'_None_0.root/DP_mc_rec_2018F_'$tag'_None_0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2018F_${tag}_None_0_${iter}.cfg
+# done
+
+# UNC_DIR=${TREEDIR}uncertainty
+
+# for unc_iter in {0..99}
+# do
+#     for iter in {0..199}
+#     do
+#         echo $unc_iter $iter
+#         mkdir -p $UNC_DIR/bootstrap
+#         cp -f $UNC_DIR/ana_2017_${tag}_None_0_${unc_iter}.cfg $UNC_DIR/bootstrap/ana_2017_${tag}_None_0_${unc_iter}_${iter}.cfg
+#         sed -i 's|DalitzDataReader /d/|DalitzDataReaderBootstrap /d/|g' $UNC_DIR/bootstrap/ana_2017_${tag}_None_0_${unc_iter}_${iter}.cfg
+#         # sed -i 's/0.root/0.root 100'$iter'/g' $TREEDIR/bootstrap/ana_2017_${tag}_None_0_${iter}.cfg
+#         # sed -i 's/mc_thrown_2017_'$tag'_0.root/mc_thrown_2017_'$tag'_0.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2017_${tag}_reweightedMC_${iter}.cfg
+#         # sed -i 's/mc_rec_2017_'$tag'_0.root/mc_rec_2017_'$tag'_0.root 100'$iter'/g' $CFGBOOTSTRAPFOLDER/ana_2017_${tag}_reweightedMC_${iter}.cfg
+#         sed -i 's/output_part_'${unc_iter}'.root/output_part_'${unc_iter}'.root 100'$iter'/g' $UNC_DIR/bootstrap/ana_2017_${tag}_None_0_${unc_iter}_${iter}.cfg
+#     done
+# done

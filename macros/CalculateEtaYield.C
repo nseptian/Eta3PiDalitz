@@ -1,6 +1,15 @@
-TString workDir = "/d/grid17/septian/Eta3PiDalitz/run/Eta3PiSelectorParallelTree_nominal_sideband/";
-TString inFileName = "data_2017_nominal_sideband_None_0.root";
-TString inFileNameMC = "mc_rec_2017_nominal_sideband_None_0.root";
+TString workDir = "/d/grid17/septian/Eta3PiDalitz/run/Eta3PiSelectorParallelTree_nominal/";
+TString inFileName = "data_2017_nominal_ccdbFlux_0.root";
+TString inFileNameMC = "reweighted_mc_rec_2017_nominal_ccdbFlux_0.root";
+
+// TString inFileName = "data_2017_nominal_cobremsFlux_0.root";
+// TString inFileNameMC = "reweighted_mc_rec_2017_nominal_cobremsFlux_0.root";
+
+// TString inFileName = "data_2018S_nominal_None_0.root";
+// TString inFileNameMC = "reweighted_mc_rec_2018S_nominal_None_0.root";
+
+// TString inFileName = "data_2018F_nominal_None_0.root";
+// TString inFileNameMC = "reweighted_mc_rec_2018F_nominal_None_0.root";
 
 void CalculateEtaYield(){
     // Load the input file
@@ -21,6 +30,7 @@ void CalculateEtaYield(){
 
     Double_t SumWeight=0;
 
+    cout << "Entries in data tree: " << inTree->GetEntries() << endl;
     // loop over the data tree
     for (Long64_t i = 0; i < inTree->GetEntries(); i++) {
         inTree->GetEntry(i);

@@ -9,9 +9,7 @@ void ReweightMCRec(Int_t data_set, TString tag, TString SystematicVariationStr, 
     TString workingDir = Form("/d/home/septian/Eta3PiDalitz/run/Eta3PiSelectorParallelTree_%s/",tag.Data());
     TString fileInputName = Form("data_%s_%s_%s_%d.root",runPeriod[data_set].Data(),tag.Data(),SystematicVariationStr.Data(),PhotonBeamEnergyBinIdx);
     TString fileInputNameMC = Form("mc_rec_%s_%s_%s_%d.root",runPeriod[data_set].Data(),tag.Data(),SystematicVariationStr.Data(),PhotonBeamEnergyBinIdx);
-    TString fileInputNameMCThrown = Form("mc_thrown_%s_%s_%s_%d.root",runPeriod[data_set].Data(),tag.Data(),SystematicVariationStr.Data(),PhotonBeamEnergyBinIdx);
     TString fileOutputName = Form("reweighted_mc_rec_%s_%s_%s_%d.root",runPeriod[data_set].Data(),tag.Data(),SystematicVariationStr.Data(),PhotonBeamEnergyBinIdx);
-    TString fileOutputNameMCThrown = Form("reweighted_mc_thrown_%s_%s_%s_%d.root",runPeriod[data_set].Data(),tag.Data(),SystematicVariationStr.Data(),PhotonBeamEnergyBinIdx);
 
     TString pdfOut_base = Form("%s_%s_%d",runPeriod[data_set].Data(),tag.Data(),PhotonBeamEnergyBinIdx);
 
@@ -76,16 +74,17 @@ void ReweightMCRec(Int_t data_set, TString tag, TString SystematicVariationStr, 
     leg2->AddEntry(fit_mandelstam_t_ratio,"Polynomial fit","l");
     c1->SaveAs((pdfOutDir+pdfOut_base).Data()+TString("_mandelstam_t_ratio.pdf"));
 
+    //create output file
+    TFile *fileOutput = new TFile(workingDir+fileOutputName,"RECREATE");
+
+    // h1_mandelstam_t_data->Write();
+    // h1_mandelstam_t_MC->Write();
+    h1_mandelstam_t_ratio->SetName("h_mandelstam_t_ratio");
+    h1_mandelstam_t_ratio->Write();
+
+
     if (isGenerateWeightedTrees) {
-
-        //create output file
-        TFile *fileOutput = new TFile(workingDir+fileOutputName,"RECREATE");
-
-        // h1_mandelstam_t_data->Write();
-        // h1_mandelstam_t_MC->Write();
-        h1_mandelstam_t_ratio->SetName("h_mandelstam_t_ratio");
-        h1_mandelstam_t_ratio->Write();
-     
+        
         //create weighted trees
 
         TTree *dataChain = (TTree*)fileInputMC->Get("nt");
@@ -137,29 +136,16 @@ void ReweightMCRec(Int_t data_set, TString tag, TString SystematicVariationStr, 
         h1_mandelstam_t_weighted->GetYaxis()->SetTitle("Events");
 
         // reduce datasets using accept/reject based on the ratio to 2018S data
-        // const Double_t N_2017_cobrems = 171429;
-        // const Double_t N_2017_ccdb =  272616;
-        // const Double_t N_2018S_ccdb =  540145;
-        // const Double_t N_2018F_ccdb =  292879;
+        Double_t N_2017_ccdb =  272616
+        Double_t N_2018S_ccdb =  540145
+        Double_t N_2018F_ccdb =  292879
 
-        const Double_t N_2017_cobrems = 55736.1;
-        const Double_t N_2017_ccdb =  75677.8;
-        const Double_t N_2018S_ccdb =  136194;
-        const Double_t N_2018F_ccdb =  71076.9;
-
-        const Double_t N_2017_cobrems_MC = 920226;
-        const Double_t N_2017_ccdb_MC =  2529020;
-        const Double_t N_2018S_ccdb_MC =  863872;
-        const Double_t N_2018F_ccdb_MC =  949260;
-
-        Double_t ratio[3] = {(N_2017_ccdb*N_2018S_ccdb_MC)/(N_2018S_ccdb*N_2017_ccdb_MC),1,
-                             (N_2018F_ccdb*N_2018S_ccdb_MC)/(N_2018S_ccdb*N_2018F_ccdb_MC)};
-        if (SystematicVariationStr == "cobremsFlux") {
-            ratio[0] = (N_2017_cobrems*N_2018S_ccdb_MC)/(N_2018S_ccdb*N_2017_cobrems_MC);
-        }
+        Double_t ratio[3] = {N_2017_ccdb/N_2018S_ccdb,N_2018S_ccdb/N_2018S_ccdb,N_2018F_ccdb/N_2018S_ccdb};
 
         for (Int_t i=0; i<dataChain->GetEntries(); i++) {
-            if (gRandom->Rndm() > ratio[data_set]) continue;
+            
+            if (TRandom3().Rndm() > ratio[data_set]) continue;
+
             dataChain->GetEntry(i);
             TLorentzVector P4_RecoilProton = TLorentzVector(PxProton,PyProton,PzProton,EnProton);
             TLorentzVector P4_TargetProton = TLorentzVector(0,0,0,0.938272);
@@ -173,6 +159,7 @@ void ReweightMCRec(Int_t data_set, TString tag, TString SystematicVariationStr, 
             dataChainWeighted->Fill();
             h1_mandelstam_t_weighted->Fill(mandelstam_t,weight);
         }
+        
         dataChainWeighted->Write();
         h1_mandelstam_t_unweighted->Write();
         h1_mandelstam_t_weighted->Write();
@@ -225,74 +212,7 @@ void ReweightMCRec(Int_t data_set, TString tag, TString SystematicVariationStr, 
         leg1->Draw();
 
         c1->SaveAs((pdfOutDir+pdfOut_base).Data()+TString("_mandelstam_t_ratio_datareweightedMC.pdf"));
-
-        fileOutput->Close();
-        TFile *fileInputMCThrown = TFile::Open(workingDir+fileInputNameMCThrown);
-        TFile *fileOutputMCThrown = new TFile(workingDir+fileOutputNameMCThrown,"RECREATE");
-        
-        TTree *dataChainMCThrown = (TTree*)fileInputMCThrown->Get("nt");
-
-        dataChainMCThrown->SetBranchAddress("EnBeam",&EnBeam);
-
-        dataChainMCThrown->SetBranchAddress("EnP1",&EnP1);
-        dataChainMCThrown->SetBranchAddress("PxP1",&PxP1);
-        dataChainMCThrown->SetBranchAddress("PyP1",&PyP1);
-        dataChainMCThrown->SetBranchAddress("PzP1",&PzP1);
-
-        dataChainMCThrown->SetBranchAddress("EnP2",&EnP2);
-        dataChainMCThrown->SetBranchAddress("PxP2",&PxP2);
-        dataChainMCThrown->SetBranchAddress("PyP2",&PyP2);
-        dataChainMCThrown->SetBranchAddress("PzP2",&PzP2);
-
-        dataChainMCThrown->SetBranchAddress("EnP3",&EnP3);
-        dataChainMCThrown->SetBranchAddress("PxP3",&PxP3);
-        dataChainMCThrown->SetBranchAddress("PyP3",&PyP3);
-        dataChainMCThrown->SetBranchAddress("PzP3",&PzP3);
-
-        dataChainMCThrown->SetBranchAddress("weight",&weight);
-
-        TTree *dataChainMCThrownWeighted = dataChainMCThrown->CloneTree(0);
-
-        cout << "Ratio: " << ratio[data_set] << endl;
-
-        TH1F *h_Mandelstam_t_thrown = new TH1F("h_Mandelstam_t_thrown","Mandelstam t thrown",101,0.15,0.6);
-        
-
-        for (Int_t i=0; i<dataChainMCThrown->GetEntries(); i++) {
-            if (gRandom->Rndm() > ratio[data_set]) continue;
-
-            // cout << "Entry: " << i << endl;
-
-            dataChainMCThrown->GetEntry(i);
-            TLorentzVector P4_PiPlus,P4_PiMinus,P4_PiZero;
-            P4_PiPlus.SetPxPyPzE(PxP1,PyP1,PzP1,EnP1);
-            P4_PiMinus.SetPxPyPzE(PxP2,PyP2,PzP2,EnP2);
-            P4_PiZero.SetPxPyPzE(PxP3,PyP3,PzP3,EnP3);
-
-            TLorentzVector P4_Eta = P4_PiPlus + P4_PiMinus + P4_PiZero;
-        
-            TLorentzVector P4_Beam = TLorentzVector(0,0,EnBeam,EnBeam);
-
-            Double_t Mandestam_t = -1.0*(P4_Eta - P4_Beam).M2();
-
-            weight = fit_mandelstam_t_ratio->Eval(Mandestam_t);
-            h_Mandelstam_t_thrown->Fill(Mandestam_t,weight);
-
-            // fill output tree
-            dataChainMCThrownWeighted->Fill();
-        }
-        cout << "Output file entries: " << dataChainMCThrownWeighted->GetEntries() << endl;
-        dataChainMCThrownWeighted->Write();
-        // fileOutputMCThrown->Close();
-
-        c1->Clear();
-        h_Mandelstam_t_thrown->SetLineColor(kBlack);
-        h_Mandelstam_t_thrown->SetLineWidth(2);
-        h_Mandelstam_t_thrown->GetXaxis()->SetTitle("|t| [GeV^{2}]");
-        h_Mandelstam_t_thrown->GetYaxis()->SetTitle("Events");
-        h_Mandelstam_t_thrown->Draw();
-        c1->SaveAs((pdfOutDir+pdfOut_base+TString("_mandelstam_t_thrown.pdf")).Data());
-                
     }
+    fileOutput->Close();
 
 }
