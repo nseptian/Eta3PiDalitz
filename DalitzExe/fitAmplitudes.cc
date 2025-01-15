@@ -66,6 +66,7 @@ int main( int argc, char* argv[] ){
   fitManager->setStrategy(1);
 
   fitManager->migradMinimization();
+  fitManager->hesseEvaluation();
 
   if( fitManager->status() != 0 && fitManager->eMatrixStatus() != 3 ){
     cout << "ERROR: fit failed..." << endl;
